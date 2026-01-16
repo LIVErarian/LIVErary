@@ -35,3 +35,13 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 환경 변수
+.env
+.env.*
+
+### stun/turn 서버 관련
+.coturn/
+
+### application.yml
+application.yml
