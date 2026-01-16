@@ -1,7 +1,7 @@
 import { globalFontFace, globalStyle } from '@vanilla-extract/css';
 
-const contentFont = 'ThinRounded';
-const titleFont = 'NeoRounded';
+export const contentFont = 'ThinDungGeunMo';
+export const titleFont = 'NeoDunggeunmoPro-Regular';
 
 // 얇은둥근모
 globalFontFace(contentFont, {
