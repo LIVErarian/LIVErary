@@ -55,5 +55,5 @@ export default tseslint.config(
       // Prettier 규칙 적용
       ...prettier.rules,
     },
-  }
+  },
 );

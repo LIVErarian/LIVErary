@@ -1,4 +1,5 @@
 #!/bin/sh
+cd frontend
 
 # 현재 브랜치 이름 가져오기
 branch="$(git rev-parse --abbrev-ref HEAD)"
@@ -13,5 +14,5 @@ if [ "$branch" = "master" ]; then
 fi
 
 # 코드 스타일 검사 (Lint & Format) 실행
-echo "코드 스타일 검사"
+echo "코드 스타일 검사중..."
 npm run lint && npm run format
