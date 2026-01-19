@@ -6,8 +6,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,12 +17,12 @@ import java.util.UUID;
 @Getter
 @Table(name = "room_history")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 public class RoomHistory {
     // 방 참여 이력의 고유 식별자 (UUID)
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID history_id;
+    @Column(name = "history_id")
+    private UUID historyId;
 
     // 방 정보 (FK), N:1 관계
     @ManyToOne(fetch = FetchType.LAZY)
@@ -47,7 +45,6 @@ public class RoomHistory {
     private HistoryStatus status;
 
     // 입장 시각
-    @CreatedDate
     @Column(updatable = false)
     private LocalDateTime joinedAt;
 
@@ -67,6 +64,7 @@ public class RoomHistory {
         this.user = user;
         this.role = (role != null) ? role : RoomRole.GUEST;
         this.status = HistoryStatus.JOINED;
+        this.joinedAt = LocalDateTime.now();
     }
 
     /**

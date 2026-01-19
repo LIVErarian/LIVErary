@@ -2,14 +2,10 @@ package com.liverary.backend.room.domain;
 
 import com.liverary.backend.user.domain.User;
 import jakarta.persistence.*;
-import jdk.jfr.Category;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,11 +17,11 @@ import java.util.UUID;
 @Getter
 @Table(name = "room")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 public class Room {
     // 방의 고유 식별자 (UUID)
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "room_id")
     private UUID roomId;
 
     // 연관된 책 정보 (FK)
@@ -82,12 +78,10 @@ public class Room {
     private LocalDateTime endAt;
 
     // 방의 생성일시
-    @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
     // 방의 수정일시
-    @LastModifiedDate
     @Column(updatable = false)
     private LocalDateTime updatedAt;
 
@@ -128,6 +122,8 @@ public class Room {
 
         this.status = RoomStatus.LIVE;
         this.currentCount = 0;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     /**
