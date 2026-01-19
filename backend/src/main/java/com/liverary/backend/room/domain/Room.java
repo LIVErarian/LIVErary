@@ -2,6 +2,7 @@ package com.liverary.backend.room.domain;
 
 import com.liverary.backend.user.domain.User;
 import jakarta.persistence.*;
+import jdk.jfr.Category;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,8 +30,13 @@ public class Room {
 
     // 연관된 책 정보 (FK)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id", nullable = false)
+    @JoinColumn(name = "book_id")
     private Book book;
+
+    // 연관된 카테고리 정보 (FK)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
     // 생성한 유저 정보 (FK)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -94,17 +100,19 @@ public class Room {
      * @param maxUser 방의 최대 인원
      * @param creator 방을 생성한 유저
      * @param book 방에서 이야기할 책
+     * @param category 방에서 이야기할 카테고리
      * @param code 방의 초대 코드
      * @param startAt 방을 시작하는 시각 (기본값: 생성일시)
      */
     @Builder
-    public Room(String title, RoomType roomType, AccessType accessType, Integer maxUser, User creator, Book book, String code, LocalDateTime startAt) {
+    public Room(String title, RoomType roomType, AccessType accessType, Integer maxUser, User creator, Book book, Category category, String code, LocalDateTime startAt) {
         this.title = title;
         this.roomType = roomType;
         this.accessType = accessType;
         this.maxUser = maxUser;
         this.creator = creator;
         this.book = book;
+        this.category = category;
 
         // 방을 생성하면 UUID 기반 6자리 영문코드를 자동으로 생성합니다.
         if (code == null || code.isBlank()) {
