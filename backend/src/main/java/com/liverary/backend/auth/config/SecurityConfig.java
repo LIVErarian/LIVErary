@@ -1,0 +1,51 @@
+package com.liverary.backend.auth.config;
+
+import com.liverary.backend.auth.filter.JwtAuthenticationFilter;
+import com.liverary.backend.auth.provider.JwtProvider;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+/**
+ * Spring Security의 전반적인 보안 정책을 설정하는 설정 클래스
+ */
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtProvider jwtProvider;
+
+    /**
+     * 보안 필터 체인을 정의하고 HTTP 보안 설정 구성
+     * Stateless API 방식에 최적화됨
+     *
+     * @param http HttpSecurity 객체
+     * @return 구성된 SecurityFilterChain 객체
+     * @throws Exception 설정 과정에서 오류 발생 시
+     */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                // CSRF 비활성화 및 세션 정책 Stateless로 설정
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 요청별 권한 제어 설정
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/**").permitAll() // 로그인, 회원가입 등 인증 관련 API 허용
+                        .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
+                )
+
+                // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 이전에 실행되도록 설정
+                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+}
