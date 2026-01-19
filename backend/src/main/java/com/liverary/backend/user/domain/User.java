@@ -18,14 +18,13 @@ import java.util.UUID;
 @Entity
 @Getter
 @Table(name = "USER")
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 
     // 사용자의 고유 식별자 (UUID)
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "user_id", columnDefinition = "BINARY(16)")
+    @Column(name = "user_id")
     private UUID userId;
 
     // 사용자 닉네임
@@ -55,12 +54,10 @@ public class User {
     private Long totalReadingTime;
 
     // 계정 생성 일시
-    @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     // 계정 정보 수정 일시
-    @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
@@ -81,6 +78,8 @@ public class User {
         this.gender = gender;
         this.role = role != null ? role : Role.USER;
         this.totalReadingTime = 0L;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
 }
