@@ -12,6 +12,7 @@ import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,7 +27,6 @@ import java.util.UUID;
  * 인증 관련 비즈니스 로직을 처리하고 Spring Security의 사용자 정보를 로드하는 서비스 클래스
  */
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AuthService implements UserDetailsService {
 
@@ -34,6 +34,28 @@ public class AuthService implements UserDetailsService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+
+    /**
+     * AuthService 생성자
+     * 빈 순환 참조(Circular Dependency) 문제를 해결하기 위해 @RequiredArgsConstructor 대신
+     * 수동 생성자를 사용하며, @Lazy 어노테이션을 통해 특정 의존성의 주입 시점을 지연시킵니다.
+     *
+     * @param userRepository 사용자 정보 조회를 위한 리포지토리
+     * @param refreshTokenRepository 리프레시 토큰 관리를 위한 리포지토리
+     * @param passwordEncoder 비밀번호 암호화 처리를 위한 인코더 (순환 참조 방지를 위해 지연 주입)
+     * @param jwtProvider JWT 토큰 생성 및 검증을 위한 프로바이더 (순환 참조 방지를 위해 지연 주입)
+     */
+    public AuthService(
+            UserRepository userRepository,
+            RefreshTokenRepository refreshTokenRepository,
+            @Lazy PasswordEncoder passwordEncoder,
+            @Lazy JwtProvider jwtProvider
+    ) {
+        this.userRepository = userRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtProvider = jwtProvider;
+    }
 
     /**
      * Spring Security 인증 과정에서 사용자 식별자(UUID)를 기반으로 사용자 조회
