@@ -51,7 +51,7 @@ public class AuthService implements UserDetailsService {
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
         return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
+                user.getUserId().toString(),
                 user.getPassword(),
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         );
