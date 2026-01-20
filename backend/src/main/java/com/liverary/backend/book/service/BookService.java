@@ -2,6 +2,7 @@ package com.liverary.backend.book.service;
 
 import com.liverary.backend.book.domain.Book;
 import com.liverary.backend.book.domain.RegStatus;
+import com.liverary.backend.book.dto.response.BookDetailResponse;
 import com.liverary.backend.book.dto.response.BookListResponse;
 import com.liverary.backend.book.repository.BookRepository;
 import com.liverary.backend.category.domain.Category;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +51,17 @@ public class BookService {
         }
         
         return books.map(BookListResponse::from);
+    }
+
+    /**
+     * 도서 상세 조회
+     * @param bookId
+     * @return
+     */
+    public BookDetailResponse getBookDetail(UUID bookId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(()-> new BaseException(ErrorCode.BOOK_NOT_FOUND));
+        return BookDetailResponse.from(book);
     }
 
 
