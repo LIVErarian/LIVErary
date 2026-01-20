@@ -1,5 +1,7 @@
 package com.liverary.backend.room.domain;
 
+import com.liverary.backend.book.domain.Book;
+import com.liverary.backend.category.domain.Category;
 import com.liverary.backend.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
