@@ -157,4 +157,13 @@ public class Room {
         this.status = RoomStatus.FINISHED;
     }
 
+    /**
+     * 비공개 방의 초대 코드 일치 여부 확인을 위한 비즈니스 로직입니다.
+     *
+     * @param inputCode 사용자가 입력한 초대 코드
+     * @return 코드가 존재하고 입력값과 일치하면 true, 그렇지 않으면 false
+     */
+    public boolean isCodeMatch(String inputCode) {
+        return this.code != null && this.code.equals(inputCode);
+    }
 }

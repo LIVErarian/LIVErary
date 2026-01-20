@@ -6,9 +6,12 @@ import com.liverary.backend.category.domain.Category;
 import com.liverary.backend.category.repository.CategoryRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
-import com.liverary.backend.room.domain.Room;
+import com.liverary.backend.room.domain.*;
+import com.liverary.backend.room.dto.request.JoinRoomRequest;
 import com.liverary.backend.room.dto.request.RoomCreateRequest;
+import com.liverary.backend.room.dto.response.JoinRoomResponse;
 import com.liverary.backend.room.dto.response.RoomCreateResponse;
+import com.liverary.backend.room.repository.RoomHistoryRepository;
 import com.liverary.backend.room.repository.RoomRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
@@ -33,6 +36,7 @@ public class RoomService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final RoomHistoryRepository roomHistoryRepository;
 
     /**
      * 새로운 방(Room)을 생성합니다.
@@ -86,4 +90,71 @@ public class RoomService {
 
         return RoomCreateResponse.from(room);
     }
+
+    /**
+     * 유저가 특정 방에 참여(입장)합니다.
+     *
+     * <p>방 입장 전 다음과 같은 유효성 검사를 수행합니다:</p>
+     * <ul>
+     * <li>방 상태가 'LIVE'인지 확인</li>
+     * <li>이미 참여 중인 유저인지 확인</li>
+     * <li>방의 정원(Max User) 초과 여부 확인</li>
+     * <li>PRIVATE 방일 경우, 입력된 초대 코드 일치 여부 확인</li>
+     * </ul>
+     *
+     * <p>검증이 완료되면 참여 이력(RoomHistory)을 'JOINED' 상태로 생성하고,
+     * 방의 현재 인원수를 1 증가시킵니다. 참여자의 기본 역할은 'GUEST'로 설정됩니다.</p>
+     *
+     * @param roomId  참여하려는 방의 고유 식별자(UUID)
+     * @param userId  참여를 요청한 유저의 고유 식별자(UUID)
+     * @param request 초대 코드가 포함된 요청 DTO (PRIVATE 방일 경우 필수)
+     * @return 방 참여 기록 ID(historyId)와 방 ID(roomId)를 포함한 응답 DTO
+     * @throws BaseException 유효성 검사를 통과하지 못했을 때 예외가 발생합니다.
+     */
+    @Transactional
+    public JoinRoomResponse joinRoom(UUID roomId, UUID userId, JoinRoomRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+        // 진행 중인 방만 입장 가능
+        if (room.getStatus() != RoomStatus.LIVE) {
+            throw new BaseException(ErrorCode.ROOM_NOT_LIVE);
+        }
+
+        // 이미 참여 중인 유저의 중복 참여 방지
+        if (roomHistoryRepository.existsByRoomAndUserAndStatus(room, user, HistoryStatus.JOINED)) {
+            throw new BaseException(ErrorCode.ALREADY_JOINED_ROOM);
+        }
+
+        // 정원 초과 여부 확인
+        if (room.getCurrentCount() >= room.getMaxUser()) {
+            throw new BaseException(ErrorCode.ROOM_FULL);
+        }
+
+        // PRIVATE 방일 경우 초대코드 확인
+        if (room.getAccessType() == AccessType.PRIVATE) {
+            if (!room.isCodeMatch(request.getCode())) {
+                throw new BaseException(ErrorCode.INVALID_CODE);
+            }
+        }
+
+        RoomHistory history = RoomHistory.builder()
+                .room(room)
+                .user(user)
+                .role(RoomRole.GUEST)
+                .build();
+
+        roomHistoryRepository.save(history);
+
+        room.increaseCurrentCount();
+
+        return JoinRoomResponse.builder()
+                .historyId(history.getHistoryId())
+                .roomId(room.getRoomId())
+                .build();
+    }
+
 }

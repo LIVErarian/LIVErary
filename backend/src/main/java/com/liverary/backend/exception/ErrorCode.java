@@ -18,6 +18,10 @@ public enum ErrorCode {
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "C001", "잘못된 요청입니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "C002", "적절하지 않은 입력값입니다."),
 
+    ROOM_NOT_LIVE(HttpStatus.BAD_REQUEST, "R002", "참여 가능한 상태의 방이 아닙니다."),
+    ROOM_FULL(HttpStatus.BAD_REQUEST, "R003", "방의 정원이 초과되었습니다."),
+    INVALID_CODE(HttpStatus.BAD_REQUEST, "R004", "참여 코드가 일치하지 않습니다."),
+
     // 401 UNAUTHORIZED: 인증 실패
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증에 실패했습니다."),
 
@@ -30,12 +34,16 @@ public enum ErrorCode {
 
     // 404 NOT_FOUND: 리소스를 찾을 수 없음
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "요청한 리소스를 찾을 수 없습니다."),
+
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "해당 도서를 찾을 수 없습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CT001", "해당 카테고리를 찾을 수 없습니다."),
+    ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 방을 찾을 수 없습니다."),
+
     // 409 CONFLICT: 중복된 리소스
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "C004", "이미 존재하는 데이터입니다."),
 
     EMAIL_DUPLICATE(HttpStatus.CONFLICT, "U001", "이미 사용중인 이메일입니다."),
+    ALREADY_JOINED_ROOM(HttpStatus.CONFLICT, "R005", "이미 참여 중인 방입니다."),
 
     // 500 INTERNAL_SERVER_ERROR: 서버 에러
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S001", "서버 내부 오류가 발생했습니다."),
