@@ -7,7 +7,11 @@ import com.liverary.backend.auth.service.AuthService;
 import com.liverary.backend.common.dto.BaseResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 /**
  * 인증 및 회원 관리와 관련된 API를 처리하는 컨트롤러
@@ -66,6 +70,22 @@ public class AuthController {
     public BaseResponse<String> reissue(@RequestBody String refreshToken) {
         String newAccessToken = authService.reissue(refreshToken);
         return BaseResponse.success(newAccessToken);
+    }
+
+    /**
+     * 로그아웃 처리
+     * 현재 인증된 사용자의 리프레시 토큰 무효화
+     *
+     * @param user 현재 인증된 사용자의 정보
+     * @return 로그아웃 성공시 성공 응답 객체
+     */
+    @PostMapping("/logout")
+    public BaseResponse<String> logout(@AuthenticationPrincipal UserDetails user) {
+
+        UUID userId = UUID.fromString(user.getUsername());
+
+        authService.logout(userId);
+        return BaseResponse.success();
     }
 
 }

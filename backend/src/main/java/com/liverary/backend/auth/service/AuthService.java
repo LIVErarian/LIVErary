@@ -139,4 +139,15 @@ public class AuthService implements UserDetailsService {
         return jwtProvider.createAccessToken(savedToken.getUserId());
     }
 
+    /**
+     * 사용자의 리프레시 토큰을 삭제하여 로그아웃 처리
+     *
+     * @param userId 사용자의 식별자 (UUID)
+     */
+    @Transactional
+    public void logout(UUID userId) {
+        // 해당 유저의 리프레시 토큰이 존재하면 삭제
+        refreshTokenRepository.deleteById(userId);
+    }
+
 }
