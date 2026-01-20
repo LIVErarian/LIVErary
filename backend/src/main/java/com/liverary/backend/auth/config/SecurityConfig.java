@@ -1,6 +1,7 @@
 package com.liverary.backend.auth.config;
 
 import com.liverary.backend.auth.filter.JwtAuthenticationFilter;
+import com.liverary.backend.auth.filter.JwtExceptionFilter;
 import com.liverary.backend.auth.provider.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +12,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Spring Security의 전반적인 보안 정책을 설정하는 설정 클래스
@@ -44,8 +46,12 @@ public class SecurityConfig {
                 )
 
                 // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 이전에 실행되도록 설정
-                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+
+                // JWT 예외 처리 필터를 인증 필터 바로 앞에 등록하여 예외를 가로채도록 설정
+                .addFilterBefore(new JwtExceptionFilter(new ObjectMapper()), JwtAuthenticationFilter.class);
 
         return http.build();
     }
+
 }
