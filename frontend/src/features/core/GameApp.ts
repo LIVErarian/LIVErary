@@ -2,8 +2,9 @@
 import { Application, Assets, Sprite, Ticker } from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 
+import playerMSheetImg from '@/assets/characters/basic_male.png';
 import basicFloorMap from '@/assets/maps/basic_floor.png';
-import { Player } from '../player/Player';
+import { type Direction, Player } from '../player/Player';
 
 import { palette } from '@/styles/theme.css';
 
@@ -12,6 +13,7 @@ export class GameApp {
   private _viewport!: Viewport;
   private _player!: Player;
   private _keys: { [key: string]: boolean } = {};
+  private _lookingDirection: Direction = 'down';
 
   // Readonly 상수
   private readonly WORLD_WIDTH = 960;
@@ -88,17 +90,6 @@ export class GameApp {
     this._app.stage.addChild(this._viewport);
   }
 
-  // 플레이어 생성
-  private createPlayer() {
-    // 초기 생성 위치: 화면 중앙
-    const centerX = this.WORLD_WIDTH / 2;
-    const centerY = this.WORLD_HEIGHT / 2;
-
-    this._player = new Player(centerX, centerY, 'Player');
-    this._viewport.addChild(this._player);
-    this._viewport.follow(this._player);
-  }
-
   // 키보드 입력 관리
   private addEventHandlers() {
     window.addEventListener('keydown', (e) => {
@@ -107,6 +98,33 @@ export class GameApp {
     window.addEventListener('keyup', (e) => {
       this._keys[e.key] = false;
     });
+  }
+
+  private async loadAssets() {
+    // 맵 이미지 불러오기
+    const texture = await Assets.load(basicFloorMap);
+    const bgSprite = new Sprite(texture);
+    bgSprite.width = this.WORLD_WIDTH;
+    bgSprite.height = this.WORLD_HEIGHT;
+    this._viewport.addChild(bgSprite);
+
+    // 캐릭터 이미지 불러오기
+    //TODO: 캐릭터 선택창 추가 후 playerSheet 변경 필요
+    Assets.add({ alias: 'playerSheet', src: playerMSheetImg });
+    await Assets.load('playerSheet');
+  }
+
+  private createPlayer() {
+    const startX = this.WORLD_WIDTH / 2;
+    const startY = this.WORLD_HEIGHT;
+
+    const sheetTexture = Assets.get('playerSheet');
+
+    // Player 생성자에 texture 전달
+    this._player = new Player(startX, startY, 'Player', sheetTexture);
+
+    this._viewport.addChild(this._player);
+    this._viewport.follow(this._player);
   }
 
   // 매 프레임 실행되는 게임 루프
@@ -118,13 +136,29 @@ export class GameApp {
     let dy = 0;
 
     // WASD 또는 화살표 키 지원
-    if (this._keys['ArrowUp'] || this._keys['w'] || this._keys['W']) dy -= 1;
-    if (this._keys['ArrowDown'] || this._keys['s'] || this._keys['S']) dy += 1;
-    if (this._keys['ArrowLeft'] || this._keys['a'] || this._keys['A']) dx -= 1;
-    if (this._keys['ArrowRight'] || this._keys['d'] || this._keys['D']) dx += 1;
+    if (this._keys['ArrowUp'] || this._keys['w'] || this._keys['W']) {
+      dy -= 1;
+      this._lookingDirection = 'up';
+    }
+    if (this._keys['ArrowDown'] || this._keys['s'] || this._keys['S']) {
+      dy += 1;
+      this._lookingDirection = 'down';
+    }
+    if (this._keys['ArrowLeft'] || this._keys['a'] || this._keys['A']) {
+      dx -= 1;
+      this._lookingDirection = 'left';
+    }
+    if (this._keys['ArrowRight'] || this._keys['d'] || this._keys['D']) {
+      dx += 1;
+      this._lookingDirection = 'right';
+    }
 
-    // 움직임 없으면 종료
-    if (dx === 0 && dy === 0) return;
+    // 움직임 여부
+    const isMoving = dx !== 0 || dy !== 0;
+
+    this._player.setAnimation(this._lookingDirection, isMoving);
+
+    if (!isMoving) return;
 
     // 대각선 이동 보정
     if (dx !== 0 && dy !== 0) {
@@ -138,25 +172,17 @@ export class GameApp {
     this._player.y += dy * this.MOVE_SPEED * ticker.deltaTime;
 
     // Clamping
-    const marginX = this._player.width / 2;
-    const marginY = this._player.height;
+    const marginX = this._player.playerWidth / 2;
+    const marginY = this._player.playerHeight;
 
     this._player.x = Math.max(
       marginX,
       Math.min(this._player.x, this.WORLD_WIDTH - marginX),
     );
     this._player.y = Math.max(
-      0,
-      Math.min(this._player.y, this.WORLD_HEIGHT - marginY),
+      marginY,
+      Math.min(this._player.y, this.WORLD_HEIGHT),
     );
-  }
-
-  private async loadAssets() {
-    const texture = await Assets.load(basicFloorMap);
-    const bgSprite = new Sprite(texture);
-    bgSprite.width = this.WORLD_WIDTH;
-    bgSprite.height = this.WORLD_HEIGHT;
-    this._viewport.addChild(bgSprite);
   }
 
   // 게임 종료 시 정리
