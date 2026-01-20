@@ -47,7 +47,6 @@ public class BookService {
             books = bookRepository.findAllApproved(pageable);
         }
         
-        System.out.println("DEBUG: Found Books Count=" + books.getTotalElements());
         return books.map(BookListResponse::from);
     }
 
