@@ -4,12 +4,13 @@ import com.liverary.backend.book.domain.Book;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.UUID;
 
 
 @Getter
 @AllArgsConstructor
 public class BookListResponse {
-    private String bookId;
+    private UUID bookId;
     private String title;
     private String author;
     private String coverUrl;

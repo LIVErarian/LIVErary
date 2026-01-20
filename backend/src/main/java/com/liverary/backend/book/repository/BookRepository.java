@@ -12,22 +12,15 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface BookRepository extends JpaRepository<Book, String> {
+public interface BookRepository extends JpaRepository<Book, UUID> {
 
     // 전체 도서 목록 조회 (APPROVED만)
     @Query("SELECT b FROM Book b WHERE b.regStatus = 'APPROVED'")
     Page<Book> findAllApproved(Pageable pageable);
 
-    // 카테고리별 도서 목록 조회 (APPROVED만) - 쿼리 메소드 방식이 더 안정적입니다.
+    // 카테고리별 도서 목록 조회 (APPROVED만)
     Page<Book> findByCategoryAndRegStatus(
             Category category,
-            RegStatus regStatus,
-            Pageable pageable
-    );
-
-    // 카테고리 ID로 직접 조회
-    Page<Book> findByCategory_CategoryIdAndRegStatus(
-            String categoryId,
             RegStatus regStatus,
             Pageable pageable
     );
