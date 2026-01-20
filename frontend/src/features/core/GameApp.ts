@@ -4,6 +4,7 @@ import { Viewport } from 'pixi-viewport';
 
 import playerMSheetImg from '@/assets/characters/basic_male.png';
 import basicFloorMap from '@/assets/maps/basic_floor.png';
+import { NetworkManager } from '../network/NetworkManager';
 import { type Direction, Player } from '../player/Player';
 
 import { palette } from '@/styles/theme.css';
@@ -14,6 +15,7 @@ export class GameApp {
   private _player!: Player;
   private _keys: { [key: string]: boolean } = {};
   private _lookingDirection: Direction = 'down';
+  private _networkManager: NetworkManager;
 
   // Readonly 상수
   private readonly WORLD_WIDTH = 960;
@@ -24,6 +26,7 @@ export class GameApp {
   constructor() {
     // App 인스턴스만 생성
     this._app = new Application();
+    this._networkManager = new NetworkManager();
   }
 
   // Getter
@@ -60,6 +63,9 @@ export class GameApp {
 
     // 에셋 로드 & 배경 설정
     await this.loadAssets();
+
+    // 서버 연결 시도
+    this._networkManager.connect();
 
     // 플레이어 설정
     this.createPlayer();
