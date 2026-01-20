@@ -8,10 +8,10 @@ import com.liverary.backend.auth.provider.JwtProvider;
 import com.liverary.backend.auth.repository.RefreshTokenRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
-import com.liverary.backend.user.domain.Role;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -43,7 +43,8 @@ public class AuthService implements UserDetailsService {
      * @throws BaseException 존재하지 않는 사용자일 경우 발생 (ErrorCode.USER_NOT_FOUND)
      */
     @Override
-    public UserDetails loadUserByUsername(String subject) {
+    @NonNull
+    public UserDetails loadUserByUsername(@NonNull String subject) {
 
         UUID userId = UUID.fromString(subject);
 
