@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * JWT 토큰의 생성, 검증 및 인증 객체 조회를 담당하는 Provider 클래스
@@ -57,14 +58,14 @@ public class JwtProvider {
     }
 
     /**
-     * 사용자의 이메일을 기반으로 Access Token 생성
+     * 사용자 식별자(UUID)를 기반으로 Access Token 생성
      *
-     * @param email 사용자 이메일
+     * @param userId 사용자 식별자
      * @return 생성된 Access Token 문자열
      */
-    public String createAccessToken(String email) {
+    public String createAccessToken(UUID userId) {
         return Jwts.builder()
-                .subject(email)
+                .subject(userId.toString())
                 .issuer(issuer)
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plusSeconds(accessTokenExpTime)))
