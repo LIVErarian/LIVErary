@@ -47,9 +47,9 @@ public class JwtProvider {
      * @param accessTokenExpTime Access Token 만료 시간
      * @param userDetailsService 사용자 정보 서비스
      */
-    public JwtProvider(@Value("${jwt.secret-key}") String key,
-                       @Value("${jwt.issuer}") String issuer,
-                       @Value("${jwt.expiration-time.access}") Long accessTokenExpTime,
+    public JwtProvider(@Value("${spring.jwt.secret-key}") String key,
+                       @Value("${spring.jwt.issuer}") String issuer,
+                       @Value("${spring.jwt.access-expiration}") Long accessTokenExpTime,
                        UserDetailsService userDetailsService) {
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(key));
         this.issuer = issuer;
