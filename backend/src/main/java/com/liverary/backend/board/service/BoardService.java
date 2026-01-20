@@ -5,6 +5,8 @@ import com.liverary.backend.board.domain.Board;
 import com.liverary.backend.board.dto.request.BoardCreateRequest;
 import com.liverary.backend.board.dto.response.BoardCreateResponse;
 import com.liverary.backend.board.repository.BoardRepository;
+import com.liverary.backend.user.domain.User;
+import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
 
     /**
      * 게시글 생성 로직 수행
@@ -30,7 +33,9 @@ public class BoardService {
      */
     @Transactional
     public BoardCreateResponse createBoard(UUID userId, BoardCreateRequest request) {
-        Board board = request.toEntity(userId);
+        User userRef = userRepository.getReferenceById(userId);
+
+        Board board = request.toEntity(userRef);
 
         Board savedBoard = boardRepository.save(board);
 

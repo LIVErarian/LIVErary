@@ -3,6 +3,7 @@ package com.liverary.backend.board.dto.request;
 import com.liverary.backend.board.domain.Board;
 import com.liverary.backend.board.domain.Status;
 import com.liverary.backend.board.domain.Type;
+import com.liverary.backend.user.domain.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -31,10 +32,10 @@ public class BoardCreateRequest {
     /**
      * DTO를 Board 엔티티로 변환합니다.
      *
-     * @param userId 작성자의 고유 ID (UUID)
+     * @param user 작성자
      * @return 생성된 Board 엔티티 객체
      */
-    public Board toEntity(UUID userId) {
+    public Board toEntity(User user) {
         Type type = this.type;
 
         // 문의글(INQUIRY)이면 -> PENDING (답변 대기)
@@ -43,7 +44,7 @@ public class BoardCreateRequest {
                 ? Status.PENDING : Status.POSTED;
 
         return Board.builder()
-                .userId(userId)
+                .user(user)
                 .title(this.title)
                 .content(this.content)
                 .type(this.type)
