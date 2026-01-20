@@ -5,6 +5,7 @@ import com.liverary.backend.exception.ErrorCode;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -85,9 +86,11 @@ public class JwtProvider {
 
     /**
      * 전달받은 토큰의 유효성 검증
+     * 검증 실패 시 각 상황(만료, 변조, 형식 오류 등)에 맞는 BaseException 발생
      *
      * @param token 검증할 JWT 토큰
-     * @return 유효 여부 (true: 유효함, false: 유효하지 않음)
+     * @return 유효한 토큰일 경우 true
+     * @throws BaseException 토큰 만료(TOKEN_EXPIRED), 유효하지 않은 경우(TOKEN_INVALID, TOKEN_MALFORMED)
      */
     public boolean validateToken(String token) {
         try {
@@ -96,17 +99,19 @@ public class JwtProvider {
         } catch (ExpiredJwtException e) {
             log.error("만료된 JWT 토큰입니다.");
             throw new BaseException(ErrorCode.TOKEN_EXPIRED);
-        } catch (MalformedJwtException | io.jsonwebtoken.security.SignatureException e) {
-            log.error("변조되었거나 잘못된 형식의 JWT 토큰입니다.");
-            throw new BaseException(ErrorCode.INVALID_TOKEN);
+        } catch (MalformedJwtException e){
+            log.error("잘못된 형식의 JWT 토큰입니다.");
+            throw new BaseException(ErrorCode.TOKEN_MALFORMED);
+        } catch (SignatureException e) {
+            log.error("변조된 JWT 토큰입니다.");
+            throw new BaseException(ErrorCode.TOKEN_INVALID);
         } catch (UnsupportedJwtException e) {
             log.error("지원되지 않는 JWT 토큰입니다.");
-            throw new BaseException(ErrorCode.INVALID_TOKEN);
+            throw new BaseException(ErrorCode.TOKEN_INVALID);
         } catch (Exception e) {
             log.error("JWT 토큰 검증 중 예상치 못한 오류가 발생했습니다.");
             throw new BaseException(ErrorCode.UNAUTHORIZED);
         }
-        return false;
     }
 
     /**
