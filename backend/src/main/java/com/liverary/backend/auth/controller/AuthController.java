@@ -56,4 +56,16 @@ public class AuthController {
         return BaseResponse.success(response);
     }
 
+    /**
+     * 리프레시 토큰을 이용한 액세스 토큰 재발급
+     *
+     * @param refreshToken 클라이언트가 보유한 리프레시 토큰
+     * @return 재발급된 액세스 토큰을 포함한 성공 응답
+     */
+    @PostMapping("/reissue")
+    public BaseResponse<String> reissue(@RequestBody String refreshToken) {
+        String newAccessToken = authService.reissue(refreshToken);
+        return BaseResponse.success(newAccessToken);
+    }
+
 }

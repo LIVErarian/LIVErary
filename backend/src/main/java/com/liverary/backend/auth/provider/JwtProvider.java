@@ -35,6 +35,9 @@ public class JwtProvider {
     // Access Token 만료 시간 (초 단위)
     private final Long accessTokenExpTime;
 
+    // Refresh Token 만료 시간 (초 단위)
+    private final long refreshTokenExpiration;
+
     // 사용자 정보를 조회하기 위한 서비스
     private final UserDetailsService userDetailsService;
 
@@ -50,10 +53,12 @@ public class JwtProvider {
     public JwtProvider(@Value("${spring.jwt.secret-key}") String key,
                        @Value("${spring.jwt.issuer}") String issuer,
                        @Value("${spring.jwt.access-expiration}") Long accessTokenExpTime,
+                       @Value("${jwt.refresh-expiration}") long refreshTokenExpiration,
                        UserDetailsService userDetailsService) {
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(key));
         this.issuer = issuer;
         this.accessTokenExpTime = accessTokenExpTime;
+        this.refreshTokenExpiration = refreshTokenExpiration;
         this.userDetailsService = userDetailsService;
     }
 
@@ -69,6 +74,16 @@ public class JwtProvider {
                 .issuer(issuer)
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plusSeconds(accessTokenExpTime)))
+                .signWith(secretKey)
+                .compact();
+    }
+
+    public String createRefreshToken(UUID userId) {
+        Date now = new Date();
+        return Jwts.builder()
+                .subject(userId.toString())
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + refreshTokenExpiration))
                 .signWith(secretKey)
                 .compact();
     }
