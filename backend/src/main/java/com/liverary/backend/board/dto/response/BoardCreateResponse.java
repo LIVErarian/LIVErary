@@ -1,5 +1,6 @@
 package com.liverary.backend.board.dto.response;
 
+import com.liverary.backend.board.domain.Board;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -18,12 +19,12 @@ public class BoardCreateResponse {
     /**
      * 엔티티의 ID를 기반으로 응답 DTO를 생성
      *
-     * @param boardId 생성된 게시글의 UUID
+     * @param board 저장된 게시글 엔티티 객체
      * @return BoardCreateResponse 객체
      */
-    public static BoardCreateResponse from (UUID boardId) {
+    public static BoardCreateResponse from (Board board) {
         return BoardCreateResponse.builder()
-                .boardId(boardId)
+                .boardId(board.getBoardId())
                 .build();
     }
 

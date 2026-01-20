@@ -34,6 +34,6 @@ public class BoardService {
 
         Board savedBoard = boardRepository.save(board);
 
-        return BoardCreateResponse.from(savedBoard.getBoardId());
+        return BoardCreateResponse.from(savedBoard);
     }
 }
