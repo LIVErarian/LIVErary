@@ -45,3 +45,6 @@ out/
 
 ### application.yml
 application.yml
+
+# SQL data file
+data.sql

@@ -27,7 +27,8 @@ public enum ErrorCode {
 
     // 404 NOT_FOUND: 리소스를 찾을 수 없음
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "요청한 리소스를 찾을 수 없습니다."),
-
+    BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "해당 도서를 찾을 수 없습니다."),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CT001", "해당 카테고리를 찾을 수 없습니다."),
     // 409 CONFLICT: 중복된 리소스
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "C004", "이미 존재하는 데이터입니다."),
 
