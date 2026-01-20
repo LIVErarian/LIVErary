@@ -1,6 +1,7 @@
 package com.liverary.backend.book.service;
 
 import com.liverary.backend.book.domain.Book;
+import com.liverary.backend.book.domain.RegStatus;
 import com.liverary.backend.book.dto.response.BookListResponse;
 import com.liverary.backend.book.repository.BookRepository;
 import com.liverary.backend.category.domain.Category;
@@ -34,11 +35,10 @@ public class BookService {
             Category categoryEntity = categoryRepository.findByName(category)
                     .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
 
-            System.out.println("DEBUG: Found Category Name=" + categoryEntity.getName() + ", ID=" + categoryEntity.getCategoryId());
 
             books = bookRepository.findByCategoryAndRegStatus(
                     categoryEntity,
-                    Book.RegStatus.APPROVED,
+                    RegStatus.APPROVED,
                     pageable
             );
         }

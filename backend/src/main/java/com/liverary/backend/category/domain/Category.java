@@ -16,10 +16,9 @@ import java.util.UUID;
 @Builder
 public class Category {
     @Id
-    @Column(name = "category_id", columnDefinition = "VARCHAR(36)")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "category_id", length = 36)
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID categoryId;
+    private String categoryId;
 
     @Column(name = "name", nullable = false, length = 50)
     private String name;

@@ -19,13 +19,12 @@ import java.util.UUID;
 public class Book {
 
     @Id
-    @Column(name = "book_id", columnDefinition = "VARCHAR(36)")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "book_id", length = 36)
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID bookId;
+    private String bookId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false, columnDefinition = "VARCHAR(36)")
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @Column (name = "isbn", nullable = false, length = 20, unique = true)
@@ -63,8 +62,7 @@ public class Book {
     @Column(name = "updated_at", nullable = false)
     private Date updatedAt;
 
-    public enum SourceType {API, USER}
 
-    public enum RegStatus {APPROVED, PENDING}
+
 
 }
