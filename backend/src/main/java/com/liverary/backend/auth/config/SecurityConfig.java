@@ -43,7 +43,7 @@ public class SecurityConfig {
 
                 // 요청별 권한 제어 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll() // 로그인, 회원가입 등 인증 관련 API 허용
+                        .requestMatchers("/auth/**").permitAll() // 로그인, 회원가입 등 인증 관련 API 허용
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
 
