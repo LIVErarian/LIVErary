@@ -20,7 +20,10 @@ public enum ErrorCode {
 
     // 401 UNAUTHORIZED: 인증 실패
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증에 실패했습니다."),
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "A002", "유효하지 않은 토큰입니다."),
+
+    TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "A002", "유효하지 않은 토큰입니다."),
+    TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "A004", "만료된 토큰입니다."),
+    TOKEN_MALFORMED(HttpStatus.UNAUTHORIZED, "A005", "잘못된 형식의 토큰입니다."),
 
     // 403 FORBIDDEN: 권한 없음
     FORBIDDEN(HttpStatus.FORBIDDEN, "A003", "접근 권한이 없습니다."),
