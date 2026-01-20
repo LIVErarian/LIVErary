@@ -1,0 +1,18 @@
+#!/bin/sh
+cd frontend
+
+# 현재 브랜치 이름 가져오기
+branch="$(git rev-parse --abbrev-ref HEAD)"
+
+# master branch 보호
+if [ "$branch" = "master" ]; then
+  echo ""
+  echo "[Error] 직접 커밋이 금지된 브랜치입니다: '$branch'"
+  echo "Feature 브랜치를 생성해서 작업해주세요."
+  echo ""
+  exit 1
+fi
+
+# 코드 스타일 검사 (Lint & Format) 실행
+echo "코드 스타일 검사중..."
+npm run lint && npm run format

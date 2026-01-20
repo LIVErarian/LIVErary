@@ -1,0 +1,15 @@
+import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import { defineConfig } from 'vite';
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react(), vanillaExtractPlugin()],
+  resolve: {
+    alias: {
+      // @를 src 폴더의 절대 경로로 매핑
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});
