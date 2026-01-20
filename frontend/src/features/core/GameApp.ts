@@ -7,6 +7,12 @@ import basicFloorMap from '@/assets/maps/basic_floor.png';
 import { NetworkManager } from '../network/NetworkManager';
 import { type Direction, Player } from '../player/Player';
 
+import type {
+  MoveRequest,
+  MoveResponse,
+  PlayerState,
+} from '@/types/socket.types';
+
 import { palette } from '@/styles/theme.css';
 
 export class GameApp {
@@ -16,6 +22,8 @@ export class GameApp {
   private _keys: { [key: string]: boolean } = {};
   private _lookingDirection: Direction = 'down';
   private _networkManager: NetworkManager;
+  private _otherPlayers: Map<string, Player> = new Map();
+  private _myId: string = `user_${Math.floor(Math.random() * 10000)}`; //TODO: 로그인 후에는 실제 id로 수정 필요
 
   // Readonly 상수
   private readonly WORLD_WIDTH = 960;
@@ -26,6 +34,7 @@ export class GameApp {
   constructor() {
     // App 인스턴스만 생성
     this._app = new Application();
+    // Network Manager 생성
     this._networkManager = new NetworkManager();
   }
 
@@ -64,19 +73,37 @@ export class GameApp {
     // 에셋 로드 & 배경 설정
     await this.loadAssets();
 
-    // 서버 연결 시도
-    this._networkManager.connect();
-
-    // 플레이어 설정
+    // 플레이어 생성
     this.createPlayer();
 
     // 키보드 입력 감지
     this.addEventHandlers();
 
-    // 매 프레임마다 'update' 함수 실행
+    // 서버 연결 및 콜백 등록
+    this._networkManager.connect(
+      () => {
+        console.log(`내 ID: ${this._myId}`);
+
+        this._networkManager.sendJoin({
+          id: this._myId,
+          nickname: 'Player',
+          x: this._player.x,
+          y: this._player.y,
+          direction: 'down',
+          isMoving: false,
+        });
+      },
+      (data) => this.addOtherPlayer(data),
+      (data) => this.updateOtherPlayer(data),
+    );
+
+    // 매 프레임마다 'update' 함수 실행 (게임 루프)
     this._app.ticker.add(this.update, this);
   }
 
+  /**
+   * Viewport를 생성합니다.
+   */
   private createViewport() {
     this._viewport = new Viewport({
       screenWidth: window.innerWidth,
@@ -96,7 +123,9 @@ export class GameApp {
     this._app.stage.addChild(this._viewport);
   }
 
-  // 키보드 입력 관리
+  /**
+   * 키보드 입력을 관리합니다.
+   */
   private addEventHandlers() {
     window.addEventListener('keydown', (e) => {
       this._keys[e.key] = true;
@@ -106,6 +135,9 @@ export class GameApp {
     });
   }
 
+  /**
+   * 필요한 asset을 불러옵니다.
+   */
   private async loadAssets() {
     // 맵 이미지 불러오기
     const texture = await Assets.load(basicFloorMap);
@@ -120,6 +152,9 @@ export class GameApp {
     await Assets.load('playerSheet');
   }
 
+  /**
+   * Player를 생성합니다.
+   */
   private createPlayer() {
     const startX = this.WORLD_WIDTH / 2;
     const startY = this.WORLD_HEIGHT;
@@ -133,7 +168,11 @@ export class GameApp {
     this._viewport.follow(this._player);
   }
 
-  // 매 프레임 실행되는 게임 루프
+  /**
+   * 키보드 이벤트를 감지하고 Player를 이동시킵니다.
+   * @param ticker
+   * @returns
+   */
   private update(ticker: Ticker) {
     if (!this._player) return;
 
@@ -180,7 +219,6 @@ export class GameApp {
     // Clamping
     const marginX = this._player.playerWidth / 2;
     const marginY = this._player.playerHeight;
-
     this._player.x = Math.max(
       marginX,
       Math.min(this._player.x, this.WORLD_WIDTH - marginX),
@@ -189,10 +227,70 @@ export class GameApp {
       marginY,
       Math.min(this._player.y, this.WORLD_HEIGHT),
     );
+
+    // 서버로 내 위치 전송
+    const payload: MoveRequest = {
+      x: this._player.x,
+      y: this._player.y,
+      direction: this._lookingDirection,
+      isMoving: true,
+    };
+    if (this._networkManager.isConnected) {
+      this._networkManager.sendMove(payload);
+    }
   }
 
-  // 게임 종료 시 정리
+  /**
+   * 나를 제외한 다른 플레이어를 화면에 추가합니다.
+   * @param data 새로운 사용자 정보
+   * @returns
+   */
+  public addOtherPlayer(data: PlayerState) {
+    // 이미 있는 사람이면 무시
+    if (data.id === this._myId || this._otherPlayers.has(data.id)) return;
+
+    console.log(`새로운 유저(${data.nickname}, ${data.id})가 입장했습니다.`);
+
+    // 앞서 로딩한 텍스쳐를 그대로 재활용해서 새로운 Player 생성
+    const sheetTexture = Assets.get('playerSheet');
+    const otherPlayer = new Player(
+      data.x,
+      data.y,
+      data.nickname || 'Guest',
+      sheetTexture,
+    );
+
+    this._viewport.addChild(otherPlayer);
+    this._otherPlayers.set(data.id, otherPlayer);
+  }
+
+  /**
+   * 다른 플레이어의 위치를 업데이트합니다.
+   * @param data 다른 플레이어의 움직임 정보
+   * @returns
+   */
+  public updateOtherPlayer(data: MoveResponse) {
+    if (data.id === this._myId) return;
+
+    const otherPlayer = this._otherPlayers.get(data.id);
+
+    if (otherPlayer) {
+      // 위치 동기화
+      otherPlayer.x = data.x;
+      otherPlayer.y = data.y;
+
+      // 애니메이션 동기화
+      otherPlayer.setAnimation(data.direction, data.isMoving);
+    }
+  }
+
+  /**
+   * 게임 종료시 데이터를 정리합니다.
+   */
   public destroy() {
+    // 네트워크 연결 종료
+    this._networkManager.disconnect();
+
     // this.app이 없거나 renderer가 아직 준비 안 됐으면 무시
     if (this._app?.renderer) {
       this._app.ticker.remove(this.update, this);

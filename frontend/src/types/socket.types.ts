@@ -1,19 +1,23 @@
-// 서버에서 보내주는 JSON 데이터 모양 정의
-
 import type { Direction } from '@/features/player/Player';
 
-export interface PlayerState {
-  id: string; // PK
-  nickname: string; // 사용자 이름
-  x: number; // 사용자 x 좌표
-  y: number; // 사용자 y 좌표
-  direction: Direction; // 보고있는 방향
-  isMoving: boolean; // 움직이는 중인지 확인
-}
-
-export interface MovePayload {
+interface BaseMovementData {
   x: number; // 이동한 x 좌표
   y: number; // 이동한 y 좌표
   direction: Direction; // 이동 방향
   isMoving: boolean; // 움직이는 중인지 확인
+}
+
+// 서버 -> 클라이언트: 다른 사람의 전체 정보
+export interface PlayerState extends BaseMovementData {
+  id: string; // PK
+  nickname: string; // 사용자 이름
+}
+
+// 클라이언트 -> 서버: 나의 이동 정보
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface MoveRequest extends BaseMovementData {}
+
+// 서버 -> 클라이언트: 남의 이동 정보
+export interface MoveResponse extends BaseMovementData {
+  id: string;
 }
