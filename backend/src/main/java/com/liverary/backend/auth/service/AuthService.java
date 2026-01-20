@@ -46,4 +46,16 @@ public class AuthService implements UserDetailsService {
         );
     }
 
+    /**
+     * 입력받은 이메일의 중복 여부를 검증
+     *
+     * @param email 중복 확인을 진행할 이메일 주소
+     * @throws BaseException 이미 가입된 이메일일 경우 DUPLICATE_EMAIL 예외 발생
+     */
+    public void checkEmailDuplication(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new BaseException(ErrorCode.EMAIL_DUPLICATE);
+        }
+    }
+
 }
