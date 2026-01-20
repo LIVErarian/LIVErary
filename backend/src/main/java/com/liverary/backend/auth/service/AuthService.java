@@ -119,10 +119,7 @@ public class AuthService implements UserDetailsService {
         RefreshToken tokenEntity = new RefreshToken(user.getUserId(), refreshToken);
         refreshTokenRepository.save(tokenEntity);
 
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+        return LoginResponse.of(accessToken, refreshToken);
     }
 
     /**
