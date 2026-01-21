@@ -1,4 +1,5 @@
 import { PixelButton } from '@/components/common/PixelButton';
+import { PixelInput } from '@/components/common/PixelInput';
 
 import { theme } from '@/styles/theme.css';
 
@@ -46,6 +47,26 @@ export const UiTestPage = () => {
       <PixelButton onClick={() => alert('잘 작동합니다! 🔨')}>
         클릭해보세요!
       </PixelButton>
+
+      {/* Input Field 테스트 */}
+      <div
+        style={{ width: '300px', padding: '20px', border: '1px dashed #666' }}
+      >
+        <p style={{ textAlign: 'center', marginBottom: '20px' }}>
+          Login Form Preview
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <PixelInput label="ID" placeholder="아이디를 입력하세요" fullWidth />
+          <PixelInput
+            label="PASSWORD"
+            type="password"
+            placeholder="비밀번호"
+            fullWidth
+          />
+          <PixelButton fullWidth>LOGIN</PixelButton>
+        </div>
+      </div>
     </div>
   );
 };

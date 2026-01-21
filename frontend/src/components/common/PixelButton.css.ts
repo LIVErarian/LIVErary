@@ -1,4 +1,3 @@
-// src/components/common/PixelButton.css.ts
 import { recipe } from '@vanilla-extract/recipes';
 
 import { theme } from '@/styles/theme.css';
@@ -49,7 +48,7 @@ export const pixelButton = recipe({
 
     // 눌렀을 때 효과
     ':active': {
-      transform: 'translateY(4px)', // 아래로 꾹 눌림
+      transform: 'translateY(2px)', // 아래로 꾹 눌림
       boxShadow: `
         inset 2px 2px 0px 0px ${theme.colors.woodDark},
         inset -2px -2px 0px 0px ${theme.colors.woodLight},
