@@ -43,8 +43,16 @@ public class SecurityConfig {
 
                 // 요청별 권한 제어 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll() // 로그인, 회원가입 등 인증 관련 API 허용
-                        .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
+                        .requestMatchers(
+                                // 로그인, 회원가입 등 인증 관련 API 허용
+                                "/auth/**",
+
+                                // Swagger 관련 api 허용
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 )
 
                 // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 이전에 실행되도록 설정
