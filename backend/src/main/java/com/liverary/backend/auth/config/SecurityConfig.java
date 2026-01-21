@@ -10,6 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import tools.jackson.databind.ObjectMapper;
@@ -52,6 +54,16 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtExceptionFilter(new ObjectMapper()), JwtAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * 비밀번호를 안전하게 암호화하기 위한 빈 등록 (BCrypt 해싱 알고리즘 사용)
+     *
+     * @return BCryptPasswordEncoder 객체
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
 }
