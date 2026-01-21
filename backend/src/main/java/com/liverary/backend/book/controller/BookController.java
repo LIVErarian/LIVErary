@@ -1,5 +1,6 @@
 package com.liverary.backend.book.controller;
 
+import com.liverary.backend.book.dto.response.BookDetailResponse;
 import com.liverary.backend.book.dto.response.BookListResponse;
 import com.liverary.backend.book.service.BookService;
 import com.liverary.backend.common.dto.BaseResponse;
@@ -39,6 +40,22 @@ public class BookController {
         Page<BookListResponse> books = bookService.getBooks(category, pageable);
         return ResponseEntity.ok(BaseResponse.success(books));
     }
+
+    /**
+     * 도서 상세 조회 API
+     * - GET /book/{bookId}
+     * @param bookId
+     * @return
+     */
+    @GetMapping("/{bookId}")
+    public ResponseEntity <BaseResponse<BookDetailResponse>> getBookDetail(@PathVariable UUID bookId){
+        BookDetailResponse bookDetail =
+                bookService.getBookDetail(bookId);
+        return ResponseEntity.ok(BaseResponse.success(bookDetail));
+    }
+
+
+
 
 
 
