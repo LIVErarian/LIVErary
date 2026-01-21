@@ -31,14 +31,14 @@ public class BookController {
      * @return
      */
     @GetMapping
-    public ResponseEntity<BaseResponse<Page<BookListResponse>>> getBooks(@RequestParam(required=false) String category,
+    public BaseResponse<Page<BookListResponse>> getBooks(@RequestParam(required=false) String category,
                                                                          @RequestParam(defaultValue = "0") int page,
                                                                          @RequestParam(defaultValue = "20")int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Page<BookListResponse> books = bookService.getBooks(category, pageable);
-        return ResponseEntity.ok(BaseResponse.success(books));
+        return BaseResponse.success(books);
     }
 
     /**
@@ -48,10 +48,10 @@ public class BookController {
      * @return
      */
     @GetMapping("/{bookId}")
-    public ResponseEntity <BaseResponse<BookDetailResponse>> getBookDetail(@PathVariable UUID bookId){
+    public BaseResponse<BookDetailResponse> getBookDetail(@PathVariable UUID bookId){
         BookDetailResponse bookDetail =
                 bookService.getBookDetail(bookId);
-        return ResponseEntity.ok(BaseResponse.success(bookDetail));
+        return BaseResponse.success(bookDetail);
     }
 
     /**
@@ -76,12 +76,4 @@ public class BookController {
         Page<BookListResponse> books = bookService.searchBooks(type, keyword, category, pageable);
         return BaseResponse.success(books);
     }
-
-
-
-
-
-
-
-
 }
