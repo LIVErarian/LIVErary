@@ -60,5 +60,14 @@ public class Review {
         this.user = user;
         this.content = content;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 댓글 정보 수정
+     */
+    public void update(String content){
+        this.content = content;
+        this.updatedAt = LocalDateTime.now();
     }
 }

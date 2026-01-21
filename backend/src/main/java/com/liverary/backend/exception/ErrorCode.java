@@ -34,6 +34,7 @@ public enum ErrorCode {
     // 403 FORBIDDEN: 권한 없음
     FORBIDDEN(HttpStatus.FORBIDDEN, "A003", "접근 권한이 없습니다."),
     NOT_BOARD_OWNER(HttpStatus.FORBIDDEN, "BD002", "게시글 수정 및 삭제 권한이 없습니다."),
+    NOT_REVIEW_OWNER(HttpStatus.FORBIDDEN, "RV001", "댓글 수정 및 삭제 권한이 없습니다."),
 
     // 404 NOT_FOUND: 리소스를 찾을 수 없음
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "요청한 리소스를 찾을 수 없습니다."),
@@ -43,6 +44,7 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U002", "존재하지 않는 사용자입니다."),
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 방을 찾을 수 없습니다."),
     ROOM_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "R006", "참여 기록을 찾을 수 없습니다."),
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "RV002", "댓글을 찾을 수 없습니다."),
 
     // 409 CONFLICT: 중복된 리소스
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "C004", "이미 존재하는 데이터입니다."),
