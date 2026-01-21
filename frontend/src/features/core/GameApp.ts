@@ -10,6 +10,7 @@ import { type Direction, Player } from '../player/Player';
 import type {
   MoveRequest,
   MoveResponse,
+  PlayerLeaveResponse,
   PlayerState,
 } from '@/types/socket.types';
 
@@ -24,6 +25,8 @@ export class GameApp {
   private _networkManager: NetworkManager;
   private _otherPlayers: Map<string, Player> = new Map();
   private _myId: string = `user_${Math.floor(Math.random() * 10000)}`; //TODO: 로그인 후에는 실제 id로 수정 필요
+  private _isPrevMoving: boolean = false;
+  private _isDestroyed: boolean = false;
 
   // Readonly 상수
   private readonly WORLD_WIDTH = 960;
@@ -52,6 +55,8 @@ export class GameApp {
    * @param container Canvas를 붙일 부모 HTML 요소
    */
   public async init(container: HTMLDivElement) {
+    if (this._isDestroyed) return;
+
     // App 초기화
     await this._app.init({
       background: palette.background,
@@ -60,6 +65,12 @@ export class GameApp {
       autoDensity: true,
       resolution: window.devicePixelRatio,
     });
+
+    // await하는 동안 destroy()가 호출되었다면 화면 설정 중지
+    if (this._isDestroyed) {
+      this._app.destroy({ removeView: true }, { children: true });
+      return;
+    }
 
     // Canvas를 DOM에 붙이기
     if (container.hasChildNodes()) {
@@ -95,6 +106,7 @@ export class GameApp {
       },
       (data) => this.addOtherPlayer(data),
       (data) => this.updateOtherPlayer(data),
+      (data) => this.removePlayer(data),
     );
 
     // 매 프레임마다 'update' 함수 실행 (게임 루프)
@@ -203,41 +215,56 @@ export class GameApp {
 
     this._player.setAnimation(this._lookingDirection, isMoving);
 
-    if (!isMoving) return;
+    if (isMoving) {
+      // 대각선 이동 보정
+      if (dx !== 0 && dy !== 0) {
+        const length = Math.sqrt(dx * dx + dy * dy);
+        dx /= length;
+        dy /= length;
+      }
 
-    // 대각선 이동 보정
-    if (dx !== 0 && dy !== 0) {
-      const length = Math.sqrt(dx * dx + dy * dy);
-      dx /= length;
-      dy /= length;
+      // 실제 좌표 적용
+      this._player.x += dx * this.MOVE_SPEED * ticker.deltaTime;
+      this._player.y += dy * this.MOVE_SPEED * ticker.deltaTime;
+
+      // Clamping
+      const marginX = this._player.playerWidth / 2;
+      const marginY = this._player.playerHeight;
+      this._player.x = Math.max(
+        marginX,
+        Math.min(this._player.x, this.WORLD_WIDTH - marginX),
+      );
+      this._player.y = Math.max(
+        marginY,
+        Math.min(this._player.y, this.WORLD_HEIGHT),
+      );
+
+      // 서버로 내 위치 전송
+      const payload: MoveRequest = {
+        x: this._player.x,
+        y: this._player.y,
+        direction: this._lookingDirection,
+        isMoving: true,
+      };
+
+      if (this._networkManager.isConnected) {
+        this._networkManager.sendMove(payload);
+      }
+    }
+    // 움직이다 멈추면 애니메이션 정지
+    else if (this._isPrevMoving) {
+      const payload: MoveRequest = {
+        x: this._player.x,
+        y: this._player.y,
+        direction: this._lookingDirection,
+        isMoving: false,
+      };
+      if (this._networkManager.isConnected) {
+        this._networkManager.sendMove(payload);
+      }
     }
 
-    // 실제 좌표 적용
-    this._player.x += dx * this.MOVE_SPEED * ticker.deltaTime;
-    this._player.y += dy * this.MOVE_SPEED * ticker.deltaTime;
-
-    // Clamping
-    const marginX = this._player.playerWidth / 2;
-    const marginY = this._player.playerHeight;
-    this._player.x = Math.max(
-      marginX,
-      Math.min(this._player.x, this.WORLD_WIDTH - marginX),
-    );
-    this._player.y = Math.max(
-      marginY,
-      Math.min(this._player.y, this.WORLD_HEIGHT),
-    );
-
-    // 서버로 내 위치 전송
-    const payload: MoveRequest = {
-      x: this._player.x,
-      y: this._player.y,
-      direction: this._lookingDirection,
-      isMoving: true,
-    };
-    if (this._networkManager.isConnected) {
-      this._networkManager.sendMove(payload);
-    }
+    this._isPrevMoving = isMoving;
   }
 
   /**
@@ -281,6 +308,27 @@ export class GameApp {
 
       // 애니메이션 동기화
       otherPlayer.setAnimation(data.direction, data.isMoving);
+    }
+  }
+
+  /**
+   * 퇴장한 플레이어의 id를 받아 퇴장 이벤트를 처리합니다.
+   * @param data 플레이어 id
+   */
+  public removePlayer(data: PlayerLeaveResponse) {
+    console.log(`${data.id} 삭제 요청`);
+    console.log('현재 접속자 명부:', Array.from(this._otherPlayers.keys()));
+    if (this._otherPlayers.has(data.id)) {
+      const playerToRemove = this._otherPlayers.get(data.id);
+      if (playerToRemove) {
+        // 화면에서 제거
+        this._viewport.removeChild(playerToRemove);
+        // 메모리에서 제거
+        this._otherPlayers.delete(data.id);
+        playerToRemove.destroy();
+
+        console.log(`${data.id} 삭제 완료`);
+      }
     }
   }
 

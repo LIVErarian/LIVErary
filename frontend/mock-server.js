@@ -87,8 +87,13 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     if (ws.id) {
-      players.delete(ws.id);
-      console.log(`❌ [퇴장] ${ws.id}`);
+      const leftUserId = ws.id; // 나가는 사람 ID 저장
+      players.delete(leftUserId);
+
+      const leavePayload = { id: leftUserId };
+      broadcastToAll('/topic/leave', leavePayload);
+
+      console.log(`❌ [퇴장] ${leftUserId}. 남은 인원: ${players.size}`);
     }
   });
 });

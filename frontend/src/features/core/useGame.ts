@@ -15,14 +15,25 @@ export const useGame = (
     const gameApp = new GameApp();
     gameAppRef.current = gameApp;
 
-    // 초기화
-    gameApp.init(containerRef.current).then(() => {
-      console.log('GameApp initialized');
-    });
+    let isUnmounted = false;
+
+    const initializeGame = async () => {
+      await gameApp.init(containerRef.current!);
+
+      // 초기화 끝났는데 이미 컴포넌트가 죽은 경우
+      if (isUnmounted) {
+        gameApp.destroy();
+        return;
+      }
+    };
+
+    initializeGame();
 
     // Cleanup
     return () => {
       console.log('GameApp destroyed');
+      isUnmounted = true;
+
       gameApp.destroy();
       gameAppRef.current = null;
     };

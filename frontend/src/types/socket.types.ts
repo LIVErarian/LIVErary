@@ -7,9 +7,12 @@ interface BaseMovementData {
   isMoving: boolean; // 움직이는 중인지 확인
 }
 
+interface Identifiable {
+  id: string;
+}
+
 // 서버 -> 클라이언트: 다른 사람의 전체 정보
-export interface PlayerState extends BaseMovementData {
-  id: string; // PK
+export interface PlayerState extends BaseMovementData, Identifiable {
   nickname: string; // 사용자 이름
 }
 
@@ -18,6 +21,7 @@ export interface PlayerState extends BaseMovementData {
 export interface MoveRequest extends BaseMovementData {}
 
 // 서버 -> 클라이언트: 남의 이동 정보
-export interface MoveResponse extends BaseMovementData {
-  id: string;
-}
+export interface MoveResponse extends BaseMovementData, Identifiable {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface PlayerLeaveResponse extends Identifiable {}

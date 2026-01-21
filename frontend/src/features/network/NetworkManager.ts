@@ -1,6 +1,7 @@
 import type {
   ConnectCallback,
   PlayerJoinCallback,
+  PlayerLeaveCallback,
   PlayerMoveCallback,
 } from './network.types';
 import { SocketManager } from './SocketManager';
@@ -8,6 +9,7 @@ import { SocketManager } from './SocketManager';
 import type {
   MoveRequest,
   MoveResponse,
+  PlayerLeaveResponse,
   PlayerState,
 } from '@/types/socket.types';
 
@@ -28,6 +30,7 @@ export class NetworkManager {
     onConnect: ConnectCallback,
     onPlayerJoin: PlayerJoinCallback,
     onPlayerMove: PlayerMoveCallback,
+    onPlayerLeave: PlayerLeaveCallback,
   ) {
     const SERVER_URL = 'ws://localhost:8080/ws';
 
@@ -40,6 +43,11 @@ export class NetworkManager {
       // 이동 이벤트
       this._socket.subscribe<MoveResponse>('/topic/move', (data) => {
         onPlayerMove(data);
+      });
+
+      // 퇴장 이벤트
+      this._socket.subscribe<PlayerLeaveResponse>('/topic/leave', (data) => {
+        onPlayerLeave(data);
       });
 
       // 연결 완료 알림
