@@ -33,6 +33,7 @@ public enum ErrorCode {
 
     // 403 FORBIDDEN: 권한 없음
     FORBIDDEN(HttpStatus.FORBIDDEN, "A003", "접근 권한이 없습니다."),
+    NOT_BOARD_OWNER(HttpStatus.FORBIDDEN, "BD002", "게시글 수정 및 삭제 권한이 없습니다."),
 
     // 404 NOT_FOUND: 리소스를 찾을 수 없음
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "요청한 리소스를 찾을 수 없습니다."),

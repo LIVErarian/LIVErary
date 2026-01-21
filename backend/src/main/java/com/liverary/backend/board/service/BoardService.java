@@ -4,12 +4,14 @@ package com.liverary.backend.board.service;
 import com.liverary.backend.board.domain.Board;
 import com.liverary.backend.board.domain.Type;
 import com.liverary.backend.board.dto.request.BoardCreateRequest;
+import com.liverary.backend.board.dto.request.BoardUpdateRequest;
 import com.liverary.backend.board.dto.response.BoardCreateResponse;
 import com.liverary.backend.board.dto.response.BoardDetailResponse;
 import com.liverary.backend.board.dto.response.BoardListResponse;
 import com.liverary.backend.board.repository.BoardRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.review.repository.ReviewRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
 
     /**
      * 게시글 생성 로직 수행
@@ -76,5 +79,61 @@ public class BoardService {
         Page<Board> boardPage = boardRepository.findByTypeOrderByCreatedAtDesc(type, pageable);
 
         return boardPage.map(BoardListResponse::from);
+    }
+
+    /**
+     * 게시글 수정
+     *
+     * @param userId  수정을 요청한 사용자의 ID
+     * @param boardId 수정할 게시글의 ID
+     * @param request 수정할 내용이 담긴 DTO
+     * @return 수정된 게시글 상세 응답 DTO
+     * @throws BaseException 게시글이 없거나(404), 작성자가 아닌 경우(403)
+     */
+    @Transactional
+    public BoardDetailResponse updateBoard(UUID userId, UUID boardId, BoardUpdateRequest request) {
+        Board board =  boardRepository.findById(boardId)
+                .orElseThrow(() -> new BaseException(ErrorCode.BOARD_NOT_FOUND));
+
+        // 작성자 본인 확인
+        validateOwner(userId, board);
+
+        board.update(request.getTitle(), request.getContent(), request.getImageUrl());
+
+        return BoardDetailResponse.from(board);
+    }
+
+    /**
+     * 게시글 삭제
+     *
+     * @param userId  삭제를 요청한 사용자의 ID
+     * @param boardId 삭제할 게시글의 ID
+     * @throws BaseException 게시글이 없거나(404), 작성자가 아닌 경우(403)
+     */
+    @Transactional
+    public void deleteBoard(UUID userId, UUID boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BaseException(ErrorCode.BOARD_NOT_FOUND));
+
+        // 작성자 본인 확인
+        validateOwner(userId, board);
+
+        // 댓글 지우기
+        reviewRepository.deleteReviewsByBoardId(boardId);
+
+        boardRepository.delete(board);
+    }
+
+    /**
+     * 게시글 작성자와 요청자가 일치하는지 검증
+     *
+     * @param userId 요청한 사용자의 ID
+     * @param board  대상 게시글 엔티티
+     * @throws BaseException 작성자가 아닐 경우 NOT_BOARD_OWNER(403) 예외 발생
+     */
+    private void validateOwner(UUID userId, Board board) {
+        if(!board.getUser().getUserId().equals(userId)){
+            throw new BaseException(ErrorCode.NOT_BOARD_OWNER);
+        }
     }
 }
