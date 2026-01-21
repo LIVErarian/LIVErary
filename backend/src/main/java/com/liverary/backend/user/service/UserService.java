@@ -5,6 +5,7 @@ import com.liverary.backend.bookHistory.repository.BookHistoryRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.user.domain.User;
+import com.liverary.backend.user.dto.request.UserUpdateRequest;
 import com.liverary.backend.user.dto.response.BookSummary;
 import com.liverary.backend.user.dto.response.ProfileResponse;
 import com.liverary.backend.user.repository.UserRepository;
@@ -58,4 +59,22 @@ public class UserService {
 
         return ProfileResponse.of(user, readingBooks, wishBooks, completedBooks);
     }
+
+    /**
+     * 사용자 정보 수정
+     *
+     * @param userId      사용자 UUID
+     * @param request 수정할 사용자 정보 객체
+     */
+    @Transactional
+    public void updateProfile(UUID userId, UserUpdateRequest request) {
+
+        // 유저 정보 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 2. 닉네임 업데이트 (엔티티 내 메서드 호출)
+        user.update(request);
+    }
+
 }
