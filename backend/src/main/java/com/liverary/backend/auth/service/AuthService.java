@@ -1,15 +1,19 @@
 package com.liverary.backend.auth.service;
 
+import com.liverary.backend.auth.domain.RefreshToken;
 import com.liverary.backend.auth.dto.request.LoginRequest;
 import com.liverary.backend.auth.dto.request.SignupRequest;
 import com.liverary.backend.auth.dto.response.LoginResponse;
+import com.liverary.backend.auth.dto.response.RefreshResponse;
 import com.liverary.backend.auth.provider.JwtProvider;
+import com.liverary.backend.auth.repository.RefreshTokenRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
-import com.liverary.backend.user.domain.Role;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,13 +28,35 @@ import java.util.UUID;
  * 인증 관련 비즈니스 로직을 처리하고 Spring Security의 사용자 정보를 로드하는 서비스 클래스
  */
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+
+    /**
+     * AuthService 생성자
+     * 빈 순환 참조(Circular Dependency) 문제를 해결하기 위해 @RequiredArgsConstructor 대신
+     * 수동 생성자를 사용하며, @Lazy 어노테이션을 통해 특정 의존성의 주입 시점을 지연시킵니다.
+     *
+     * @param userRepository 사용자 정보 조회를 위한 리포지토리
+     * @param refreshTokenRepository 리프레시 토큰 관리를 위한 리포지토리
+     * @param passwordEncoder 비밀번호 암호화 처리를 위한 인코더 (순환 참조 방지를 위해 지연 주입)
+     * @param jwtProvider JWT 토큰 생성 및 검증을 위한 프로바이더 (순환 참조 방지를 위해 지연 주입)
+     */
+    public AuthService(
+            UserRepository userRepository,
+            RefreshTokenRepository refreshTokenRepository,
+            @Lazy PasswordEncoder passwordEncoder,
+            @Lazy JwtProvider jwtProvider
+    ) {
+        this.userRepository = userRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtProvider = jwtProvider;
+    }
 
     /**
      * Spring Security 인증 과정에서 사용자 식별자(UUID)를 기반으로 사용자 조회
@@ -40,7 +66,8 @@ public class AuthService implements UserDetailsService {
      * @throws BaseException 존재하지 않는 사용자일 경우 발생 (ErrorCode.USER_NOT_FOUND)
      */
     @Override
-    public UserDetails loadUserByUsername(String subject) {
+    @NonNull
+    public UserDetails loadUserByUsername(@NonNull String subject) {
 
         UUID userId = UUID.fromString(subject);
 
@@ -48,7 +75,7 @@ public class AuthService implements UserDetailsService {
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
         return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
+                user.getUserId().toString(),
                 user.getPassword(),
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         );
@@ -98,6 +125,7 @@ public class AuthService implements UserDetailsService {
      * @return 생성된 액세스 토큰을 포함한 LoginResponse
      * @throws BaseException 사용자가 없거나 비밀번호가 틀린 경우 발생
      */
+    @Transactional
     public LoginResponse login(LoginRequest request) {
 
         // 이메일 존재 확인
@@ -111,10 +139,45 @@ public class AuthService implements UserDetailsService {
 
         // 토큰 생성
         String accessToken = jwtProvider.createAccessToken(user.getUserId());
+        String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
 
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .build();
+        RefreshToken tokenEntity = new RefreshToken(user.getUserId(), refreshToken);
+        refreshTokenRepository.save(tokenEntity);
+
+        return LoginResponse.of(accessToken, refreshToken);
+    }
+
+    /**
+     * 리프레시 토큰을 사용하여 새로운 액세스 토큰을 재발급
+     *
+     * @param refreshToken 클라이언트로부터 전달받은 리프레시 토큰
+     * @return 새롭게 발급된 액세스 토큰을 담은 RefreshResponse DTO
+     * @throws BaseException 유효하지 않거나 존재하지 않는 토큰일 경우 발생
+     */
+    @Transactional
+    public RefreshResponse reissue(String refreshToken) {
+        // refreshToken 유효성 및 만료 여부 검증
+        jwtProvider.validateToken(refreshToken);
+
+        // DB에서 Refresh Token 검색
+        RefreshToken savedToken = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new BaseException(ErrorCode.TOKEN_INVALID));
+
+        // 새로운 Access Token 발급
+        String newAccessToken = jwtProvider.createAccessToken(savedToken.getUserId());
+
+        return RefreshResponse.of(newAccessToken);
+    }
+
+    /**
+     * 사용자의 리프레시 토큰을 삭제하여 로그아웃 처리
+     *
+     * @param userId 사용자의 식별자 (UUID)
+     */
+    @Transactional
+    public void logout(UUID userId) {
+        // 해당 유저의 리프레시 토큰이 존재하면 삭제
+        refreshTokenRepository.deleteById(userId);
     }
 
 }

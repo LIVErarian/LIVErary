@@ -1,13 +1,19 @@
 package com.liverary.backend.auth.controller;
 
 import com.liverary.backend.auth.dto.request.LoginRequest;
+import com.liverary.backend.auth.dto.request.RefreshRequest;
 import com.liverary.backend.auth.dto.request.SignupRequest;
 import com.liverary.backend.auth.dto.response.LoginResponse;
+import com.liverary.backend.auth.dto.response.RefreshResponse;
 import com.liverary.backend.auth.service.AuthService;
 import com.liverary.backend.common.dto.BaseResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 /**
  * 인증 및 회원 관리와 관련된 API를 처리하는 컨트롤러
@@ -54,6 +60,34 @@ public class AuthController {
     public BaseResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         return BaseResponse.success(response);
+    }
+
+    /**
+     * 리프레시 토큰을 이용한 액세스 토큰 재발급
+     *
+     * @param request 리프레시 토큰을 포함한 재발급 요청 DTO
+     * @return 재발급된 액세스 토큰을 포함한 성공 응답
+     */
+    @PostMapping("/reissue")
+    public BaseResponse<RefreshResponse> reissue(@Valid @RequestBody RefreshRequest request) {
+        RefreshResponse response = authService.reissue(request.getRefreshToken());
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 로그아웃 처리
+     * 현재 인증된 사용자의 리프레시 토큰 무효화
+     *
+     * @param user 현재 인증된 사용자의 정보
+     * @return 로그아웃 성공시 성공 응답 객체
+     */
+    @PostMapping("/logout")
+    public BaseResponse<String> logout(@AuthenticationPrincipal UserDetails user) {
+
+        UUID userId = UUID.fromString(user.getUsername());
+
+        authService.logout(userId);
+        return BaseResponse.success();
     }
 
 }
