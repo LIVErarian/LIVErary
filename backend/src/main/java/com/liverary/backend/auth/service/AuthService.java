@@ -124,6 +124,7 @@ public class AuthService implements UserDetailsService {
      * @return 생성된 액세스 토큰을 포함한 LoginResponse
      * @throws BaseException 사용자가 없거나 비밀번호가 틀린 경우 발생
      */
+    @Transactional
     public LoginResponse login(LoginRequest request) {
 
         // 이메일 존재 확인
