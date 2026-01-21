@@ -64,5 +64,60 @@ public class BookService {
         return BookDetailResponse.from(book);
     }
 
+    /**
+     * 도서 검색
+     * @param searchType 검색 유형 (title, author, publisher, keyword)
+     * @param keyword 검색 키워드
+     * @param category 카테고리 (선택)
+     * @param pageable
+     * @return
+     */
+    public Page<BookListResponse> searchBooks(String searchType, String keyword, String category, Pageable pageable) {
+        // 검색 키워드 유효성 검사
+        if (keyword == null || keyword.trim().isEmpty()) {
+            throw new BaseException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        Page<Book> books;
+
+        // 카테고리 필터가 있는 경우
+        if (category != null && !category.trim().isEmpty()) {
+            Category categoryEntity = categoryRepository.findByName(category)
+                    .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
+
+            books = bookRepository.searchByCategoryAndKeyword(
+                    categoryEntity,
+                    keyword,
+                    pageable
+            );
+        }
+
+        // 카테고리 필터가 없는 경우
+        else {
+            // 검색 타입별 처리
+            if ("title".equalsIgnoreCase(searchType)) {
+                books = bookRepository.searchByTitleContaining(
+                        keyword,
+                        pageable
+                );
+            } else if ("author".equalsIgnoreCase(searchType)) {
+                books = bookRepository.searchByAuthorContaining(
+                        keyword,
+                        pageable
+                );
+            } else if ("publisher".equalsIgnoreCase(searchType)) {
+                books = bookRepository.searchByPublisherContaining(
+                        keyword,
+                        pageable
+                );
+            }  else {
+                throw new BaseException(ErrorCode.INVALID_INPUT_VALUE);
+            }
+        }
+
+        return books.map(BookListResponse::from);
+    }
+
+
 
 }
