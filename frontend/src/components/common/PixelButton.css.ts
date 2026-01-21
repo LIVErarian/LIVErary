@@ -41,14 +41,10 @@ export const pixelButton = recipe({
       -4px -4px 0px 0px ${theme.colors.woodDeep}
     `,
 
-    // 버튼 주변 공간 확보
-    margin: '4px',
-
     transition: 'transform 0.05s ease-in-out',
 
     // 눌렀을 때 효과
     ':active': {
-      transform: 'translateY(2px)', // 아래로 꾹 눌림
       boxShadow: `
         inset 2px 2px 0px 0px ${theme.colors.woodDark},
         inset -2px -2px 0px 0px ${theme.colors.woodLight},

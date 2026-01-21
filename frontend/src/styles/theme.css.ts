@@ -16,6 +16,13 @@ export const palette = {
   inputBg: '#633E2B',
   inputText: '#f2dcb3',
 
+  // 게시판용 색상 팔레트
+  boardBg: '#CBAB79',
+  loginBg: '#8a5631',
+  boardText: '#59402b',
+  boardShadow: '#b89f7d',
+  boardBorder: '#8d5d3e',
+
   // 기능성 컬러
   red: '#810000',
   success: '#002907',
