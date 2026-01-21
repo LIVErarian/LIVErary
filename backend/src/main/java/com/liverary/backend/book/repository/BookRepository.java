@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
@@ -25,11 +26,22 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
             Pageable pageable
     );
 
-    // 카테고리 + 제목 검색
-
     // 제목으로 검색
+    Page<Book> searchByTitleContaining(String  title, Pageable pageable);
 
     // 저자로 검색
+    Page<Book> searchByAuthorContaining(String  author, Pageable pageable);
 
     // 출판사로 검색
+    Page<Book> searchByPublisherContaining(String publisher, Pageable pageable);
+
+    // 카테고리 + 제목 검색 (APPROVED)
+    @Query("SELECT b FROM Book b WHERE b.category = :category "+
+    "AND b.regStatus = 'APPROVED'" +
+    "AND b.title LIKE %:keyword%")
+    Page<Book> searchByCategoryAndKeyword(
+            @Param("category") Category category,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

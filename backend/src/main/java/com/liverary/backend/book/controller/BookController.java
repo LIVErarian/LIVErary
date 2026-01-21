@@ -1,5 +1,6 @@
 package com.liverary.backend.book.controller;
 
+import com.liverary.backend.book.dto.response.BookDetailResponse;
 import com.liverary.backend.book.dto.response.BookListResponse;
 import com.liverary.backend.book.service.BookService;
 import com.liverary.backend.common.dto.BaseResponse;
@@ -39,6 +40,45 @@ public class BookController {
         Page<BookListResponse> books = bookService.getBooks(category, pageable);
         return ResponseEntity.ok(BaseResponse.success(books));
     }
+
+    /**
+     * 도서 상세 조회 API
+     * - GET /book/{bookId}
+     * @param bookId
+     * @return
+     */
+    @GetMapping("/{bookId}")
+    public ResponseEntity <BaseResponse<BookDetailResponse>> getBookDetail(@PathVariable UUID bookId){
+        BookDetailResponse bookDetail =
+                bookService.getBookDetail(bookId);
+        return ResponseEntity.ok(BaseResponse.success(bookDetail));
+    }
+
+    /**
+     * 도서 검색 API
+     *  - GET /book/search?type={searchType}&keyword={keyword}&category={category}&page={page}&size={size}
+     * @param type 검색 유형 (title, author, publisher, keyword)
+     * @param keyword 검색 키워드
+     * @param category 카테고리 (선택)
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("/search")
+    public BaseResponse<Page<BookListResponse>> searchBooks(
+            @RequestParam String type,
+            @RequestParam String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<BookListResponse> books = bookService.searchBooks(type, keyword, category, pageable);
+        return BaseResponse.success(books);
+    }
+
+
+
 
 
 

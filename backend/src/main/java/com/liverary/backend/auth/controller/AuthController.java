@@ -1,12 +1,13 @@
 package com.liverary.backend.auth.controller;
 
+import com.liverary.backend.auth.dto.request.LoginRequest;
+import com.liverary.backend.auth.dto.request.SignupRequest;
+import com.liverary.backend.auth.dto.response.LoginResponse;
 import com.liverary.backend.auth.service.AuthService;
 import com.liverary.backend.common.dto.BaseResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 인증 및 회원 관리와 관련된 API를 처리하는 컨트롤러
@@ -29,6 +30,30 @@ public class AuthController {
     public BaseResponse<Void> checkEmail(@PathVariable String email) {
         authService.checkEmailDuplication(email);
         return BaseResponse.success();
+    }
+
+    /**
+     * 회원가입을 처리
+     *
+     * @param request 회원가입에 필요한 사용자 정보 DTO
+     * @return 회원가입 성공 시 성공 응답 객체
+     */
+    @PostMapping("/signup")
+    public BaseResponse<Void> signup(@Valid @RequestBody SignupRequest request) {
+        authService.signup(request);
+        return BaseResponse.success();
+    }
+
+    /**
+     * 이메일과 비밀번호를 기반으로 로그인을 처리
+     *
+     * @param request 로그인 정보 DTO
+     * @return 발급된 토큰 정보를 포함한 성공 응답
+     */
+    @PostMapping("/login")
+    public BaseResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return BaseResponse.success(response);
     }
 
 }
