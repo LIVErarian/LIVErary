@@ -1,8 +1,10 @@
 package com.liverary.backend.auth.controller;
 
 import com.liverary.backend.auth.dto.request.LoginRequest;
+import com.liverary.backend.auth.dto.request.RefreshRequest;
 import com.liverary.backend.auth.dto.request.SignupRequest;
 import com.liverary.backend.auth.dto.response.LoginResponse;
+import com.liverary.backend.auth.dto.response.RefreshResponse;
 import com.liverary.backend.auth.service.AuthService;
 import com.liverary.backend.common.dto.BaseResponse;
 import jakarta.validation.Valid;
@@ -63,13 +65,13 @@ public class AuthController {
     /**
      * 리프레시 토큰을 이용한 액세스 토큰 재발급
      *
-     * @param refreshToken 클라이언트가 보유한 리프레시 토큰
+     * @param request 리프레시 토큰을 포함한 재발급 요청 DTO
      * @return 재발급된 액세스 토큰을 포함한 성공 응답
      */
     @PostMapping("/reissue")
-    public BaseResponse<String> reissue(@RequestBody String refreshToken) {
-        String newAccessToken = authService.reissue(refreshToken);
-        return BaseResponse.success(newAccessToken);
+    public BaseResponse<RefreshResponse> reissue(@Valid @RequestBody RefreshRequest request) {
+        RefreshResponse response = authService.reissue(request.getRefreshToken());
+        return BaseResponse.success(response);
     }
 
     /**

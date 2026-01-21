@@ -4,6 +4,7 @@ import com.liverary.backend.auth.domain.RefreshToken;
 import com.liverary.backend.auth.dto.request.LoginRequest;
 import com.liverary.backend.auth.dto.request.SignupRequest;
 import com.liverary.backend.auth.dto.response.LoginResponse;
+import com.liverary.backend.auth.dto.response.RefreshResponse;
 import com.liverary.backend.auth.provider.JwtProvider;
 import com.liverary.backend.auth.repository.RefreshTokenRepository;
 import com.liverary.backend.exception.BaseException;
@@ -150,17 +151,22 @@ public class AuthService implements UserDetailsService {
      * 리프레시 토큰을 사용하여 새로운 액세스 토큰을 재발급
      *
      * @param refreshToken 클라이언트로부터 전달받은 리프레시 토큰
-     * @return 새롭게 발급된 액세스 토큰 문자열
+     * @return 새롭게 발급된 액세스 토큰을 담은 RefreshResponse DTO
      * @throws BaseException 유효하지 않거나 존재하지 않는 토큰일 경우 발생
      */
     @Transactional
-    public String reissue(String refreshToken) {
+    public RefreshResponse reissue(String refreshToken) {
+        // refreshToken 유효성 및 만료 여부 검증
+        jwtProvider.validateToken(refreshToken);
+
         // DB에서 Refresh Token 검색
         RefreshToken savedToken = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new BaseException(ErrorCode.TOKEN_INVALID));
 
         // 새로운 Access Token 발급
-        return jwtProvider.createAccessToken(savedToken.getUserId());
+        String newAccessToken = jwtProvider.createAccessToken(savedToken.getUserId());
+
+        return RefreshResponse.of(newAccessToken);
     }
 
     /**
