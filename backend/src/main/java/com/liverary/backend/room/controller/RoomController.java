@@ -78,4 +78,26 @@ public class RoomController {
 
         return BaseResponse.success(response);
     }
+
+    /**
+     * 특정 방에서의 퇴장 요청을 처리합니다.
+     *
+     * <p>참여 이력 업데이트(LEFT) 및 현재 인원수 감소 처리를 수행합니다. 
+     * 남은 인원이 없을 경우 방이 종료됩니다.</p>
+     *
+     * @param roomId 퇴장하려는 방의 고유 식별자 (URL Path)
+     * @param user   Spring Security를 통해 인증된 사용자 객체
+     * @return 퇴장 처리 성공 메시지("퇴장 완료")를 포함한 공통 응답 객체
+     */
+    @PostMapping("/{roomId}/leave")
+    public BaseResponse<String> leaveRoom(
+            @PathVariable UUID roomId,
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        UUID userId = UUID.fromString(user.getUsername());
+
+        roomService.leaveRoom(roomId, userId);
+
+        return BaseResponse.success("퇴장 완료");
+    }
 }
