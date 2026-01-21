@@ -1,6 +1,8 @@
 package com.liverary.backend.auth.controller;
 
+import com.liverary.backend.auth.dto.request.LoginRequest;
 import com.liverary.backend.auth.dto.request.SignupRequest;
+import com.liverary.backend.auth.dto.response.LoginResponse;
 import com.liverary.backend.auth.service.AuthService;
 import com.liverary.backend.common.dto.BaseResponse;
 import jakarta.validation.Valid;
@@ -40,6 +42,18 @@ public class AuthController {
     public BaseResponse<Void> signup(@Valid @RequestBody SignupRequest request) {
         authService.signup(request);
         return BaseResponse.success();
+    }
+
+    /**
+     * 이메일과 비밀번호를 기반으로 로그인을 처리
+     *
+     * @param request 로그인 정보 DTO
+     * @return 발급된 토큰 정보를 포함한 성공 응답
+     */
+    @PostMapping("/login")
+    public BaseResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return BaseResponse.success(response);
     }
 
 }

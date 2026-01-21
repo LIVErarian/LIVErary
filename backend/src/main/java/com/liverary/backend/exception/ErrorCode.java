@@ -29,6 +29,8 @@ public enum ErrorCode {
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "A004", "만료된 토큰입니다."),
     TOKEN_MALFORMED(HttpStatus.UNAUTHORIZED, "A005", "잘못된 형식의 토큰입니다."),
 
+    PASSWORD_INVALID(HttpStatus.UNAUTHORIZED, "U003", "비밀번호가 일치하지 않습니다."),
+
     // 403 FORBIDDEN: 권한 없음
     FORBIDDEN(HttpStatus.FORBIDDEN, "A003", "접근 권한이 없습니다."),
 
@@ -37,6 +39,9 @@ public enum ErrorCode {
 
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "해당 도서를 찾을 수 없습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CT001", "해당 카테고리를 찾을 수 없습니다."),
+
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U002", "존재하지 않는 사용자입니다."),
+    
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 방을 찾을 수 없습니다."),
 
     // 409 CONFLICT: 중복된 리소스

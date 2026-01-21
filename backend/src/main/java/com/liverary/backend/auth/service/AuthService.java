@@ -1,6 +1,9 @@
 package com.liverary.backend.auth.service;
 
+import com.liverary.backend.auth.dto.request.LoginRequest;
 import com.liverary.backend.auth.dto.request.SignupRequest;
+import com.liverary.backend.auth.dto.response.LoginResponse;
+import com.liverary.backend.auth.provider.JwtProvider;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.user.domain.Role;
@@ -27,6 +30,7 @@ public class AuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
     /**
      * Spring Security 인증 과정에서 사용자 식별자(UUID)를 기반으로 사용자 조회
@@ -85,6 +89,32 @@ public class AuthService implements UserDetailsService {
 
         // 저장
         userRepository.save(user);
+    }
+
+    /**
+     * 사용자의 이메일과 비밀번호를 검증 후 액세스 토큰 발급
+     *
+     * @param request 로그인 정보 DTO
+     * @return 생성된 액세스 토큰을 포함한 LoginResponse
+     * @throws BaseException 사용자가 없거나 비밀번호가 틀린 경우 발생
+     */
+    public LoginResponse login(LoginRequest request) {
+
+        // 이메일 존재 확인
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 비밀번호 일치 여부 확인
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BaseException(ErrorCode.PASSWORD_INVALID);
+        }
+
+        // 토큰 생성
+        String accessToken = jwtProvider.createAccessToken(user.getUserId());
+
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .build();
     }
 
 }
