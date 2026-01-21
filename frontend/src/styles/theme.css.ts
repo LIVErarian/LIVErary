@@ -6,6 +6,16 @@ export const palette = {
   primary: '#420e07',
   background: '#240d04',
 
+  // UI용 나무 색상 팔레트
+  woodLight: '#eec39a',
+  woodMedium: '#C58346',
+  woodDark: '#8d563e',
+  woodDeep: '#4a2619',
+
+  // Input용 색상 팔레트
+  inputBg: '#4a3b32',
+  inputText: '#f2dcb3',
+
   // 기능성 컬러
   red: '#810000',
   success: '#002907',
