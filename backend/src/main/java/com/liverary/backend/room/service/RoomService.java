@@ -11,6 +11,7 @@ import com.liverary.backend.room.dto.request.JoinRoomRequest;
 import com.liverary.backend.room.dto.request.RoomCreateRequest;
 import com.liverary.backend.room.dto.response.JoinRoomResponse;
 import com.liverary.backend.room.dto.response.RoomCreateResponse;
+import com.liverary.backend.room.dto.response.RoomDetailResponse;
 import com.liverary.backend.room.dto.response.RoomListResponse;
 import com.liverary.backend.room.repository.RoomHistoryRepository;
 import com.liverary.backend.room.repository.RoomRepository;
@@ -219,4 +220,23 @@ public class RoomService {
 
         return rooms.map(RoomListResponse::from);
     }
+
+    /**
+     * 특정 방의 상세 정보를 조회합니다.
+     *
+     * <p>요청된 방 ID(UUID)에 해당하는 방 엔티티를 데이터베이스에서 조회한 후,
+     * 이를 상세 조회 응답 객체({@link RoomDetailResponse})로 변환하여 반환합니다.</p>
+     *
+     * @param roomId 조회할 방의 고유 식별자(UUID)
+     * @return 방의 상세 정보(제목, 카테고리, 인원, 책 정보 등)를 담은 DTO
+     * @throws BaseException 해당 ID를 가진 방이 존재하지 않을 경우 발생
+     */
+    @Transactional(readOnly = true)
+    public RoomDetailResponse getRoomDetail(UUID roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+        return RoomDetailResponse.from(room);
+    }
+
 }

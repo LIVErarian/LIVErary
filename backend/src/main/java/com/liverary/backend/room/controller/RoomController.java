@@ -6,6 +6,7 @@ import com.liverary.backend.room.dto.request.JoinRoomRequest;
 import com.liverary.backend.room.dto.request.RoomCreateRequest;
 import com.liverary.backend.room.dto.response.JoinRoomResponse;
 import com.liverary.backend.room.dto.response.RoomCreateResponse;
+import com.liverary.backend.room.dto.response.RoomDetailResponse;
 import com.liverary.backend.room.dto.response.RoomListResponse;
 import com.liverary.backend.room.service.RoomService;
 import jakarta.validation.Valid;
@@ -126,4 +127,17 @@ public class RoomController {
         return BaseResponse.success(responses);
     }
 
+    /**
+     * 특정 방의 상세 정보를 조회합니다.
+     *
+     * @param roomId 조회할 방의 고유 식별자 (URL Path)
+     * @return 방 상세 정보 DTO
+     */
+    @GetMapping("/{roomId}")
+    public BaseResponse<RoomDetailResponse> getRoomDetail(
+            @PathVariable UUID roomId
+    ) {
+        RoomDetailResponse response = roomService.getRoomDetail(roomId);
+        return BaseResponse.success(response);
+    }
 }
