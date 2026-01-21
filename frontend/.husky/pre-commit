@@ -14,5 +14,5 @@ if [ "$branch" = "master" ]; then
 fi
 
 # 코드 스타일 검사 (Lint & Format) 실행
-echo "코드 스타일 검사중..."
-npm run lint && npm run format
+echo "코드 스타일 검사 및 정리 중..."
+npx lint-staged
