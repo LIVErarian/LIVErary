@@ -59,7 +59,7 @@ public class BoardService {
     @Transactional(readOnly = true)
     public BoardDetailResponse getBoardDetail(UUID boardId) {
         Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new BaseException(ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(ErrorCode.BOARD_NOT_FOUND));
 
         return BoardDetailResponse.from(board);
     }
