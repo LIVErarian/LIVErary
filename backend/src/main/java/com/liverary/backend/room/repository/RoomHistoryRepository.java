@@ -6,6 +6,7 @@ import com.liverary.backend.room.domain.RoomHistory;
 import com.liverary.backend.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -14,4 +15,7 @@ import java.util.UUID;
 public interface RoomHistoryRepository extends JpaRepository<RoomHistory, UUID> {
     // 이미 해당 방에 '참여 중(JOINED)'인 기록이 있는지 확인
     boolean existsByRoomAndUserAndStatus(Room room, User user, HistoryStatus status);
+
+    // 특정 방에서 특정 유저의 '참여 중(JOINED)'인 기록 조회
+    Optional<RoomHistory> findByRoomAndUserAndStatus(Room room, User user, HistoryStatus status);
 }
