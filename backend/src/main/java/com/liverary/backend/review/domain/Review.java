@@ -1,5 +1,7 @@
 package com.liverary.backend.review.domain;
 
+import com.liverary.backend.board.domain.Board;
+import com.liverary.backend.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -23,13 +25,15 @@ public class Review {
     @Column(name = "review_id")
     private UUID reviewId;
 
-    // 게시글 넘버
-    @Column(nullable = false, name = "board_id")
-    private UUID boardId;
+    // 게시글
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id")
+    private Board board;
 
-    // 유저 넘버
-    @Column(nullable = false, name = "user_id")
-    private UUID userId;
+    // 작성자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     // 내용
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -46,14 +50,14 @@ public class Review {
     /**
      * 리뷰 엔티티를 생성하는 빌더 생성자입니다.
      *
-     * @param boardId 연관된 게시글 UUID
-     * @param userId  작성자 UUID
+     * @param board 연관된 게시글
+     * @param user  작성자
      * @param content 리뷰 내용
      */
     @Builder
-    public Review(UUID boardId, UUID userId, String content) {
-        this.boardId = boardId;
-        this.userId = userId;
+    public Review(Board board, User user, String content) {
+        this.board = board;
+        this.user = user;
         this.content = content;
         this.createdAt = LocalDateTime.now();
     }
