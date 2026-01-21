@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+/**
+ * 회원 정보 및 활동 내역 관련 비즈니스 로직을 처리하는 서비스 클래스
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -24,7 +27,17 @@ public class UserService {
     private final UserRepository userRepository;
     private final BookHistoryRepository bookHistoryRepository;
 
+    /**
+     * 사용자의 프로필 정보와 상태별 도서 활동 내역 조회
+     *
+     * @param userId   사용자 UUID
+     * @param pageable 페이징 정보
+     * @return 프로필 정보 및 상태별 도서 목록이 포함된 ProfileResponse
+     * @throws BaseException 유저를 찾을 수 없는 경우 발생 (USER_NOT_FOUND)
+     */
     public ProfileResponse getProfile(UUID userId, Pageable pageable) {
+
+        // 유저 정보 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 

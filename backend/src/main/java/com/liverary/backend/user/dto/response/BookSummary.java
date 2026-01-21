@@ -7,6 +7,9 @@ import lombok.Getter;
 
 import java.util.UUID;
 
+/**
+ * 마이페이지 도서 목록 조회를 위한 요약 정보 데이터 객체
+ */
 @Getter
 @Builder
 public class BookSummary {
@@ -18,6 +21,13 @@ public class BookSummary {
     private String coverUrl;
     private BookStatus status;
 
+    /**
+     * Book 엔티티와 상태 정보를 기반으로 BookSummary 객체 생성
+     *
+     * @param book   도서 엔티티
+     * @param status 도서 상태 Enum
+     * @return 생성된 BookSummary 객체
+     */
     public static BookSummary of(Book book, BookStatus status) {
         return BookSummary.builder()
                 .bookId(book.getBookId())
