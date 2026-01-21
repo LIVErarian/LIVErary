@@ -1,5 +1,6 @@
 package com.liverary.backend.board.domain;
 
+import com.liverary.backend.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -23,9 +24,10 @@ public class Board {
     @Column(name = "board_id")
     private UUID boardId;
 
-    // 작성자 식별자
-    @Column(nullable = false, name = "user_id")
-    private UUID userId;
+    // 작성자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     // 게시글 카테고리
     @Enumerated(EnumType.STRING)
@@ -61,7 +63,7 @@ public class Board {
     /**
      * 게시글 엔티티를 생성하는 빌더 생성자입니다.
      *
-     * @param userId 작성자 UUID
+     * @param user 작성자
      * @param type 게시판 종류 (자유, 공지 등)
      * @param title 게시글 제목
      * @param content 게시글 본문
@@ -69,8 +71,8 @@ public class Board {
      * @param status 게시글 상태 (공개, 삭제 등)
      */
     @Builder
-    public Board(UUID userId, Type type, String title, String content, String imageUrl, Status status){
-        this.userId = userId;
+    public Board(User user, Type type, String title, String content, String imageUrl, Status status){
+        this.user = user;
         this.type = type;
         this.title = title;
         this.content = content;
