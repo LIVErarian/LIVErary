@@ -2,19 +2,19 @@ package com.liverary.backend.bookHistory.repository;
 
 import com.liverary.backend.bookHistory.domain.BookHistory;
 import com.liverary.backend.bookHistory.domain.BookStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 @Repository
 public interface BookHistoryRepository extends JpaRepository<BookHistory, UUID> {
     // 사용자의 모든 독서 기록 조회
-    List<BookHistory> findByUser_UserId(UUID userId);
+    Page<BookHistory> findByUser_UserId(UUID userId, Pageable pageable);
 
     // 사용자의 특정 상태의 독서 기록 조회 (찜한 책 / 읽고 있는 책 / 다 읽은 책)
-    List<BookHistory> findByUser_UserIdAndStatus(UUID userId, BookStatus bookStatus);
+    Page<BookHistory> findByUser_UserIdAndStatus(UUID userId, BookStatus bookStatus, Pageable pageable);
 
 }
