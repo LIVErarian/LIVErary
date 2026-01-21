@@ -44,6 +44,10 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+    implementation 'org.apache.commons:commons-lang3:3.19.0' // Override vulnerable transitive: commons-lang3 (CVE flagged on 3.17.0)
+
     // docker
     developmentOnly "org.springframework.boot:spring-boot-docker-compose"
 }
