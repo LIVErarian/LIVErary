@@ -1,13 +1,20 @@
 package com.liverary.backend.room.controller;
 
 import com.liverary.backend.common.dto.BaseResponse;
+import com.liverary.backend.room.domain.RoomType;
 import com.liverary.backend.room.dto.request.JoinRoomRequest;
 import com.liverary.backend.room.dto.request.RoomCreateRequest;
 import com.liverary.backend.room.dto.response.JoinRoomResponse;
 import com.liverary.backend.room.dto.response.RoomCreateResponse;
+import com.liverary.backend.room.dto.response.RoomDetailResponse;
+import com.liverary.backend.room.dto.response.RoomListResponse;
 import com.liverary.backend.room.service.RoomService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -99,5 +106,38 @@ public class RoomController {
         roomService.leaveRoom(roomId, userId);
 
         return BaseResponse.success("퇴장 완료");
+    }
+
+    /**
+     * 방 목록을 조회합니다.
+     *
+     * <p>현재 진행 중(LIVE)이거나 예정된(SCHEDULED) 상태의 방 목록을 페이징하여 반환합니다.
+     * 쿼리 파라미터로 룸 타입(층)을 지정하여 필터링할 수 있으며, 지정하지 않을 경우 전체 목록을 조회합니다.</p>
+     *
+     * @param roomType 조회할 방의 타입. null일 경우 모든 타입의 방을 조회
+     * @param pageable 페이징 정보 (page, size, sort). 기본값: 생성일(createdAt) 기준 내림차순, 페이지당 10개
+     * @return 필터링 및 페이징 처리된 방 목록({@link RoomListResponse})을 포함한 공통 응답 객체
+     */
+    @GetMapping
+    public BaseResponse<Page<RoomListResponse>> getRooms(
+            @RequestParam(required = false) RoomType roomType,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ){
+        Page<RoomListResponse> responses = roomService.getRooms(roomType, pageable);
+        return BaseResponse.success(responses);
+    }
+
+    /**
+     * 특정 방의 상세 정보를 조회합니다.
+     *
+     * @param roomId 조회할 방의 고유 식별자 (URL Path)
+     * @return 방 상세 정보 DTO
+     */
+    @GetMapping("/{roomId}")
+    public BaseResponse<RoomDetailResponse> getRoomDetail(
+            @PathVariable UUID roomId
+    ) {
+        RoomDetailResponse response = roomService.getRoomDetail(roomId);
+        return BaseResponse.success(response);
     }
 }

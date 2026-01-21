@@ -11,14 +11,20 @@ import com.liverary.backend.room.dto.request.JoinRoomRequest;
 import com.liverary.backend.room.dto.request.RoomCreateRequest;
 import com.liverary.backend.room.dto.response.JoinRoomResponse;
 import com.liverary.backend.room.dto.response.RoomCreateResponse;
+import com.liverary.backend.room.dto.response.RoomDetailResponse;
+import com.liverary.backend.room.dto.response.RoomListResponse;
 import com.liverary.backend.room.repository.RoomHistoryRepository;
 import com.liverary.backend.room.repository.RoomRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -188,6 +194,49 @@ public class RoomService {
         if (room.getStatus() == RoomStatus.LIVE && room.getCurrentCount() <= 0) {
             room.finish();
         }
+    }
+
+    /**
+     * 조건에 맞는 방 목록을 페이징하여 조회합니다.
+     *
+     * <p>현재 진행 중(LIVE)이거나 예정된(SCHEDULED) 상태의 방만 조회 대상에 포함됩니다.
+     * 요청받은 RoomType(층)이 존재하면 해당 타입의 방만 필터링하고,
+     * 존재하지 않을 경우(null) 모든 타입의 활성화된 방을 조회합니다.</p>
+     *
+     * @param roomType 조회할 방의 타입. null일 경우 타입 구분 없이 전체 조회
+     * @param pageable 페이징 정보 (page, size, sort)
+     * @return 상태 조건(LIVE, SCHEDULED)을 만족하는 방 목록을 담은 Page 객체
+     */
+    @Transactional(readOnly = true)
+    public Page<RoomListResponse> getRooms(RoomType roomType, Pageable pageable) {
+        List<RoomStatus> activeStatuses = List.of(RoomStatus.LIVE, RoomStatus.SCHEDULED);
+
+        Page<Room> rooms;
+        if (roomType != null) {
+            rooms = roomRepository.findByRoomTypeAndStatusIn(roomType, activeStatuses, pageable);
+        } else {
+            rooms = roomRepository.findByStatusIn(activeStatuses, pageable);
+        }
+
+        return rooms.map(RoomListResponse::from);
+    }
+
+    /**
+     * 특정 방의 상세 정보를 조회합니다.
+     *
+     * <p>요청된 방 ID(UUID)에 해당하는 방 엔티티를 데이터베이스에서 조회한 후,
+     * 이를 상세 조회 응답 객체({@link RoomDetailResponse})로 변환하여 반환합니다.</p>
+     *
+     * @param roomId 조회할 방의 고유 식별자(UUID)
+     * @return 방의 상세 정보(제목, 카테고리, 인원, 책 정보 등)를 담은 DTO
+     * @throws BaseException 해당 ID를 가진 방이 존재하지 않을 경우 발생
+     */
+    @Transactional(readOnly = true)
+    public RoomDetailResponse getRoomDetail(UUID roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+        return RoomDetailResponse.from(room);
     }
 
 }
