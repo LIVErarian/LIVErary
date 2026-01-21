@@ -2,12 +2,16 @@ package com.liverary.backend.board.controller;
 
 import com.liverary.backend.board.domain.Type;
 import com.liverary.backend.board.dto.request.BoardCreateRequest;
+import com.liverary.backend.board.dto.request.BoardUpdateRequest;
 import com.liverary.backend.board.dto.response.BoardCreateResponse;
 import com.liverary.backend.board.dto.response.BoardDetailResponse;
 import com.liverary.backend.board.dto.response.BoardListResponse;
 import com.liverary.backend.board.service.BoardService;
 import com.liverary.backend.common.dto.BaseResponse;
+import com.liverary.backend.exception.BaseException;
+import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.user.domain.User;
+import com.liverary.backend.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -28,6 +33,9 @@ import java.util.UUID;
 public class BoardController {
 
     private final BoardService boardService;
+    private UUID getUserId(UserDetails user) {
+        return UUID.fromString(user.getUsername());
+    }
 
     /**
      * 게시글 작성 API
@@ -37,11 +45,11 @@ public class BoardController {
      * @return 생성된 게시글의 ID가 포함된 응답 객체
      */
     @PostMapping
-    public BaseResponse<BoardCreateResponse> createBoard(@AuthenticationPrincipal User user,
+    public BaseResponse<BoardCreateResponse> createBoard(@AuthenticationPrincipal UserDetails user,
                                                          @RequestBody @Valid BoardCreateRequest dto) {
 
         // 서비스 로직 수행
-         BoardCreateResponse response = boardService.createBoard(user.getUserId(), dto);
+        BoardCreateResponse response = boardService.createBoard(getUserId(user), dto);
 
         return BaseResponse.success(response);
     }
@@ -72,8 +80,45 @@ public class BoardController {
     public BaseResponse<Page<BoardListResponse>> getBoards(@RequestParam Type type,
                                                            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
                                                            Pageable pageable) {
+
         Page<BoardListResponse> response = boardService.getBoardList(type, pageable);
+
         return BaseResponse.success(response);
+    }
+
+    /**
+     * 게시글 수정
+     *
+     * @param user    수정을 요청한 인증된 사용자 (작성자 본인)
+     * @param boardId 수정할 게시글의 UUID
+     * @param dto     수정할 내용 (제목, 내용, 이미지 URL)
+     * @return 수정된 게시글의 상세 정보가 포함된 공통 응답 객체
+     */
+    @PatchMapping("/{boardId}")
+    public BaseResponse<BoardDetailResponse> updateBoard(
+            @AuthenticationPrincipal UserDetails user,
+            @PathVariable UUID boardId,
+            @RequestBody @Valid BoardUpdateRequest dto
+    ){
+
+        BoardDetailResponse response = boardService.updateBoard(getUserId(user), boardId, dto);
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 게시글 삭제
+     *
+     * @param user    삭제를 요청한 인증된 사용자 (작성자 본인)
+     * @param boardId 삭제할 게시글의 UUID
+     * @return 삭제 성공 메시지가 포함된 공통 응답 객체
+     */
+    @DeleteMapping("/{boardId}")
+    public BaseResponse<String> deleteBoard(
+            @AuthenticationPrincipal UserDetails user,
+            @PathVariable UUID boardId) {
+
+        boardService.deleteBoard(getUserId(user), boardId);
+        return BaseResponse.success();
     }
 
 }

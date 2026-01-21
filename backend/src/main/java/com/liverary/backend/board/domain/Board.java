@@ -81,4 +81,14 @@ public class Board {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
+
+    /**
+     * 게시글 정보 수정
+     */
+    public void update(String title, String content, String imageUrl){
+        this.title = title;
+        this.content = content;
+        this.imageUrl = imageUrl;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
