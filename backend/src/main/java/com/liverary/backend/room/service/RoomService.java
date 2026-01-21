@@ -200,21 +200,29 @@ public class RoomService {
      * 조건에 맞는 방 목록을 페이징하여 조회합니다.
      *
      * <p>현재 진행 중(LIVE)이거나 예정된(SCHEDULED) 상태의 방만 조회 대상에 포함됩니다.
+     * 요청받은 keyword(검색어)를 제목에 포함하거나 코드와 일치하는 방을 검색합니다.
      * 요청받은 RoomType(층)이 존재하면 해당 타입의 방만 필터링하고,
      * 존재하지 않을 경우(null) 모든 타입의 활성화된 방을 조회합니다.</p>
      *
      * @param roomType 조회할 방의 타입. null일 경우 타입 구분 없이 전체 조회
+     * @param keyword 검색어 (제목 또는 코드)
      * @param pageable 페이징 정보 (page, size, sort)
      * @return 상태 조건(LIVE, SCHEDULED)을 만족하는 방 목록을 담은 Page 객체
      */
     @Transactional(readOnly = true)
-    public Page<RoomListResponse> getRooms(RoomType roomType, Pageable pageable) {
+    public Page<RoomListResponse> getRooms(RoomType roomType, String keyword, Pageable pageable) {
         List<RoomStatus> activeStatuses = List.of(RoomStatus.LIVE, RoomStatus.SCHEDULED);
-
         Page<Room> rooms;
-        if (roomType != null) {
+
+        // keyword와 roomType에 따라 검색 또는 조회
+        if (keyword != null && !keyword.isBlank()) {
+            // keyword가 있는 경우 방 제목 또는 코드 검색
+            rooms = roomRepository.searchByKeyword(activeStatuses, keyword, pageable);
+        } else if (roomType != null) {
+            // keyword가 없고 roomType이 있는 경우 층별 필터링
             rooms = roomRepository.findByRoomTypeAndStatusIn(roomType, activeStatuses, pageable);
         } else {
+            // 둘 다 없는 경우 전체 목록 조회
             rooms = roomRepository.findByStatusIn(activeStatuses, pageable);
         }
 
