@@ -136,7 +136,7 @@ public class JwtProvider {
      * @param token JWT 토큰
      * @return 파싱된 Claims 객체
      */
-    private Claims parseClaims(String token) {
+    public Claims parseClaims(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
