@@ -1,14 +1,12 @@
 package com.liverary.backend.review.service;
 
 import com.liverary.backend.board.domain.Board;
-import com.liverary.backend.board.dto.response.BoardListResponse;
 import com.liverary.backend.board.repository.BoardRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.review.domain.Review;
 import com.liverary.backend.review.dto.request.ReviewCreateRequest;
 import com.liverary.backend.review.dto.request.ReviewUpdateRequest;
-import com.liverary.backend.review.dto.response.ReviewListResponse;
 import com.liverary.backend.review.dto.response.ReviewResponse;
 import com.liverary.backend.review.repository.ReviewRepository;
 import com.liverary.backend.user.domain.User;
@@ -19,9 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * 댓글 비즈니스 로직 처리 서비스

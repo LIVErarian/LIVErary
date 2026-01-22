@@ -69,14 +69,24 @@ public class BoardService {
 
     /**
      * 조건에 맞는 게시글 목록을 페이징하여 조회
+     * 요청받은 keyword(검색어)를 제목에 포함하거나 코드와 일치하는 게시글을 검색합니다.
      *
      * @param type     조회할 게시판 카테고리 (필수)
+     * @param keyword 검색어 (제목)
      * @param pageable 페이징 정보 (페이지 번호, 크기, 정렬 방식)
      * @return 페이징된 게시글 목록 응답 DTO
      */
     @Transactional(readOnly = true)
-    public Page<BoardListResponse> getBoardList(Type type, Pageable pageable) {
-        Page<Board> boardPage = boardRepository.findByTypeOrderByCreatedAtDesc(type, pageable);
+    public Page<BoardListResponse> getBoardList(Type type, String keyword, Pageable pageable) {
+        Page<Board> boardPage;
+
+        // keyword와 Type에 따라 검색 또는 조회
+        if (keyword != null && !keyword.isBlank()) {
+            // keyword가 있는 경우 게시글 제목 검색
+            boardPage = boardRepository.findByTypeAndTitleContainingIgnoreCaseOrderByCreatedAtDesc(type, keyword, pageable);
+        }else{
+            boardPage = boardRepository.findByTypeOrderByCreatedAtDesc(type, pageable);
+        }
 
         return boardPage.map(BoardListResponse::from);
     }

@@ -70,18 +70,20 @@ public class BoardController {
     }
 
     /**
-     * 게시글 목록 조회
+     * 게시글 목록 조회 및 검색
      *
      * @param type     조회할 게시판 종류 (필수)
+     * @param keyword  검색할 키워드.
      * @param pageable 페이징 정보 (기본값: 10개씩, 생성일 내림차순 정렬)
      * @return 페이징된 게시글 목록이 포함된 공통 응답 객체
      */
     @GetMapping
     public BaseResponse<Page<BoardListResponse>> getBoards(@RequestParam Type type,
+                                                           @RequestParam(required = false) String keyword,
                                                            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
                                                            Pageable pageable) {
 
-        Page<BoardListResponse> response = boardService.getBoardList(type, pageable);
+        Page<BoardListResponse> response = boardService.getBoardList(type, keyword, pageable);
 
         return BaseResponse.success(response);
     }
