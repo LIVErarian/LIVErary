@@ -55,13 +55,22 @@ public class SocketController {
         registry.register(user);
     }
 
+    /**
+     * SDP Offer를 받아 수신자/발신자 간 연결을 설정한다.
+     *
+     * @param message   SDP Offer 요청 DTO
+     * @param principal 현재 사용자 Principal
+     * @throws IOException 메시지 전송 실패 시
+     */
     @MessageMapping("/receiveVideoFrom")
     public void receiveVideoFrom(ReceiveVideoRequest message, Principal principal)
             throws IOException {
+        // 본인 세션 조회
         final UserSession user = registry.getByUserId(UUID.fromString(principal.getName()));
         if (user == null) {
             return;
         }
+        // 발신자 세션 조회
         final UUID senderId = message.getSenderId();
         if (senderId == null) {
             return;
@@ -70,9 +79,11 @@ public class SocketController {
         if (sender == null) {
             return;
         }
+        // 동일 방 여부 검증
         if (!user.getRoomId().equals(sender.getRoomId())) {
             return;
         }
+        // SDP Offer 전달
         final String sdpOffer = message.getSdpOffer();
         user.receiveVideoFrom(sender, sdpOffer);
     }
