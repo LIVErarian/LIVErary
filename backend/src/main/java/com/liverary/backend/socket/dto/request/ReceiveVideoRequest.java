@@ -1,21 +1,18 @@
 package com.liverary.backend.socket.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * SDP Offer 수신 요청 DTO.
+ */
 @Getter
-@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ReceiveVideoRequest {
-    // 비디오 요청을 보내는 sender의 ID
+    // 비디오 요청을 보낸 sender의 사용자 ID
     private UUID senderId;
 
-    // 비디오 요청을 보내는 sender의 SdpOffer
+    // 비디오 요청에 포함된 SDP Offer
     private String sdpOffer;
 }
