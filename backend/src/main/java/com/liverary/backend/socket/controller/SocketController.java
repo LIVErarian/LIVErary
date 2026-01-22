@@ -54,4 +54,27 @@ public class SocketController {
         UserSession user = socketService.join(roomId, userId, messagingTemplate);
         registry.register(user);
     }
+
+    @MessageMapping("/receiveVideoFrom")
+    public void receiveVideoFrom(ReceiveVideoRequest message, Principal principal)
+            throws IOException {
+        final UserSession user = registry.getByUserId(UUID.fromString(principal.getName()));
+        if (user == null) {
+            return;
+        }
+        final UUID senderId = message.getSenderId();
+        if (senderId == null) {
+            return;
+        }
+        final UserSession sender = registry.getByUserId(senderId);
+        if (sender == null) {
+            return;
+        }
+        if (!user.getRoomId().equals(sender.getRoomId())) {
+            return;
+        }
+        final String sdpOffer = message.getSdpOffer();
+        user.receiveVideoFrom(sender, sdpOffer);
+    }
+
 }
