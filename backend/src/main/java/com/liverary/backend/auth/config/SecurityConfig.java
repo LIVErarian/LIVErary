@@ -46,6 +46,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 // 로그인, 회원가입 등 인증 관련 API 허용
                                 "/auth/**",
+                                // 도서 목록 조회 및 검색 API 허용
+                                "/book/**",
 
                                 // Swagger 관련 api 허용
                                 "/v3/api-docs/**",
