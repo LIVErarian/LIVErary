@@ -88,8 +88,19 @@ public class User {
      *
      * @param request 수정할 정보를 담은 요청 객체
      */
-    public void update(UserUpdateRequest request) {
+    public void updateProfile(UserUpdateRequest request) {
         this.nickname = request.getNickname();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 누적 독서 시간 추가
+     */
+    public void updateTotalReadingTime(Long minutes) {
+        if (minutes != null && minutes > 0) {
+            this.totalReadingTime += minutes;
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
 }

@@ -73,8 +73,24 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
-        // 2. 닉네임 업데이트 (엔티티 내 메서드 호출)
-        user.update(request);
+        // 프로필 업데이트
+        user.updateProfile(request);
+    }
+
+    /**
+     * 사용자 TotalReadingTime 수정
+     *
+     * @param userId    사용자 UUID
+     * @param minutes   RoomService로 부터 받아온 유저가 책 읽은 시간
+     */
+    @Transactional
+    public void updateTotalReadingTime(UUID userId, Long minutes) {
+        // 유저 정보 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // TotalReadingTime 업데이트
+        user.updateTotalReadingTime(minutes);
     }
 
 }
