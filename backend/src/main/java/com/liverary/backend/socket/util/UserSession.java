@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
  * Kurento 기반 WebRTC 통화를 위한 사용자 세션을 관리한다.
  */
 @Getter
-@Slf4j
 public class UserSession implements Closeable {
 
     // 사용자에게 신호 메시지를 전달할 대상 경로
@@ -87,9 +86,6 @@ public class UserSession implements Closeable {
      * @throws IOException 메시지 전송 실패 시
      */
     public void receiveVideoFrom(UserSession sender, String sdpOffer) throws IOException {
-        log.info("USER {}: connecting with {} in room {}", this.userId, sender.getUserId(), this.roomId);
-
-        log.trace("USER {}: SdpOffer for {} is {}", this.userId, sender.getUserId(), sdpOffer);
 
         // 송신자별 수신 엔드포인트를 가져와 SDP 응답 생성
         final String ipSdpAnswer = this.getEndpointForUser(sender).processOffer(sdpOffer);
@@ -98,9 +94,7 @@ public class UserSession implements Closeable {
         scParams.addProperty("senderId", sender.getUserId().toString());
         scParams.addProperty("sdpAnswer", ipSdpAnswer);
 
-        log.trace("USER {}: SdpAnswer for {} is {}", this.userId, sender.getUserId(), ipSdpAnswer);
         this.sendMessage(scParams);
-        log.debug("gather candidates");
         this.getEndpointForUser(sender).gatherCandidates();
     }
 
@@ -112,15 +106,11 @@ public class UserSession implements Closeable {
      */
     private WebRtcEndpoint getEndpointForUser(final UserSession sender) {
         if (sender.getUserId().equals(userId)) {
-            log.debug("PARTICIPANT {}: configuring loopback", this.userId);
             return outgoingMedia;
         }
 
-        log.debug("PARTICIPANT {}: receiving video from {}", this.userId, sender.getUserId());
-
         WebRtcEndpoint incoming = incomingMedia.get(sender.getUserId());
         if (incoming == null) {
-            log.debug("PARTICIPANT {}: creating new endpoint for {}", this.userId, sender.getUserId());
             incoming = new WebRtcEndpoint.Builder(pipeline).build();
 
             // 수신 엔드포인트의 ICE 후보를 상대에게 전달
@@ -137,7 +127,6 @@ public class UserSession implements Closeable {
             incomingMedia.put(sender.getUserId(), incoming);
         }
 
-        log.debug("PARTICIPANT {}: obtained endpoint for {}", this.userId, sender.getUserId());
         // 송신자와 수신 엔드포인트를 연결
         sender.getOutgoingWebRtcPeer().connect(incoming);
         // 지연된 ICE 후보를 모두 반영
@@ -152,7 +141,6 @@ public class UserSession implements Closeable {
      * @param senderName 송신자 사용자 ID
      */
     public void cancelVideoFrom(final UUID senderName) {
-        log.debug("PARTICIPANT {}: canceling video reception from {}", this.userId, senderName);
         final WebRtcEndpoint incoming = incomingMedia.remove(senderName);
         queuedCandidates.remove(senderName);
 
@@ -160,7 +148,6 @@ public class UserSession implements Closeable {
             return;
         }
 
-        log.debug("PARTICIPANT {}: removing endpoint for {}", this.userId, senderName);
         incoming.release();
     }
 
@@ -171,10 +158,7 @@ public class UserSession implements Closeable {
      */
     @Override
     public void close() throws IOException {
-        log.debug("PARTICIPANT {}: Releasing resources", this.userId);
         for (final UUID remoteParticipantId : incomingMedia.keySet()) {
-
-            log.trace("PARTICIPANT {}: Released incoming EP for {}", this.userId, remoteParticipantId);
 
             final WebRtcEndpoint ep = this.incomingMedia.get(remoteParticipantId);
 
@@ -191,7 +175,6 @@ public class UserSession implements Closeable {
      * @throws IOException 메시지 전송 실패 시
      */
     public void sendMessage(JsonObject message) throws IOException {
-        log.debug("USER {}: Sending message {}", userId, message);
         sendToUser(message);
     }
 

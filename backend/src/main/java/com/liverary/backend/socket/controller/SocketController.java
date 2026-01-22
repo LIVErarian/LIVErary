@@ -12,7 +12,6 @@ import com.liverary.backend.socket.service.SocketService;
 import com.liverary.backend.socket.util.UserSession;
 import com.liverary.backend.socket.util.UserSessionRegistry;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.kurento.client.IceCandidate;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -24,7 +23,6 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
  * STOMP 메시지를 통해 WebRTC 방 참가 요청을 처리한다.
  */
 @Controller
-@Slf4j
 @RequiredArgsConstructor
 public class SocketController {
 
