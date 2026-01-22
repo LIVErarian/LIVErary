@@ -147,6 +147,24 @@ public class UserSession implements Closeable {
     }
 
     /**
+     * 특정 사용자 ID로부터의 영상 수신을 중단한다.
+     *
+     * @param senderName 송신자 사용자 ID
+     */
+    public void cancelVideoFrom(final UUID senderName) {
+        log.debug("PARTICIPANT {}: canceling video reception from {}", this.userId, senderName);
+        final WebRtcEndpoint incoming = incomingMedia.remove(senderName);
+        queuedCandidates.remove(senderName);
+
+        if (incoming == null) {
+            return;
+        }
+
+        log.debug("PARTICIPANT {}: removing endpoint for {}", this.userId, senderName);
+        incoming.release();
+    }
+
+    /**
      * 세션에서 생성한 모든 WebRTC 리소스를 해제한다.
      *
      * @throws IOException 리소스 해제 실패 시

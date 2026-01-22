@@ -120,5 +120,34 @@ public class SocketController {
         user.addCandidate(cand, message.getUserId());
     }
 
+    /**
+     * WebSocket 연결 종료 이벤트를 처리해 퇴장 로직을 수행한다.
+     *
+     * @param event 세션 종료 이벤트
+     * @throws IOException 메시지 전송 실패 시
+     */
+    @EventListener
+    public void handleSessionDisconnect(SessionDisconnectEvent event) throws IOException {
+        Principal principal = event.getUser(); // determineUser에서 설정된 Principal
+        if (principal == null) return;
+
+        UUID userId = UUID.fromString(principal.getName()); // name에 userId를 넣었으니
+        UserSession user = registry.removeByUserId(userId);
+        if (user != null) {
+            leaveRoomInternal(user);
+        }
+    }
+
+
+    /**
+     * 공통 퇴장 처리 로직.
+     *
+     * @param user 퇴장 대상 사용자 세션
+     * @throws IOException 메시지 전송 실패 시
+     */
+    private void leaveRoomInternal(UserSession user) throws IOException {
+        socketService.leave(user);
+    }
+
 
 }

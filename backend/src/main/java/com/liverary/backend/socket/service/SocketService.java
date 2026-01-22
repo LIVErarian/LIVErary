@@ -92,6 +92,72 @@ public class SocketService implements Closeable {
     }
 
     /**
+     * 방을 나가며 사용자 리소스를 해제한다.
+     *
+     * @param user 퇴장 사용자 세션
+     * @throws IOException 메시지 전송 실패 시
+     */
+    public void leave(UserSession user) throws IOException {
+        this.removeParticipant(user.getRoomId(), user.getUserId());
+        user.close();
+    }
+
+    /**
+     * 참여자를 제거하고 남은 참여자에게 알린다.
+     */
+    private void removeParticipant(UUID roomId, UUID participantName) {
+        ConcurrentMap<UUID, UserSession> roomParticipants = rooms.get(roomId);
+        if (roomParticipants == null) {
+            return;
+        }
+
+        roomParticipants.remove(participantName);
+
+        // 퇴장 참여자의 미디어 연결 해제
+        disconnectMediaFromAll(roomParticipants.values(), participantName);
+
+        // 퇴장 알림 전송
+        JsonObject leftMsg = SignalingMessageFactory.participantLeft(participantName);
+        List<UUID> failed = broadcastSafely(roomParticipants.values(), leftMsg);
+
+        if (roomParticipants.isEmpty()) {
+            rooms.remove(roomId, roomParticipants);
+            MediaPipeline pipeline = roomPipelines.remove(roomId);
+            if (pipeline != null) {
+                pipeline.release();
+            }
+        }
+
+    }
+
+    /**
+     * 메시지 전송 실패한 참여자 ID 목록을 반환한다.
+     */
+    private List<UUID> broadcastSafely(Collection<UserSession> roomParticipants, JsonObject message) {
+        List<UUID> failed = new ArrayList<>();
+
+        for (UserSession participant : roomParticipants) {
+            try {
+                participant.sendMessage(message);
+            } catch (IOException e) {
+                failed.add(participant.getUserId());
+            }
+        }
+
+        return failed;
+    }
+
+    /**
+     * 모든 피어에서 퇴장 참여자의 미디어를 끊는다.
+     */
+    private void disconnectMediaFromAll(Collection<UserSession> roomParticipants,
+                                        UUID departedParticipantName) {
+        for (UserSession participant : roomParticipants) {
+            participant.cancelVideoFrom(departedParticipantName);
+        }
+    }
+
+    /**
      * 모든 세션을 닫고 미디어 파이프라인을 해제한다.
      */
     @Override
