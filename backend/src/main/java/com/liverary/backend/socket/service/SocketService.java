@@ -152,7 +152,7 @@ public class SocketService implements Closeable {
     private void disconnectMediaFromAll(Collection<UserSession> roomParticipants,
                                         UUID departedParticipantName) {
         for (UserSession participant : roomParticipants) {
-            participant.cancelVideoFrom(departedParticipantName);
+            participant.cancelDataFrom(departedParticipantName);
         }
     }
 

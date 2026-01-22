@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @NoArgsConstructor
-public class ReceiveVideoRequest {
+public class ReceiveDataRequest {
     // 비디오 요청을 보낸 sender의 사용자 ID
     private UUID senderId;
 

@@ -79,18 +79,18 @@ public class UserSession implements Closeable {
     }
 
     /**
-     * 다른 사용자로부터 영상을 수신하도록 WebRTC 연결을 설정한다.
+     * 다른 사용자로부터 데이터를 수신하도록 WebRTC 연결을 설정한다.
      *
-     * @param sender   영상 송신 사용자
+     * @param sender   데이터 송신 사용자
      * @param sdpOffer 수신자에게 전달된 SDP Offer
      * @throws IOException 메시지 전송 실패 시
      */
-    public void receiveVideoFrom(UserSession sender, String sdpOffer) throws IOException {
+    public void receiveDataFrom(UserSession sender, String sdpOffer) throws IOException {
 
         // 송신자별 수신 엔드포인트를 가져와 SDP 응답 생성
         final String ipSdpAnswer = this.getEndpointForUser(sender).processOffer(sdpOffer);
         final JsonObject scParams = new JsonObject();
-        scParams.addProperty("id", "receiveVideoAnswer");
+        scParams.addProperty("id", "receiveDataAnswer");
         scParams.addProperty("senderId", sender.getUserId().toString());
         scParams.addProperty("sdpAnswer", ipSdpAnswer);
 
@@ -101,7 +101,7 @@ public class UserSession implements Closeable {
     /**
      * 송신자별 수신 WebRTC 엔드포인트를 생성/조회한다.
      *
-     * @param sender 영상 송신 사용자
+     * @param sender 데이터 송신 사용자
      * @return 수신 엔드포인트
      */
     private WebRtcEndpoint getEndpointForUser(final UserSession sender) {
@@ -136,11 +136,11 @@ public class UserSession implements Closeable {
     }
 
     /**
-     * 특정 사용자 ID로부터의 영상 수신을 중단한다.
+     * 특정 사용자 ID로부터의 데이터 수신을 중단한다.
      *
      * @param senderName 송신자 사용자 ID
      */
-    public void cancelVideoFrom(final UUID senderName) {
+    public void cancelDataFrom(final UUID senderName) {
         final WebRtcEndpoint incoming = incomingMedia.remove(senderName);
         queuedCandidates.remove(senderName);
 

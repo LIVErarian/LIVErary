@@ -7,7 +7,7 @@ import java.util.UUID;
 import com.liverary.backend.room.service.RoomService;
 import com.liverary.backend.socket.dto.request.ConnectRoomRequest;
 import com.liverary.backend.socket.dto.request.IceCandidateRequest;
-import com.liverary.backend.socket.dto.request.ReceiveVideoRequest;
+import com.liverary.backend.socket.dto.request.ReceiveDataRequest;
 import com.liverary.backend.socket.service.SocketService;
 import com.liverary.backend.socket.util.UserSession;
 import com.liverary.backend.socket.util.UserSessionRegistry;
@@ -60,8 +60,8 @@ public class SocketController {
      * @param principal 현재 사용자 Principal
      * @throws IOException 메시지 전송 실패 시
      */
-    @MessageMapping("/receiveVideoFrom")
-    public void receiveVideoFrom(ReceiveVideoRequest message, Principal principal)
+    @MessageMapping("/receiveDataFrom")
+    public void receiveDataFrom(ReceiveDataRequest message, Principal principal)
             throws IOException {
         // 본인 세션 조회
         final UserSession user = registry.getByUserId(UUID.fromString(principal.getName()));
@@ -83,7 +83,7 @@ public class SocketController {
         }
         // SDP Offer 전달
         final String sdpOffer = message.getSdpOffer();
-        user.receiveVideoFrom(sender, sdpOffer);
+        user.receiveDataFrom(sender, sdpOffer);
     }
 
     /**
