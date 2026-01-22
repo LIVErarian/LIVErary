@@ -109,21 +109,24 @@ public class RoomController {
     }
 
     /**
-     * 방 목록을 조회합니다.
+     * 방 목록을 조회하거나 검색합니다.
      *
      * <p>현재 진행 중(LIVE)이거나 예정된(SCHEDULED) 상태의 방 목록을 페이징하여 반환합니다.
+     * 검색어(keyword)가 존재할 경우 제목 또는 초대 코드로 검색을 수행합니다.
      * 쿼리 파라미터로 룸 타입(층)을 지정하여 필터링할 수 있으며, 지정하지 않을 경우 전체 목록을 조회합니다.</p>
      *
      * @param roomType 조회할 방의 타입. null일 경우 모든 타입의 방을 조회
+     * @param keyword 검색할 키워드.
      * @param pageable 페이징 정보 (page, size, sort). 기본값: 생성일(createdAt) 기준 내림차순, 페이지당 10개
      * @return 필터링 및 페이징 처리된 방 목록({@link RoomListResponse})을 포함한 공통 응답 객체
      */
     @GetMapping
     public BaseResponse<Page<RoomListResponse>> getRooms(
             @RequestParam(required = false) RoomType roomType,
+            @RequestParam(required = false) String keyword,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ){
-        Page<RoomListResponse> responses = roomService.getRooms(roomType, pageable);
+        Page<RoomListResponse> responses = roomService.getRooms(roomType, keyword, pageable);
         return BaseResponse.success(responses);
     }
 
