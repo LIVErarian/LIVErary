@@ -13,7 +13,12 @@ import java.util.UUID;
  * 게시글 데이터 접근 계층(Repository) 인터페이스입니다.
  */
 public interface BoardRepository extends JpaRepository<Board, UUID> {
-    // 게시글 카테고리별 목록 조회
+    // 게시글 카테고리별 목록 조회 (전체 목록)
     @EntityGraph(attributePaths = "user")
     Page<Board> findByTypeOrderByCreatedAtDesc(Type type, Pageable pageable);
+
+    // 게시글 카테고리별 keyword 포함 목록 조회(대소문자 구분 없음)
+    @EntityGraph(attributePaths = "user")
+    Page<Board> findByTypeAndTitleContainingIgnoreCaseOrderByCreatedAtDesc(Type type, String keyword, Pageable pageable);
+
 }
