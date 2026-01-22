@@ -88,4 +88,37 @@ public class SocketController {
         user.receiveVideoFrom(sender, sdpOffer);
     }
 
+    /**
+     * ICE Candidate를 수신하여 상대 피어에게 전달한다.
+     *
+     * @param message ICE Candidate 요청 DTO
+     * @param principal 현재 사용자 Principal
+     */
+    @MessageMapping("/onIceCandidate")
+    public void onIceCandidate(IceCandidateRequest message, Principal principal) {
+        // 본인 세션 조회
+        UserSession user = registry.getByUserId(UUID.fromString(principal.getName()));
+        if (user == null) {
+            return;
+        }
+        // 후보 소유자 조회
+        if (message.getUserId() == null || message.getCandidate() == null) {
+            return;
+        }
+        UserSession candidateOwner = registry.getByUserId(message.getUserId());
+        if (candidateOwner == null) {
+            return;
+        }
+        // 동일 방 여부 검증
+        if (!user.getRoomId().equals(candidateOwner.getRoomId())) {
+            return;
+        }
+        // ICE Candidate 전달
+        IceCandidateRequest.IceCandidateInfo candidate = message.getCandidate();
+        IceCandidate cand = new IceCandidate(candidate.getCandidate(), candidate.getSdpMid(),
+                candidate.getSdpMLineIndex());
+        user.addCandidate(cand, message.getUserId());
+    }
+
+
 }
