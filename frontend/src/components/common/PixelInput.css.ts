@@ -9,7 +9,8 @@ export const inputWrapper = style({
   backgroundColor: theme.colors.inputBg, // 어두운 배경
   height: '48px',
   padding: '0 16px',
-  marginTop: '8px', // 라벨과의 간격
+  marginTop: '4px', // 라벨과의 간격
+  marginBottom: '1rem',
 
   boxShadow: `
     /* 내부 그림자 */
