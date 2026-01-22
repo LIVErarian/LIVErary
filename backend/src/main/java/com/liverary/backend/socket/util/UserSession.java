@@ -70,6 +70,81 @@ public class UserSession implements Closeable {
         });
     }
 
+    /**
+     * 사용자 송신용 WebRTC 엔드포인트를 반환한다.
+     *
+     * @return 송신 엔드포인트
+     */
+    public WebRtcEndpoint getOutgoingWebRtcPeer() {
+        return outgoingMedia;
+    }
+
+    /**
+     * 다른 사용자로부터 영상을 수신하도록 WebRTC 연결을 설정한다.
+     *
+     * @param sender   영상 송신 사용자
+     * @param sdpOffer 수신자에게 전달된 SDP Offer
+     * @throws IOException 메시지 전송 실패 시
+     */
+    public void receiveVideoFrom(UserSession sender, String sdpOffer) throws IOException {
+        log.info("USER {}: connecting with {} in room {}", this.userId, sender.getUserId(), this.roomId);
+
+        log.trace("USER {}: SdpOffer for {} is {}", this.userId, sender.getUserId(), sdpOffer);
+
+        // 송신자별 수신 엔드포인트를 가져와 SDP 응답 생성
+        final String ipSdpAnswer = this.getEndpointForUser(sender).processOffer(sdpOffer);
+        final JsonObject scParams = new JsonObject();
+        scParams.addProperty("id", "receiveVideoAnswer");
+        scParams.addProperty("senderId", sender.getUserId().toString());
+        scParams.addProperty("sdpAnswer", ipSdpAnswer);
+
+        log.trace("USER {}: SdpAnswer for {} is {}", this.userId, sender.getUserId(), ipSdpAnswer);
+        this.sendMessage(scParams);
+        log.debug("gather candidates");
+        this.getEndpointForUser(sender).gatherCandidates();
+    }
+
+    /**
+     * 송신자별 수신 WebRTC 엔드포인트를 생성/조회한다.
+     *
+     * @param sender 영상 송신 사용자
+     * @return 수신 엔드포인트
+     */
+    private WebRtcEndpoint getEndpointForUser(final UserSession sender) {
+        if (sender.getUserId().equals(userId)) {
+            log.debug("PARTICIPANT {}: configuring loopback", this.userId);
+            return outgoingMedia;
+        }
+
+        log.debug("PARTICIPANT {}: receiving video from {}", this.userId, sender.getUserId());
+
+        WebRtcEndpoint incoming = incomingMedia.get(sender.getUserId());
+        if (incoming == null) {
+            log.debug("PARTICIPANT {}: creating new endpoint for {}", this.userId, sender.getUserId());
+            incoming = new WebRtcEndpoint.Builder(pipeline).build();
+
+            // 수신 엔드포인트의 ICE 후보를 상대에게 전달
+            incoming.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
+
+                @Override
+                public void onEvent(IceCandidateFoundEvent event) {
+                    JsonObject msg =
+                            SignalingMessageFactory.iceCandidate(sender.getUserId(), event.getCandidate());
+                    sendToUser(msg);
+                }
+            });
+
+            incomingMedia.put(sender.getUserId(), incoming);
+        }
+
+        log.debug("PARTICIPANT {}: obtained endpoint for {}", this.userId, sender.getUserId());
+        // 송신자와 수신 엔드포인트를 연결
+        sender.getOutgoingWebRtcPeer().connect(incoming);
+        // 지연된 ICE 후보를 모두 반영
+        drainQueuedCandidates(sender.getUserId(), incoming);
+
+        return incoming;
+    }
 
     /**
      * 세션에서 생성한 모든 WebRTC 리소스를 해제한다.
@@ -111,5 +186,41 @@ public class UserSession implements Closeable {
         messagingTemplate.convertAndSendToUser(userId.toString(), USER_DESTINATION, message.toString());
     }
 
+    /**
+     * ICE 후보를 해당 엔드포인트에 추가하거나 큐에 적재한다.
+     *
+     * @param candidate ICE 후보
+     * @param userId    후보가 속한 사용자 ID
+     */
+    public void addCandidate(IceCandidate candidate, UUID userId) {
+        if (this.userId.equals(userId)) {
+            outgoingMedia.addIceCandidate(candidate);
+        } else {
+            WebRtcEndpoint webRtc = incomingMedia.get(userId);
+            if (webRtc != null) {
+                webRtc.addIceCandidate(candidate);
+                return;
+            }
+            queuedCandidates
+                    .computeIfAbsent(userId, key -> new ConcurrentLinkedQueue<>())
+                    .add(candidate);
+        }
+    }
 
+    /**
+     * 지연된 ICE 후보 큐를 비우고 엔드포인트에 반영한다.
+     *
+     * @param senderId 송신자 사용자 ID
+     * @param endpoint 수신 엔드포인트
+     */
+    private void drainQueuedCandidates(UUID senderId, WebRtcEndpoint endpoint) {
+        Queue<IceCandidate> queue = queuedCandidates.remove(senderId);
+        if (queue == null) {
+            return;
+        }
+        IceCandidate candidate;
+        while ((candidate = queue.poll()) != null) {
+            endpoint.addIceCandidate(candidate);
+        }
+    }
 }
