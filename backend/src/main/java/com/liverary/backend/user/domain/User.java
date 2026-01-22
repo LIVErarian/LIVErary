@@ -1,5 +1,6 @@
 package com.liverary.backend.user.domain;
 
+import com.liverary.backend.user.dto.request.UserUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -80,6 +81,26 @@ public class User {
         this.totalReadingTime = 0L;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 사용자 정보 수정
+     *
+     * @param request 수정할 정보를 담은 요청 객체
+     */
+    public void updateProfile(UserUpdateRequest request) {
+        this.nickname = request.getNickname();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 누적 독서 시간 추가
+     */
+    public void updateTotalReadingTime(Long minutes) {
+        if (minutes != null && minutes > 0) {
+            this.totalReadingTime += minutes;
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
 }

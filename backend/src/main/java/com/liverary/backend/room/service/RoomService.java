@@ -17,6 +17,7 @@ import com.liverary.backend.room.repository.RoomHistoryRepository;
 import com.liverary.backend.room.repository.RoomRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
+import com.liverary.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +44,7 @@ public class RoomService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final RoomHistoryRepository roomHistoryRepository;
+    private final UserService userService;
 
     /**
      * 새로운 방(Room)을 생성합니다.
@@ -194,6 +196,12 @@ public class RoomService {
         if (room.getStatus() == RoomStatus.LIVE && room.getCurrentCount() <= 0) {
             room.finish();
         }
+
+        // 참여 기록을 통해 독서 시간(분) 계산
+        long minutes = java.time.Duration.between(history.getJoinedAt(), history.getLeftAt()).toMinutes();
+
+        // 방을 나가는 순간 유저의 TotalReadingTime 업데이트
+        userService.updateTotalReadingTime(userId, minutes);
     }
 
     /**

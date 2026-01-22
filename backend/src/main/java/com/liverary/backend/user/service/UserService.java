@@ -5,6 +5,7 @@ import com.liverary.backend.bookHistory.repository.BookHistoryRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.user.domain.User;
+import com.liverary.backend.user.dto.request.UserUpdateRequest;
 import com.liverary.backend.user.dto.response.BookSummary;
 import com.liverary.backend.user.dto.response.ProfileResponse;
 import com.liverary.backend.user.repository.UserRepository;
@@ -58,4 +59,38 @@ public class UserService {
 
         return ProfileResponse.of(user, readingBooks, wishBooks, completedBooks);
     }
+
+    /**
+     * 사용자 정보 수정
+     *
+     * @param userId      사용자 UUID
+     * @param request 수정할 사용자 정보 객체
+     */
+    @Transactional
+    public void updateProfile(UUID userId, UserUpdateRequest request) {
+
+        // 유저 정보 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 프로필 업데이트
+        user.updateProfile(request);
+    }
+
+    /**
+     * 사용자 TotalReadingTime 수정
+     *
+     * @param userId    사용자 UUID
+     * @param minutes   RoomService로 부터 받아온 유저가 책 읽은 시간
+     */
+    @Transactional
+    public void updateTotalReadingTime(UUID userId, Long minutes) {
+        // 유저 정보 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // TotalReadingTime 업데이트
+        user.updateTotalReadingTime(minutes);
+    }
+
 }
