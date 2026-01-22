@@ -11,7 +11,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       TZ: ${TZ:-Asia/Seoul}
     ports:
-      - "127.0.0.1:3307:3306" # 대부분 local에도 mysql 서버가 있어서
+      - "3307:3306" # 대부분 local에도 mysql 서버가 있어서
     volumes:
       - mysql_data:/var/lib/mysql
     command: >
@@ -26,7 +26,7 @@ services:
     container_name: redis
     restart: unless-stopped
     ports:
-      - "127.0.0.1:6379:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
     command: ["redis-server", "--appendonly", "yes"]
@@ -38,7 +38,7 @@ services:
     container_name: kms
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8888:8888"
+      - "8888:8888"
     environment:
       TZ: ${TZ:-Asia/Seoul}
       KMS_STUN_IP: ${KMS_SERVER_NAME}
@@ -54,10 +54,10 @@ services:
     container_name: coturn
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3478:3478/tcp"
-      - "127.0.0.1:3478:3478/udp"
-      - "127.0.0.1:5349:5349/tcp"
-      - "127.0.0.1:5349:5349/udp"
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "5349:5349/tcp"
+      - "5349:5349/udp"
       - "49160-49200:49160-49200/udp"
     environment:
       TZ: ${TZ:-Asia/Seoul}
