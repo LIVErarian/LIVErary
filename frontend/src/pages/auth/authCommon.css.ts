@@ -2,7 +2,7 @@ import { style } from '@vanilla-extract/css';
 
 import { theme } from '@/styles/theme.css';
 
-export const container = style({
+export const pageContainer = style({
   width: '100vw',
   height: '100vh',
   backgroundColor: theme.colors.background,
@@ -15,35 +15,31 @@ export const container = style({
   alignItems: 'center',
 });
 
-export const formContainer = style({
+// 폼 내부요소 정렬
+export const formWrapper = style({
   width: '100%',
   display: 'flex',
   flexDirection: 'column',
   gap: '16px',
 });
 
-export const description = style({
-  color: theme.colors.woodLight,
-  marginBottom: '24px',
-  opacity: 0.8,
+// 하단 링크 텍스트 스타일
+export const footerText = style({
   textAlign: 'center',
-  fontSize: '0.9rem',
-});
-
-// 회원가입, 비밀번호 찾기
-export const linkGroup = style({
-  display: 'flex',
-  justifyContent: 'space-between',
   marginTop: '12px',
-  fontSize: '0.8rem',
-  color: '#bcaaa4',
+  fontSize: '0.9rem',
+  color: theme.colors.boardText,
 });
 
-export const link = style({
+// 클릭 가능한 링크 스타일
+export const linkText = style({
+  marginLeft: '8px',
+  fontWeight: 'bold',
+  textDecoration: 'underline',
   cursor: 'pointer',
+  color: theme.colors.primary,
   transition: 'color 0.2s',
   ':hover': {
-    color: theme.colors.woodLight,
-    textDecoration: 'underline',
+    color: theme.colors.red,
   },
 });

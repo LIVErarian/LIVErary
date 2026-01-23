@@ -33,7 +33,7 @@ export const PixelContainer = ({
               style={{
                 margin: 0,
                 fontSize: '1.5rem',
-                textShadow: '2px 2px 0px rgba(0,0,0,0.3)',
+                textShadow: '1px 1px 0px rgba(0,0,0,0.3)',
               }}
             >
               {header}
