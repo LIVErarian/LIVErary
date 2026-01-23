@@ -108,6 +108,18 @@ public class SocketController {
     }
 
     /**
+     * STOMP leaveRoom 요청을 처리해 사용자를 방에서 제거하고 리소스를 정리한다.
+     *
+     * @param principal 현재 사용자 Principal
+     */
+    @MessageMapping("/leaveRoom")
+    public void leaveRoom(Principal principal) {
+        UUID userId = UUID.fromString(principal.getName());
+        UserSession user = registry.removeByUserId(userId);
+        leaveRoomInternal(user);
+    }
+
+    /**
      * WebSocket 연결 종료 이벤트를 처리해 퇴장 로직을 수행한다.
      *
      * @param event 세션 종료 이벤트
