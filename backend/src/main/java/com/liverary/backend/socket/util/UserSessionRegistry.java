@@ -2,6 +2,7 @@ package com.liverary.backend.socket.util;
 
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
 
@@ -27,27 +28,22 @@ public class UserSessionRegistry {
      * 사용자 ID로 세션을 조회한다.
      *
      * @param userId 사용자 ID
-     * @return 사용자 세션, 없으면 null
+     * @return 사용자 세션
      */
     public UserSession getByUserId(UUID userId) {
-        return usersByUserId.get(userId);
+        return Optional.ofNullable(usersByUserId.get(userId))
+                .orElseThrow(() -> new RuntimeException("해당 user의 session이 존재하지 않습니다."));
     }
 
     /**
      * 사용자 ID로 세션을 제거한다.
      *
      * @param userId 사용자 ID
-     * @return 제거된 세션, 없으면 null
+     * @return 제거된 세션
      */
     public UserSession removeByUserId(UUID userId) {
-        // 먼저 조회해 존재 여부를 확인
-        final UserSession user = getByUserId(userId);
-        if (user == null) {
-            return null;
-        }
-        // 존재 시 매핑에서 제거
-        usersByUserId.remove(user.getUserId());
-        return user;
+        return Optional.ofNullable(usersByUserId.remove(userId))
+                .orElseThrow(() -> new RuntimeException("해당 user의 session이 존재하지 않습니다."));
     }
 
 }

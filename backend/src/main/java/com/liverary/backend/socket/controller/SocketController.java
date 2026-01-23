@@ -11,10 +11,12 @@ import com.liverary.backend.socket.dto.request.ReceiveDataRequest;
 import com.liverary.backend.socket.service.SocketService;
 import com.liverary.backend.socket.util.UserSession;
 import com.liverary.backend.socket.util.UserSessionRegistry;
+import com.liverary.backend.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.kurento.client.IceCandidate;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
@@ -30,8 +32,7 @@ public class SocketController {
     private final SocketService socketService;
     // 사용자 세션 레지스트리
     private final UserSessionRegistry registry;
-    // STOMP 메시징 템플릿
-    private final SimpMessagingTemplate messagingTemplate;
+
     private final RoomService roomService;
 
     /**
@@ -49,8 +50,8 @@ public class SocketController {
         UUID userId = UUID.fromString(principal.getName());
 
         // 방 입장 처리 후 세션 등록
-        UserSession user = socketService.join(roomId, userId, messagingTemplate);
-        registry.register(user);
+        UserSession userSession = socketService.join(roomId, userId);
+        registry.register(userSession);
     }
 
     /**
@@ -61,28 +62,22 @@ public class SocketController {
      * @throws IOException 메시지 전송 실패 시
      */
     @MessageMapping("/receiveDataFrom")
-    public void receiveDataFrom(ReceiveDataRequest message, Principal principal)
-            throws IOException {
+    public void receiveDataFrom(ReceiveDataRequest message, Principal principal) {
         // 본인 세션 조회
-        final UserSession user = registry.getByUserId(UUID.fromString(principal.getName()));
-        if (user == null) {
-            return;
-        }
+        UserSession user = registry.getByUserId(UUID.fromString(principal.getName()));
+
         // 발신자 세션 조회
-        final UUID senderId = message.getSenderId();
-        if (senderId == null) {
-            return;
-        }
-        final UserSession sender = registry.getByUserId(senderId);
-        if (sender == null) {
-            return;
-        }
+        UUID senderId = message.getSenderId();
+
+        UserSession sender = registry.getByUserId(senderId);
+
         // 동일 방 여부 검증
         if (!user.getRoomId().equals(sender.getRoomId())) {
-            return;
+            throw new RuntimeException("sender와 receiver가 동일한 유저입니다.");
         }
+
         // SDP Offer 전달
-        final String sdpOffer = message.getSdpOffer();
+        String sdpOffer = message.getSdpOffer();
         user.receiveDataFrom(sender, sdpOffer);
     }
 
@@ -96,26 +91,32 @@ public class SocketController {
     public void onIceCandidate(IceCandidateRequest message, Principal principal) {
         // 본인 세션 조회
         UserSession user = registry.getByUserId(UUID.fromString(principal.getName()));
-        if (user == null) {
-            return;
-        }
+
         // 후보 소유자 조회
-        if (message.getUserId() == null || message.getCandidate() == null) {
-            return;
-        }
         UserSession candidateOwner = registry.getByUserId(message.getUserId());
-        if (candidateOwner == null) {
-            return;
-        }
+
         // 동일 방 여부 검증
         if (!user.getRoomId().equals(candidateOwner.getRoomId())) {
             return;
         }
+
         // ICE Candidate 전달
         IceCandidateRequest.IceCandidateInfo candidate = message.getCandidate();
         IceCandidate cand = new IceCandidate(candidate.getCandidate(), candidate.getSdpMid(),
                 candidate.getSdpMLineIndex());
         user.addCandidate(cand, message.getUserId());
+    }
+
+    /**
+     * STOMP leaveRoom 요청을 처리해 사용자를 방에서 제거하고 리소스를 정리한다.
+     *
+     * @param principal 현재 사용자 Principal
+     */
+    @MessageMapping("/leaveRoom")
+    public void leaveRoom(Principal principal) {
+        UUID userId = UUID.fromString(principal.getName());
+        UserSession user = registry.removeByUserId(userId);
+        leaveRoomInternal(user);
     }
 
     /**
@@ -131,9 +132,7 @@ public class SocketController {
 
         UUID userId = UUID.fromString(principal.getName()); // name에 userId를 넣었으니
         UserSession user = registry.removeByUserId(userId);
-        if (user != null) {
-            leaveRoomInternal(user);
-        }
+        leaveRoomInternal(user);
     }
 
 
@@ -141,9 +140,8 @@ public class SocketController {
      * 공통 퇴장 처리 로직.
      *
      * @param user 퇴장 대상 사용자 세션
-     * @throws IOException 메시지 전송 실패 시
      */
-    private void leaveRoomInternal(UserSession user) throws IOException {
+    private void leaveRoomInternal(UserSession user) {
         socketService.leave(user);
     }
 
