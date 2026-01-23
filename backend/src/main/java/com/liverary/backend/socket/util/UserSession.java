@@ -159,7 +159,6 @@ public class UserSession implements Closeable {
     @Override
     public void close() throws IOException {
         for (final UUID remoteParticipantId : incomingMedia.keySet()) {
-
             final WebRtcEndpoint ep = this.incomingMedia.get(remoteParticipantId);
 
             ep.release();
@@ -172,9 +171,8 @@ public class UserSession implements Closeable {
      * 사용자에게 신호 메시지를 전송한다.
      *
      * @param message 전송할 메시지
-     * @throws IOException 메시지 전송 실패 시
      */
-    public void sendMessage(JsonObject message) throws IOException {
+    public void sendMessage(JsonObject message) {
         sendToUser(message);
     }
 
