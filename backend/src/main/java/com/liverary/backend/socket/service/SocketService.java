@@ -33,21 +33,23 @@ public class SocketService implements Closeable {
     private final ConcurrentMap<UUID, MediaPipeline> roomPipelines = new ConcurrentHashMap<>();
     // Kurento 클라이언트
     private final KurentoClient kurentoClient;
+    // STOMP 메시징 템플릿
+    private final SimpMessagingTemplate messagingTemplate;
 
     /**
      * 방에 입장하고 세션을 생성한 뒤 기존 참여자에게 알린다.
      *
      * @param roomId 방 ID
      * @param userId 사용자 ID
-     * @param messagingTemplate STOMP 메시징 템플릿
      * @return 생성된 사용자 세션
      * @throws IOException 메시지 전송 실패 시
      */
-    public UserSession join(UUID roomId, UUID userId, SimpMessagingTemplate messagingTemplate)
+    public UserSession join(UUID roomId, UUID userId)
             throws IOException {
         // 방당 하나의 MediaPipeline 공유
         MediaPipeline mediaPipeline =
                 roomPipelines.computeIfAbsent(roomId, key -> kurentoClient.createMediaPipeline());
+
         UserSession participant = new UserSession(roomId, userId, mediaPipeline, messagingTemplate);
 
         // 방별 참여자 맵 생성/조회
@@ -68,10 +70,9 @@ public class SocketService implements Closeable {
      * 기존 참여자들에게 신규 참여자 입장을 브로드캐스트한다.
      *
      * @param newParticipant 신규 참여자 세션
-     * @throws IOException 메시지 전송 실패 시
      */
     private void broadcastToExistingParticipants(Collection<UserSession> roomParticipants,
-                                                 UserSession newParticipant) throws IOException {
+                                                 UserSession newParticipant) {
         JsonObject msg = SignalingMessageFactory.newParticipantArrived(newParticipant.getUserId());
         for (UserSession participant : roomParticipants) {
             participant.sendMessage(msg);
@@ -82,10 +83,9 @@ public class SocketService implements Closeable {
      * 신규 참여자에게 기존 참여자 목록을 전달한다.
      *
      * @param receiver 신규 참여자 세션
-     * @throws IOException 메시지 전송 실패 시
      */
     public void sendExistingParticipantsTo(Collection<UserSession> roomParticipants,
-                                           UserSession receiver) throws IOException {
+                                           UserSession receiver) {
         JsonObject message = SignalingMessageFactory.existingParticipants(roomParticipants, receiver);
         receiver.sendMessage(message);
     }
@@ -94,11 +94,14 @@ public class SocketService implements Closeable {
      * 방을 나가며 사용자 리소스를 해제한다.
      *
      * @param user 퇴장 사용자 세션
-     * @throws IOException 메시지 전송 실패 시
      */
-    public void leave(UserSession user) throws IOException {
+    public void leave(UserSession user) {
         this.removeParticipant(user.getRoomId(), user.getUserId());
-        user.close();
+        try {
+            user.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -106,10 +109,13 @@ public class SocketService implements Closeable {
      */
     private void removeParticipant(UUID roomId, UUID participantName) {
         ConcurrentMap<UUID, UserSession> roomParticipants = rooms.get(roomId);
+
+        // 참여자가 없는 경우
         if (roomParticipants == null) {
             return;
         }
 
+        // 참여자 퇴장
         roomParticipants.remove(participantName);
 
         // 퇴장 참여자의 미디어 연결 해제
@@ -136,11 +142,7 @@ public class SocketService implements Closeable {
         List<UUID> failed = new ArrayList<>();
 
         for (UserSession participant : roomParticipants) {
-            try {
-                participant.sendMessage(message);
-            } catch (IOException e) {
-                failed.add(participant.getUserId());
-            }
+            participant.sendMessage(message);
         }
 
         return failed;
