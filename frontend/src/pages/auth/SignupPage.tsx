@@ -41,10 +41,10 @@ export const SignupPage = () => {
             </PixelButton>
           </div>
 
-          {/* 닉네임 + 중복확인 (가로 배치) */}
+          {/* 닉네임 */}
           <PixelInput
             label="닉네임"
-            placeholder="한글/영문 8자 이내"
+            placeholder="한글/영문 10자 이내"
             fullWidth
           />
 
@@ -67,7 +67,7 @@ export const SignupPage = () => {
             fullWidth
             size="lg"
             style={{ marginTop: '2rem' }}
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/login')}
           >
             독서 시작하기
           </PixelButton>
