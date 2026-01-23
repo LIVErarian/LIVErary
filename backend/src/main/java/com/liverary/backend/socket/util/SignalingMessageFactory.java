@@ -79,4 +79,19 @@ public class SignalingMessageFactory {
         msg.add("candidate", JsonUtils.toJsonObject(candidate));
         return msg;
     }
+
+    /**
+     * SDP Offer에 대한 Answer를 전달하는 메시지를 만든다.
+     *
+     * @param senderId  송신자 ID
+     * @param sdpAnswer 생성된 SDP Answer
+     * @return 시그널링 메시지 JSON
+     */
+    public static JsonObject receiveDataAnswer(UUID senderId, String sdpAnswer) {
+        JsonObject msg = new JsonObject();
+        msg.addProperty("id", "receiveDataAnswer");
+        msg.addProperty("senderId", senderId.toString());
+        msg.addProperty("sdpAnswer", sdpAnswer);
+        return msg;
+    }
 }

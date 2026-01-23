@@ -83,18 +83,18 @@ public class UserSession implements Closeable {
      *
      * @param sender   데이터 송신 사용자
      * @param sdpOffer 수신자에게 전달된 SDP Offer
-     * @throws IOException 메시지 전송 실패 시
      */
-    public void receiveDataFrom(UserSession sender, String sdpOffer) throws IOException {
+    public void receiveDataFrom(UserSession sender, String sdpOffer) {
 
         // 송신자별 수신 엔드포인트를 가져와 SDP 응답 생성
         final String ipSdpAnswer = this.getEndpointForUser(sender).processOffer(sdpOffer);
-        final JsonObject scParams = new JsonObject();
-        scParams.addProperty("id", "receiveDataAnswer");
-        scParams.addProperty("senderId", sender.getUserId().toString());
-        scParams.addProperty("sdpAnswer", ipSdpAnswer);
 
-        this.sendMessage(scParams);
+        JsonObject message = SignalingMessageFactory.receiveDataAnswer(
+                sender.getUserId(),
+                ipSdpAnswer
+        );
+
+        this.sendMessage(message);
         this.getEndpointForUser(sender).gatherCandidates();
     }
 
