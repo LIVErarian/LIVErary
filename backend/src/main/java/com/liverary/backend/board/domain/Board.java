@@ -61,7 +61,7 @@ public class Board {
     private LocalDateTime updatedAt;
 
     // 책 정보 (홍보 게시판)
-    @Column(name = "book_title", columnDefinition = "TEXT")
+    @Column(name = "book_title")
     private String bookTitle;   // 책 제목
 
     @Column(name = "book_author")
