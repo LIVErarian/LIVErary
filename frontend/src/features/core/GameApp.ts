@@ -33,7 +33,7 @@ export class GameApp {
   private _worldHeight: number = 640;
 
   // Readonly 상수
-  private readonly MOVE_SPEED = 3;
+  private readonly MOVE_SPEED = 4;
 
   // GameApp 초기 설정
   constructor() {
@@ -131,9 +131,9 @@ export class GameApp {
       return;
     }
 
-    // 맵 크기 정보 업데이트 (기본: 960 * 640)
-    this._worldWidth = mapConfig.width ?? 960;
-    this._worldHeight = mapConfig.height ?? 640;
+    // 맵 크기 정보 업데이트 (기본: 1440 * 810)
+    this._worldWidth = mapConfig.width ?? 1440;
+    this._worldHeight = mapConfig.height ?? 810;
 
     if (this._viewport) {
       this._viewport.resize(

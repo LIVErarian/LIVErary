@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { GameLayout } from '@/components/layout/GameLayout';
 import { useGame } from '@/features/core/useGame';
-import { GameUiOverlay } from '@/features/ui/GameUiOverlay';
+import { GameSidebar } from '@/features/ui/GameSidebar';
 import { useGameStore } from '@/store/useGameStore';
 
 export const GamePage = () => {
@@ -21,8 +21,8 @@ export const GamePage = () => {
   }, [currentFloor, gameAppRef]);
 
   return (
-    <GameLayout canvasRef={containerRef}>
-      <GameUiOverlay />
+    <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />}>
+      {/* 모달 띄울 때 */}
     </GameLayout>
   );
 };

@@ -31,7 +31,5 @@ export const MAP_DATA: Record<FloorType, MapDataProps> = {
   },
   myRoom: {
     img: myRoomImg,
-    width: 1920,
-    height: 1080,
   },
 };

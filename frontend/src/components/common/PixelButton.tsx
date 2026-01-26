@@ -15,12 +15,13 @@ export const PixelButton = ({
   size = 'md',
   variant = 'primary',
   fullWidth = false,
+  shape = 'default',
   className,
   ...props
 }: PixelButtonProps) => {
   return (
     <button
-      className={`${pixelButton({ size, variant, fullWidth })} ${className || ''}`}
+      className={`${pixelButton({ size, variant, fullWidth, shape })} ${className || ''}`}
       {...props}
     >
       {children}

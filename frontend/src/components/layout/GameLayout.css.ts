@@ -16,13 +16,75 @@ export const container = style({
 export const sidebar = style({
   width: '128px',
   height: '100%',
-  backgroundColor: theme.colors.black,
+  backgroundColor: theme.colors.side,
   borderRight: `1px solid ${theme.colors.white}`,
   zIndex: 20,
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  paddingTop: '16px',
+});
+
+// 사이드바 메뉴 (전체 레이아웃)
+export const sidebarMenu = style({
+  width: '100%',
+  boxSizing: 'border-box',
+  flex: 1,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  padding: '32px 8px',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+});
+
+// 사이드바 상단 아이콘
+export const sidebarButton = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  width: '100%',
+  alignItems: 'center',
+});
+
+// 하단 프로필 영역
+export const profileSection = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '16px',
+  width: '100%',
+  marginTop: 'auto',
+});
+
+// 프로필
+export const profileRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '8px',
+  width: '100%',
+});
+
+// 아바타
+export const avatarCircle = style({
+  width: '48px',
+  height: '48px',
+  borderRadius: '50%',
+  backgroundColor: theme.colors.primary,
+  border: '2px solid #240d04',
+});
+
+// 사용자 이름
+export const playerName = style({
+  color: theme.colors.white,
+  fontWeight: 'bold',
+  fontSize: '0.9rem',
+  fontFamily: 'inherit',
+});
+
+// 미디어 컨트롤 (마이크 버튼)
+export const mediaRow = style({
+  display: 'flex',
 });
 
 // 오른쪽 게임 영역
