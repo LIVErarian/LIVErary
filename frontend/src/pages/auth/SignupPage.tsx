@@ -1,14 +1,29 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import bgImage from '@/assets/images/signup_bg.png';
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelContainer } from '@/components/common/PixelContainer';
 import { PixelInput } from '@/components/common/PixelInput';
+import { PixelModal } from '@/components/common/PixelModal';
 
 import * as styles from './SignupPage.css';
 
 export const SignupPage = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+
   const navigate = useNavigate();
+
+  const handleCheckEmail = () => {
+    // TODO: 이메일 검증 로직 호출
+    setModalMessage('검증된 이메일입니다!');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
   return (
     <div
@@ -35,7 +50,7 @@ export const SignupPage = () => {
             <PixelButton
               size="md"
               className={styles.checkBtn}
-              onClick={() => alert('검증된 이메일입니다!')}
+              onClick={handleCheckEmail}
             >
               확인
             </PixelButton>
@@ -84,6 +99,29 @@ export const SignupPage = () => {
           </div>
         </div>
       </PixelContainer>
+      {/* 모달 */}
+      <PixelModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title="이메일 검증"
+        width="320px"
+      >
+        <div style={{ textAlign: 'center', padding: '16px 0' }}>
+          {modalMessage}
+        </div>
+
+        <div
+          style={{
+            marginTop: '24px',
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <PixelButton size="sm" onClick={closeModal}>
+            확인
+          </PixelButton>
+        </div>
+      </PixelModal>
     </div>
   );
 };
