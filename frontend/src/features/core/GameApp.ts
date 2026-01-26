@@ -3,10 +3,11 @@ import { Application, Assets, Sprite, Ticker } from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 
 import playerMSheetImg from '@/assets/characters/basic_male.png';
-import basicFloorMap from '@/assets/maps/basic_floor.png';
+import { MAP_DATA } from '../map/mapAssets';
 import { NetworkManager } from '../network/NetworkManager';
 import { type Direction, Player } from '../player/Player';
 
+import type { FloorType } from '@/types/map.types';
 import type {
   MoveRequest,
   MoveResponse,
@@ -27,11 +28,12 @@ export class GameApp {
   private _myId: string = `user_${Math.floor(Math.random() * 10000)}`; //TODO: 로그인 후에는 실제 id로 수정 필요
   private _isPrevMoving: boolean = false;
   private _isDestroyed: boolean = false;
+  private _bgSprite: Sprite | null = null;
+  private _worldWidth: number = 960;
+  private _worldHeight: number = 640;
 
   // Readonly 상수
-  private readonly WORLD_WIDTH = 960;
-  private readonly WORLD_HEIGHT = 640;
-  private readonly MOVE_SPEED = 5;
+  private readonly MOVE_SPEED = 3;
 
   // GameApp 초기 설정
   constructor() {
@@ -74,7 +76,7 @@ export class GameApp {
 
     // Canvas를 DOM에 붙이기
     if (container.hasChildNodes()) {
-      container.innerHTML = ''; // dev 모드에서 2번 생성되는 것 방지 (*방어 코드)
+      container.innerHTML = ''; // dev 모드에서 2번 생성되는 것 방지
     }
     container.appendChild(this._app.canvas);
 
@@ -82,7 +84,11 @@ export class GameApp {
     this.createViewport();
 
     // 에셋 로드 & 배경 설정
-    await this.loadAssets();
+    Assets.add({ alias: 'playerSheet', src: playerMSheetImg });
+    await Assets.load('playerSheet');
+
+    // 맵 설정
+    await this.changeMap('myRoom');
 
     // 플레이어 생성
     this.createPlayer();
@@ -114,14 +120,56 @@ export class GameApp {
   }
 
   /**
+   * 층마다 맵을 변경합니다.
+   * @param floor 변경할 층 정보
+   * @returns
+   */
+  public async changeMap(floor: FloorType) {
+    const mapConfig = MAP_DATA[floor];
+    if (!mapConfig) {
+      console.error(`맵 데이터를 찾을 수 없습니다: ${floor}`);
+      return;
+    }
+
+    // 맵 크기 정보 업데이트 (기본: 960 * 640)
+    this._worldWidth = mapConfig.width ?? 960;
+    this._worldHeight = mapConfig.height ?? 640;
+
+    if (this._viewport) {
+      this._viewport.resize(
+        window.innerWidth,
+        window.innerHeight,
+        this._worldWidth,
+        this._worldHeight,
+      );
+      this._viewport.clamp({ direction: 'all' });
+    }
+
+    // 배경 이미지 로드 및 교체
+    const texture = await Assets.load(mapConfig.img);
+    if (!this._bgSprite) {
+      // 처음 생성일 때
+      this._bgSprite = new Sprite(texture);
+      this._viewport.addChildAt(this._bgSprite, 0); // 맨 뒤에 추가
+    } else {
+      this._bgSprite.texture = texture;
+    }
+
+    this._bgSprite.width = this._worldWidth;
+    this._bgSprite.height = this._worldHeight;
+
+    // TODO: 맵 변경시 플레이어 위치 초기화 필요
+  }
+
+  /**
    * Viewport를 생성합니다.
    */
   private createViewport() {
     this._viewport = new Viewport({
       screenWidth: window.innerWidth,
       screenHeight: window.innerHeight,
-      worldWidth: this.WORLD_WIDTH,
-      worldHeight: this.WORLD_HEIGHT,
+      worldWidth: this._worldWidth,
+      worldHeight: this._worldHeight,
       events: this._app.renderer.events, // 이벤트 바인딩
     });
 
@@ -148,28 +196,11 @@ export class GameApp {
   }
 
   /**
-   * 필요한 asset을 불러옵니다.
-   */
-  private async loadAssets() {
-    // 맵 이미지 불러오기
-    const texture = await Assets.load(basicFloorMap);
-    const bgSprite = new Sprite(texture);
-    bgSprite.width = this.WORLD_WIDTH;
-    bgSprite.height = this.WORLD_HEIGHT;
-    this._viewport.addChild(bgSprite);
-
-    // 캐릭터 이미지 불러오기
-    //TODO: 캐릭터 선택창 추가 후 playerSheet 변경 필요
-    Assets.add({ alias: 'playerSheet', src: playerMSheetImg });
-    await Assets.load('playerSheet');
-  }
-
-  /**
    * Player를 생성합니다.
    */
   private createPlayer() {
-    const startX = this.WORLD_WIDTH / 2;
-    const startY = this.WORLD_HEIGHT;
+    const startX = this._worldWidth / 2;
+    const startY = this._worldHeight;
 
     const sheetTexture = Assets.get('playerSheet');
 
@@ -232,11 +263,11 @@ export class GameApp {
       const marginY = this._player.playerHeight;
       this._player.x = Math.max(
         marginX,
-        Math.min(this._player.x, this.WORLD_WIDTH - marginX),
+        Math.min(this._player.x, this._worldWidth - marginX),
       );
       this._player.y = Math.max(
         marginY,
-        Math.min(this._player.y, this.WORLD_HEIGHT),
+        Math.min(this._player.y, this._worldHeight),
       );
 
       // 서버로 내 위치 전송

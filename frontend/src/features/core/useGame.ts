@@ -38,4 +38,6 @@ export const useGame = (
       gameAppRef.current = null;
     };
   }, [containerRef]);
+
+  return gameAppRef;
 };
