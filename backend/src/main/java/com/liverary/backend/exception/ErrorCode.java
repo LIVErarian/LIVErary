@@ -21,6 +21,7 @@ public enum ErrorCode {
     ROOM_NOT_LIVE(HttpStatus.BAD_REQUEST, "R002", "참여 가능한 상태의 방이 아닙니다."),
     ROOM_FULL(HttpStatus.BAD_REQUEST, "R003", "방의 정원이 초과되었습니다."),
     INVALID_CODE(HttpStatus.BAD_REQUEST, "R004", "참여 코드가 일치하지 않습니다."),
+    INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "R007", "종료 시각은 시작 시각 이후여야 합니다."),
 
     BOOK_INFO_REQUIRED(HttpStatus.BAD_REQUEST, "BD003", "책 정보를 입력해주세요."),
 
@@ -53,6 +54,7 @@ public enum ErrorCode {
 
     EMAIL_DUPLICATE(HttpStatus.CONFLICT, "U001", "이미 사용중인 이메일입니다."),
     ALREADY_JOINED_ROOM(HttpStatus.CONFLICT, "R005", "이미 참여 중인 방입니다."),
+    RESERVATION_CONFLICT(HttpStatus.CONFLICT, "R008", "해당 시간에 이미 예약된 일정이 존재합니다."),
 
     // 500 INTERNAL_SERVER_ERROR: 서버 에러
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S001", "서버 내부 오류가 발생했습니다."),

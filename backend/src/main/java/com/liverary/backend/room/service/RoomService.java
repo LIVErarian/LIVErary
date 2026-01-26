@@ -7,21 +7,17 @@ import com.liverary.backend.category.repository.CategoryRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.room.domain.*;
-import com.liverary.backend.room.dto.request.JoinRoomRequest;
-import com.liverary.backend.room.dto.request.RoomCreateRequest;
-import com.liverary.backend.room.dto.response.JoinRoomResponse;
-import com.liverary.backend.room.dto.response.RoomCreateResponse;
-import com.liverary.backend.room.dto.response.RoomDetailResponse;
-import com.liverary.backend.room.dto.response.RoomListResponse;
+import com.liverary.backend.room.dto.request.*;
+import com.liverary.backend.room.dto.response.*;
 import com.liverary.backend.room.repository.RoomHistoryRepository;
 import com.liverary.backend.room.repository.RoomRepository;
+import com.liverary.backend.room.repository.RoomReservationRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import com.liverary.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +41,7 @@ public class RoomService {
     private final CategoryRepository categoryRepository;
     private final RoomHistoryRepository roomHistoryRepository;
     private final UserService userService;
+    private final RoomReservationRepository roomReservationRepository;
 
     /**
      * 새로운 방(Room)을 생성합니다.
@@ -97,6 +94,81 @@ public class RoomService {
         roomRepository.save(room);
 
         return RoomCreateResponse.from(room);
+    }
+
+    /**
+     * 예약된 방(Reserved Room)을 생성합니다.
+     *
+     * <p>방 생성과 동시에 생성자(Host)의 예약 내역을 저장합니다.<br/>
+     * 시작/종료 시간의 순서 논리 검증과
+     * 생성자의 동시간대 중복 예약 여부 검증을 수행합니다.
+     * </p>
+     *
+     * @param userId  예약 방을 생성하는 유저(Host)의 고유 식별자
+     * @param request 예약 방 생성 요청 정보가 담긴 DTO (startAt, endAt 필수)
+     * @return 생성된 방의 식별자와 초대 코드를 포함한 응답 DTO
+     * @throws BaseException 시간 설정이 잘못되었거나, 중복된 예약이 있을 경우 발생
+     */
+    @Transactional
+    public CreateReservationResponse createReservation(UUID userId, CreateReservationRequest request) {
+        User host = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 시작 시각보다 종료 시각이 나중인지 검증
+        if (request.getStartAt().isAfter(request.getEndAt()) || request.getStartAt().isEqual(request.getEndAt())) {
+            throw new BaseException(ErrorCode.INVALID_TIME_RANGE);
+        }
+
+        // 동일 시간대에 중복 예약을 방지
+        boolean isOverlapped = roomReservationRepository.existsOverlappingReservation(
+                host, request.getStartAt(), request.getEndAt()
+        );
+        if (isOverlapped) {
+            throw new BaseException(ErrorCode.RESERVATION_CONFLICT);
+        }
+
+        Book book = null;
+        Category category;
+
+        // 책 선택 여부에 따라 방의 카테고리 결정
+        if (request.getBookId() != null) {
+            // Case 1: 책을 선택한 경우
+            book = bookRepository.findById(request.getBookId())
+                    .orElseThrow(() -> new BaseException(ErrorCode.BOOK_NOT_FOUND));
+            category = book.getCategory();
+        } else if (request.getCategoryId() != null) {
+            // Case 2: 책 없이 카테고리만 직접 선택한 경우
+            category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
+        } else {
+            // Case 3: 둘 다 선택하지 않은 경우
+            category = categoryRepository.findByName("기타")
+                    .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
+        }
+
+        Room room = Room.builder()
+                .title(request.getTitle())
+                .roomType(request.getRoomType())
+                .accessType(request.getAccessType())
+                .maxUser(request.getMaxUser())
+                .creator(host)
+                .book(book)
+                .category(category)
+                .startAt(request.getStartAt())
+                .endAt(request.getEndAt())
+                .build();
+
+        room.confirmReservation();
+        roomRepository.save(room);
+
+        // host를 예약 신청 내역에 추가
+        RoomReservation reservation = RoomReservation.builder()
+                .room(room)
+                .user(host)
+                .build();
+        roomReservationRepository.save(reservation);
+
+        return new CreateReservationResponse(room.getRoomId(), room.getCode());
     }
 
     /**
