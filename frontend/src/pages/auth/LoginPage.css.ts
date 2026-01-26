@@ -7,7 +7,7 @@ export {
   formWrapper,
   linkText,
   pageContainer,
-} from './AuthCommon.css';
+} from './authCommon.css';
 
 export const description = style({
   color: theme.colors.woodLight,

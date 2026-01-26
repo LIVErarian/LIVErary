@@ -1,25 +1,18 @@
 import { useRef } from 'react';
 
+import { GameLayout } from '@/components/layout/GameLayout';
 import { useGame } from '@/features/core/useGame';
-
-import * as styles from './GamePage.css.ts';
 
 export const GamePage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // 게임 엔진 가동
   useGame(containerRef);
 
   return (
-    <div className={styles.container}>
-      {/* 왼쪽 사이드바 UI */}
-      <aside className={styles.sidebar}>
-        <div style={{ color: 'white' }}>Menu</div>
-      </aside>
-
-      {/* 오른쪽 게임 영역 */}
-      <main className={styles.gameArea}>
-        <div ref={containerRef} className={styles.canvasWrapper} />
-      </main>
-    </div>
+    <GameLayout canvasRef={containerRef}>
+      {/* TODO: GameOverlay 추가 */}
+      ui
+    </GameLayout>
   );
 };
