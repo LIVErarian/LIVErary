@@ -45,6 +45,13 @@ public class BoardService {
     public BoardCreateResponse createBoard(UUID userId, BoardCreateRequest request) {
         User userRef = userRepository.getReferenceById(userId);
 
+        // 책 정보 입력 여부 확인 (홍보 게시판)
+        if(request.getType() == Type.PROMOTION){
+            if(request.getBookTitle() == null){
+                throw new BaseException(ErrorCode.BOOK_INFO_REQUIRED);
+            }
+        }
+
         Board board = request.toEntity(userRef);
 
         Board savedBoard = boardRepository.save(board);
