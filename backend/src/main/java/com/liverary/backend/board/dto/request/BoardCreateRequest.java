@@ -29,6 +29,13 @@ public class BoardCreateRequest {
 
     private String imageUrl;// 이미지 URL
 
+    // 책 정보 필드는 Type이 PROMOTION일 때만 필수
+    private String bookTitle;   // 책 제목
+
+    private String bookAuthor;  // 저자
+
+    private String bookCoverUrl;// 커버 이미지 URL
+
     /**
      * DTO를 Board 엔티티로 변환합니다.
      *
@@ -50,6 +57,9 @@ public class BoardCreateRequest {
                 .type(this.type)
                 .status(initialStatus)
                 .imageUrl(this.imageUrl)
+                .bookTitle(this.bookTitle)
+                .bookAuthor(this.bookAuthor)
+                .bookCoverUrl(this.bookCoverUrl)
                 .build();
     }
 }

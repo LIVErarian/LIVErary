@@ -60,6 +60,16 @@ public class Board {
     @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // 책 정보 (홍보 게시판)
+    @Column(name = "book_title", columnDefinition = "TEXT")
+    private String bookTitle;   // 책 제목
+
+    @Column(name = "book_author")
+    private String bookAuthor;  // 저자
+
+    @Column(name = "book_cover_url")
+    private String bookCoverUrl;// 표지 이미지 URL
+
     /**
      * 게시글 엔티티를 생성하는 빌더 생성자입니다.
      *
@@ -69,9 +79,12 @@ public class Board {
      * @param content 게시글 본문
      * @param imageUrl 썸네일 이미지 URL
      * @param status 게시글 상태 (공개, 삭제 등)
+     * @param bookTitle 책 제목
+     * @param bookAuthor 저자
+     * @param bookCoverUrl 커버 이미지 URL
      */
     @Builder
-    public Board(User user, Type type, String title, String content, String imageUrl, Status status){
+    public Board(User user, Type type, String title, String content, String imageUrl, Status status, String bookTitle, String bookAuthor, String bookCoverUrl) {
         this.user = user;
         this.type = type;
         this.title = title;
@@ -80,6 +93,9 @@ public class Board {
         this.status = status != null ?  status : Status.PENDING;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.bookTitle = bookTitle;
+        this.bookAuthor = bookAuthor;
+        this.bookCoverUrl = bookCoverUrl;
     }
 
     /**
