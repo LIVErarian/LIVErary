@@ -2,12 +2,8 @@ package com.liverary.backend.room.controller;
 
 import com.liverary.backend.common.dto.BaseResponse;
 import com.liverary.backend.room.domain.RoomType;
-import com.liverary.backend.room.dto.request.JoinRoomRequest;
-import com.liverary.backend.room.dto.request.RoomCreateRequest;
-import com.liverary.backend.room.dto.response.JoinRoomResponse;
-import com.liverary.backend.room.dto.response.RoomCreateResponse;
-import com.liverary.backend.room.dto.response.RoomDetailResponse;
-import com.liverary.backend.room.dto.response.RoomListResponse;
+import com.liverary.backend.room.dto.request.*;
+import com.liverary.backend.room.dto.response.*;
 import com.liverary.backend.room.service.RoomService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -141,6 +137,25 @@ public class RoomController {
             @PathVariable UUID roomId
     ) {
         RoomDetailResponse response = roomService.getRoomDetail(roomId);
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 새로운 방 예약 (RoomReservation)을 생성합니다.
+     *
+     * @param user Spring Security를 통해 인증된 사용자 정보
+     * @param request 예약 방 생성 요청 정보가 담긴 DTO (startAt, endAt 필수)
+     * @return 생성된 방의 식별자와 초대 코드를 포함한 성공 응답 객체 (BaseResponse)
+     */
+    @PostMapping("/reservation")
+    public BaseResponse<CreateReservationResponse> createReservation(
+            @AuthenticationPrincipal UserDetails user,
+            @Valid @RequestBody CreateReservationRequest request
+    ) {
+        UUID userId = UUID.fromString(user.getUsername());
+
+        CreateReservationResponse response = roomService.createReservation(userId, request);
+
         return BaseResponse.success(response);
     }
 }
