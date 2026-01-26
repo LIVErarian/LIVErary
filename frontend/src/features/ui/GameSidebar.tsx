@@ -1,5 +1,6 @@
 import { PixelButton } from '@/components/common/PixelButton';
 import { useGameStore } from '@/store/useGameStore';
+import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from '@/components/layout/GameLayout.css';
 
@@ -14,6 +15,7 @@ const ROOM_TITLES: Record<string, string> = {
 
 export const GameSidebar = () => {
   const { currentFloor, setCurrentFloor } = useGameStore();
+  const openModal = useModalStore((state) => state.openModal);
 
   const title = ROOM_TITLES[currentFloor] || currentFloor;
 
@@ -48,7 +50,7 @@ export const GameSidebar = () => {
           variant="beige"
           shape="square"
           size="lg"
-          onClick={() => alert('엘리베이터')}
+          onClick={() => openModal('elevator')}
         >
           🛗
         </PixelButton>
@@ -58,7 +60,7 @@ export const GameSidebar = () => {
           variant="beige"
           shape="square"
           size="lg"
-          onClick={() => alert('게시판')}
+          onClick={() => openModal('board')}
         >
           📋
         </PixelButton>
@@ -125,7 +127,9 @@ export const GameSidebar = () => {
         <PixelButton
           variant="danger"
           fullWidth
-          onClick={() => alert('로그아웃')}
+          onClick={() => {
+            openModal('logout');
+          }}
         >
           로그아웃
         </PixelButton>

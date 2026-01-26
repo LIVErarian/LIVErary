@@ -17,6 +17,7 @@ import type {
 
 import { palette } from '@/styles/theme.css';
 
+// TODO: 뒤로가기 시 캐릭터 삭제 안 됨
 export class GameApp {
   private _app: Application;
   private _viewport!: Viewport;
@@ -137,8 +138,8 @@ export class GameApp {
 
     if (this._viewport) {
       this._viewport.resize(
-        window.innerWidth,
-        window.innerHeight,
+        this._app.screen.width,
+        this._app.screen.height,
         this._worldWidth,
         this._worldHeight,
       );
@@ -158,6 +159,21 @@ export class GameApp {
     this._bgSprite.width = this._worldWidth;
     this._bgSprite.height = this._worldHeight;
 
+    const screenWidth = this._viewport.screenWidth;
+    const screenHeight = this._viewport.screenHeight;
+
+    // 맵이 화면보다 작으면 중앙 이동
+    if (this._worldWidth < screenWidth || this._worldHeight < screenHeight) {
+      this._viewport.moveCenter(this._worldWidth / 2, this._worldHeight / 2);
+    } else {
+      // 플레이어가 있으면 플레이어가 중앙에 오도록 이동
+      if (this._player) {
+        this._viewport.follow(this._player);
+      } else {
+        this._viewport.moveCenter(this._worldWidth / 2, this._worldHeight / 2);
+      }
+    }
+
     // TODO: 맵 변경시 플레이어 위치 초기화 필요
   }
 
@@ -166,8 +182,8 @@ export class GameApp {
    */
   private createViewport() {
     this._viewport = new Viewport({
-      screenWidth: window.innerWidth,
-      screenHeight: window.innerHeight,
+      screenWidth: this._app.screen.width,
+      screenHeight: this._app.screen.height,
       worldWidth: this._worldWidth,
       worldHeight: this._worldHeight,
       events: this._app.renderer.events, // 이벤트 바인딩

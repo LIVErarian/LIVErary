@@ -1,5 +1,7 @@
 import type { ReactNode, RefObject } from 'react';
 
+import { GlobalModal } from '../modal/GlobalModal';
+
 import * as styles from './GameLayout.css';
 
 interface GameLayoutProps {
@@ -26,6 +28,7 @@ export const GameLayout = ({
         {/* UI 레이어(Layer 1) */}
         <div className={styles.uiLayer}>{children}</div>
       </main>
+      <GlobalModal />
     </div>
   );
 };
