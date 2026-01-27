@@ -5,6 +5,7 @@ import com.liverary.backend.common.dto.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -51,6 +52,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
                 .body(BaseResponse.error(ErrorCode.INVALID_INPUT_VALUE.getCode(), errorMessage));
+    }
+
+    /**
+     * JSON 파싱 에러나 Enum 타입 불일치 등 메시지를 읽을 수 없을 때 발생하는 예외 처리
+     *
+     * @return 400 에러 상태와 공통 메시지가 담긴 ResponseEntity
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<BaseResponse<?>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.error("🚨 HttpMessageNotReadableException: {}", e.getMessage());
+
+        return ResponseEntity
+                .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
+                .body(BaseResponse.error(ErrorCode.INVALID_INPUT_VALUE.getCode(), "입력 데이터 형식이 잘못되었습니다."));
     }
 
     /**
