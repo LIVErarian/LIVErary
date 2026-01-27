@@ -158,4 +158,25 @@ public class RoomController {
 
         return BaseResponse.success(response);
     }
+
+    /**
+     * 예약 방 정보를 수정합니다.
+     *
+     * @param user Spring Security를 통해 인증된 사용자 정보
+     * @param roomId 수정할 방의 고유 식별자 (URL Path)
+     * @param request 예약 방 수정 요청 정보가 담긴 DTO
+     * @return 수정한 방의 식별자와 초대 코드를 포함한 성공 응답 객체 (BaseResponse)
+     */
+    @PatchMapping("/reservation/{roomId}")
+    public BaseResponse<UpdateReservationResponse> updateReservation(
+            @PathVariable UUID roomId,
+            @AuthenticationPrincipal UserDetails user,
+            @Valid @RequestBody UpdateReservationRequest request
+    ) {
+        UUID userId = UUID.fromString(user.getUsername());
+
+        UpdateReservationResponse response = roomService.updateReservation(roomId, userId, request);
+
+        return BaseResponse.success(response);
+    }
 }

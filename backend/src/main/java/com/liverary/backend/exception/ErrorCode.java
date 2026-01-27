@@ -22,6 +22,7 @@ public enum ErrorCode {
     ROOM_FULL(HttpStatus.BAD_REQUEST, "R003", "방의 정원이 초과되었습니다."),
     INVALID_CODE(HttpStatus.BAD_REQUEST, "R004", "참여 코드가 일치하지 않습니다."),
     INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "R007", "종료 시각은 시작 시각 이후여야 합니다."),
+    CANNOT_UPDATE_TIME(HttpStatus.BAD_REQUEST, "R009", "참여자가 있어 시간을 변경할 수 없습니다."),
 
     BOOK_INFO_REQUIRED(HttpStatus.BAD_REQUEST, "BD003", "책 정보를 입력해주세요."),
 
@@ -42,6 +43,7 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, "A003", "접근 권한이 없습니다."),
     NOT_BOARD_OWNER(HttpStatus.FORBIDDEN, "BD002", "게시글 수정 및 삭제 권한이 없습니다."),
     NOT_REVIEW_OWNER(HttpStatus.FORBIDDEN, "RV002", "댓글 수정 및 삭제 권한이 없습니다."),
+    NOT_ROOM_CREATOR(HttpStatus.FORBIDDEN, "R010", "예약 정보 수정 권한이 없습니다."),
 
     // 404 NOT_FOUND: 리소스를 찾을 수 없음
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "요청한 리소스를 찾을 수 없습니다."),

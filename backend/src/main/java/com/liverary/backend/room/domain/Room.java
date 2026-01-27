@@ -130,6 +130,26 @@ public class Room {
     }
 
     /**
+     * 예약 정보를 수정하기 위한 비즈니스 로직입니다.
+     */
+    public void updateReservation(String title, Integer maxUser, LocalDateTime startAt, LocalDateTime endAt, Book book, Category category) {
+        if (title != null) this.title = title;
+        if (maxUser != null) this.maxUser = maxUser;
+        if (startAt != null) this.startAt = startAt;
+        if (endAt != null) this.endAt = endAt;
+
+        if (book != null) {
+            this.book = book;
+            this.category = book.getCategory();
+        } else if (category != null) {
+            this.category = category;
+            this.book = null;
+        }
+
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
      * 현재 인원 추가를 위한 비즈니스 로직입니다.
      *
      * 방에 인원을 1명 추가합니다.
