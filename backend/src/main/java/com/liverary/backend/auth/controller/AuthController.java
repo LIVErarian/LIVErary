@@ -7,6 +7,8 @@ import com.liverary.backend.auth.dto.response.LoginResponse;
 import com.liverary.backend.auth.dto.response.RefreshResponse;
 import com.liverary.backend.auth.service.AuthService;
 import com.liverary.backend.common.dto.BaseResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,6 +35,7 @@ public class AuthController {
      * @return 중복되지 않았을 경우 성공 응답 객체
      */
     @GetMapping("/{email:.+}/exists")
+    @SecurityRequirements
     public BaseResponse<Void> checkEmail(@PathVariable String email) {
         authService.checkEmailDuplication(email);
         return BaseResponse.success();
@@ -45,6 +48,7 @@ public class AuthController {
      * @return 회원가입 성공 시 성공 응답 객체
      */
     @PostMapping("/signup")
+    @SecurityRequirements
     public BaseResponse<Void> signup(@Valid @RequestBody SignupRequest request) {
         authService.signup(request);
         return BaseResponse.success();
@@ -57,6 +61,7 @@ public class AuthController {
      * @return 발급된 토큰 정보를 포함한 성공 응답
      */
     @PostMapping("/login")
+    @SecurityRequirements
     public BaseResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         return BaseResponse.success(response);
@@ -69,6 +74,7 @@ public class AuthController {
      * @return 재발급된 액세스 토큰을 포함한 성공 응답
      */
     @PostMapping("/reissue")
+    @SecurityRequirements
     public BaseResponse<RefreshResponse> reissue(@Valid @RequestBody RefreshRequest request) {
         RefreshResponse response = authService.reissue(request.getRefreshToken());
         return BaseResponse.success(response);
