@@ -24,7 +24,7 @@ public class MoveController {
      * @param request   이동 입력 DTO
      * @param principal 인증된 사용자 Principal
      */
-    @MessageMapping("/com/liverary/backend/move")
+    @MessageMapping("/move")
     public void move(@Valid MoveRequest request, Principal principal) {
         UUID userId = UUID.fromString(principal.getName());
         moveService.enqueue(userId, request);
@@ -36,7 +36,7 @@ public class MoveController {
      * @param request   floor 입장 DTO
      * @param principal 인증된 사용자 Principal
      */
-    @MessageMapping("/com/liverary/backend/move/enter")
+    @MessageMapping("/move/enter")
     public void enterFloor(@Valid MoveEnterRequest request, Principal principal) {
         UUID userId = UUID.fromString(principal.getName());
         moveService.touch(userId, request);
@@ -48,7 +48,7 @@ public class MoveController {
      * @param request   floor 퇴장 DTO
      * @param principal 인증된 사용자 Principal
      */
-    @MessageMapping("/com/liverary/backend/move/exit")
+    @MessageMapping("/move/exit")
     public void exitFloor(@Valid MoveExitRequest request, Principal principal) {
         UUID userId = UUID.fromString(principal.getName());
         moveService.removeFromFloor(userId, request.getFloorId());

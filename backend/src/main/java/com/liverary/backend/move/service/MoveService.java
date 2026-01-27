@@ -65,7 +65,7 @@ public class MoveService {
             List<MoveBroadcast> batch = drain(queue);
             if (!batch.isEmpty()) {
                 // 동일 floor 구독자에게만 배치 전송
-                messagingTemplate.convertAndSend(MOVE_TOPIC_PREFIX + floorId + "/com/liverary/backend/move", batch);
+                messagingTemplate.convertAndSend(MOVE_TOPIC_PREFIX + floorId + "/move", batch);
             }
         });
     }
