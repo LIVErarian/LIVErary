@@ -24,7 +24,7 @@ public enum ErrorCode {
     INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "R007", "종료 시각은 시작 시각 이후여야 합니다."),
     CANNOT_UPDATE_TIME(HttpStatus.BAD_REQUEST, "R009", "참여자가 있어 시간을 변경할 수 없습니다."),
 
-    BOOK_INFO_REQUIRED(HttpStatus.BAD_REQUEST, "BD003", "책 정보를 입력해주세요."),
+    ROOM_INFO_REQUIRED(HttpStatus.BAD_REQUEST, "BD003", "방 정보를 입력해주세요."),
 
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "A006", "새 비밀번호와 확인 비밀번호가 일치하지 않습니다."),
     PASSWORD_WRONG(HttpStatus.BAD_REQUEST, "A007", "기존 비밀번호가 일치하지 않습니다."),

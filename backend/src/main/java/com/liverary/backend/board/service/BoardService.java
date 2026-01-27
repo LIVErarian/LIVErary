@@ -45,10 +45,10 @@ public class BoardService {
     public BoardCreateResponse createBoard(UUID userId, BoardCreateRequest request) {
         User userRef = userRepository.getReferenceById(userId);
 
-        // 책 정보 입력 여부 확인 (홍보 게시판)
-        if(request.getType() == Type.PROMOTION){
-            if(request.getBookTitle() == null){
-                throw new BaseException(ErrorCode.BOOK_INFO_REQUIRED);
+        // 방 정보 입력 여부 확인 (홍보 게시판)
+        if (request.getType() == Type.PROMOTION) {
+            if (request.getRoomId() == null) {
+                throw new BaseException(ErrorCode.ROOM_INFO_REQUIRED);
             }
         }
 
@@ -79,7 +79,7 @@ public class BoardService {
      * 요청받은 keyword(검색어)를 제목에 포함하거나 코드와 일치하는 게시글을 검색합니다.
      *
      * @param type     조회할 게시판 카테고리 (필수)
-     * @param keyword 검색어 (제목)
+     * @param keyword  검색어 (제목)
      * @param pageable 페이징 정보 (페이지 번호, 크기, 정렬 방식)
      * @return 페이징된 게시글 목록 응답 DTO
      */
@@ -91,7 +91,7 @@ public class BoardService {
         if (keyword != null && !keyword.isBlank()) {
             // keyword가 있는 경우 게시글 제목 검색
             boardPage = boardRepository.findByTypeAndTitleContainingIgnoreCaseOrderByCreatedAtDesc(type, keyword, pageable);
-        }else{
+        } else {
             boardPage = boardRepository.findByTypeOrderByCreatedAtDesc(type, pageable);
         }
 
@@ -109,13 +109,21 @@ public class BoardService {
      */
     @Transactional
     public BoardDetailResponse updateBoard(UUID userId, UUID boardId, BoardUpdateRequest request) {
-        Board board =  boardRepository.findById(boardId)
+        Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new BaseException(ErrorCode.BOARD_NOT_FOUND));
 
         // 작성자 본인 확인
         validateOwner(userId, board);
 
-        board.update(request.getTitle(), request.getContent(), request.getImageUrl());
+        // 방 정보 유효성 검증
+        if(board.getType() == Type.PROMOTION && request.getRoomId() == null){
+            throw new BaseException(ErrorCode.ROOM_INFO_REQUIRED);
+        }
+
+        // 업데이트 실행
+        board.update(request.getTitle(), request.getContent(), request.getImageUrl(),
+                request.getRoomId(), request.getCategoryName(), request.getBookTitle(),
+                request.getBookAuthor(), request.getBookCoverUrl());
 
         return BoardDetailResponse.from(board);
     }
@@ -149,7 +157,7 @@ public class BoardService {
      * @throws BaseException 작성자가 아닐 경우 NOT_BOARD_OWNER(403) 예외 발생
      */
     private void validateOwner(UUID userId, Board board) {
-        if(!board.getUser().getUserId().equals(userId)){
+        if (!board.getUser().getUserId().equals(userId)) {
             throw new BaseException(ErrorCode.NOT_BOARD_OWNER);
         }
     }

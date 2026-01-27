@@ -70,6 +70,12 @@ public class Board {
     @Column(name = "book_cover_url")
     private String bookCoverUrl;// 표지 이미지 URL
 
+    @Column(name = "target_room_id")
+    private UUID targetRoomId;
+
+    @Column(name = "category_name")
+    private String categoryName;
+
     /**
      * 게시글 엔티티를 생성하는 빌더 생성자입니다.
      *
@@ -82,9 +88,12 @@ public class Board {
      * @param bookTitle 책 제목
      * @param bookAuthor 저자
      * @param bookCoverUrl 커버 이미지 URL
+     * @param targetRoomId 홍보할 방 Id
+     * @param  categoryName 방 또는 책의 카테고리
      */
     @Builder
-    public Board(User user, Type type, String title, String content, String imageUrl, Status status, String bookTitle, String bookAuthor, String bookCoverUrl) {
+    public Board(User user, Type type, String title, String content, String imageUrl, Status status,
+                 String bookTitle, String bookAuthor, String bookCoverUrl, UUID targetRoomId, String categoryName) {
         this.user = user;
         this.type = type;
         this.title = title;
@@ -93,6 +102,8 @@ public class Board {
         this.status = status != null ?  status : Status.PENDING;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.targetRoomId = targetRoomId;
+        this.categoryName = categoryName;
         this.bookTitle = bookTitle;
         this.bookAuthor = bookAuthor;
         this.bookCoverUrl = bookCoverUrl;
@@ -100,11 +111,29 @@ public class Board {
 
     /**
      * 게시글 정보 수정
+     * (주의: 홍보 게시판이 아닐 경우 room, book 정보는 null/empty로 초기화됨)
      */
-    public void update(String title, String content, String imageUrl){
+    public void update(String title, String content, String imageUrl,
+                       UUID targetRoomId, String categoryName, String bookTitle,
+                       String bookAuthor, String bookCoverUrl) {
         this.title = title;
         this.content = content;
         this.imageUrl = imageUrl;
         this.updatedAt = LocalDateTime.now();
+
+        // 홍보 게시판이면 관련 정보 업데이트
+        if(this.type == Type.PROMOTION){
+            this.targetRoomId = targetRoomId;
+            this.categoryName = categoryName;
+            this.bookTitle = bookTitle;
+            this.bookAuthor = bookAuthor;
+            this.bookCoverUrl = bookCoverUrl;
+        } else{
+            this.targetRoomId = null;
+            this.categoryName = null;
+            this.bookTitle = null;
+            this.bookAuthor = null;
+            this.bookCoverUrl = null;
+        }
     }
 }

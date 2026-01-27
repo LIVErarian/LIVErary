@@ -24,10 +24,14 @@ public class BoardDetailResponse {
     private Status status;
     private String imageUrl;
     private LocalDateTime createdAt;
-    // 책 정보는 게시글 타입이 PROMOTION이 아닐 경우 null일 수 있음
+
+    // PROMOTION 게시판이 아닐 경우 값이 없을 수 있음
+    private UUID targetRoomId;
+    private String categoryName;
     private String bookTitle;
     private String bookAuthor;
     private String bookCoverUrl;
+
 
     /**
      * Board 엔티티를 BoardDetailResponse DTO로 변환
@@ -45,6 +49,8 @@ public class BoardDetailResponse {
                 .status(board.getStatus())
                 .imageUrl(board.getImageUrl())
                 .createdAt(board.getCreatedAt())
+                .targetRoomId(board.getTargetRoomId())
+                .categoryName(board.getCategoryName())
                 .bookTitle(board.getBookTitle())
                 .bookAuthor(board.getBookAuthor())
                 .bookCoverUrl(board.getBookCoverUrl())
