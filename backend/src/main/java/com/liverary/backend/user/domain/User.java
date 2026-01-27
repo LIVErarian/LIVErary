@@ -103,4 +103,13 @@ public class User {
         }
     }
 
+    /**
+     * 사용자 비밀번호 수정
+     *
+     * @param password 수정할 비밀번호
+     */
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
 }
