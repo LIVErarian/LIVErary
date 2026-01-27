@@ -1,14 +1,14 @@
-package move.controller;
+package com.liverary.backend.move.controller;
 
 import java.security.Principal;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import move.dto.request.MoveEnterRequest;
-import move.dto.request.MoveExitRequest;
-import move.dto.request.MoveRequest;
-import move.service.MoveService;
+import com.liverary.backend.move.dto.request.MoveEnterRequest;
+import com.liverary.backend.move.dto.request.MoveExitRequest;
+import com.liverary.backend.move.dto.request.MoveRequest;
+import com.liverary.backend.move.service.MoveService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 

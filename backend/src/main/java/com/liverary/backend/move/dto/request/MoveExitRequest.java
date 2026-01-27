@@ -1,4 +1,4 @@
-package move.dto.request;
+package com.liverary.backend.move.dto.request;
 
 import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
