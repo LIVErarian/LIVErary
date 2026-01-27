@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { GameApp } from './GameApp';
 
@@ -6,7 +6,11 @@ export const useGame = (
   containerRef: React.RefObject<HTMLDivElement | null>,
 ) => {
   const gameAppRef = useRef<GameApp | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
+  /**
+   * 게임 초기화 및 정리
+   */
   useEffect(() => {
     // 컨테이너가 없거나 이미 게임이 켜져있는 경우 return
     if (!containerRef.current || gameAppRef.current) return;
@@ -25,6 +29,8 @@ export const useGame = (
         gameApp.destroy();
         return;
       }
+
+      setIsReady(true);
     };
 
     initializeGame();
@@ -36,6 +42,9 @@ export const useGame = (
 
       gameApp.destroy();
       gameAppRef.current = null;
+      setIsReady(false);
     };
   }, [containerRef]);
+
+  return { gameAppRef, isReady };
 };

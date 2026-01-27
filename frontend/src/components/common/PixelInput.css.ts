@@ -9,7 +9,7 @@ export const inputWrapper = style({
   backgroundColor: theme.colors.inputBg, // 어두운 배경
   height: '48px',
   padding: '0 16px',
-  marginTop: '8px', // 라벨과의 간격
+  marginTop: '4px', // 라벨과의 간격
 
   boxShadow: `
     /* 내부 그림자 */
@@ -70,7 +70,7 @@ export const label = style({
   fontSize: '16px',
   color: theme.colors.woodLight,
   textTransform: 'uppercase',
-  textShadow: '2px 2px 0px #000',
+  textShadow: '1px 1px 0px rgba(0,0,0,0.7)',
   marginBottom: '4px',
   display: 'block',
 });
