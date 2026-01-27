@@ -1,4 +1,4 @@
-﻿package com.liverary.backend.exception;
+package com.liverary.backend.exception;
 
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
