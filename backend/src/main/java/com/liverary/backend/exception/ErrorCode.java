@@ -25,6 +25,10 @@ public enum ErrorCode {
 
     BOOK_INFO_REQUIRED(HttpStatus.BAD_REQUEST, "BD003", "책 정보를 입력해주세요."),
 
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "A006", "새 비밀번호와 확인 비밀번호가 일치하지 않습니다."),
+    PASSWORD_WRONG(HttpStatus.BAD_REQUEST, "A007", "기존 비밀번호가 일치하지 않습니다."),
+    SAME_AS_OLD_PASSWORD(HttpStatus.BAD_REQUEST, "A008", "새 비밀번호는 기존 비밀번호와 다르게 설정해야 합니다."),
+
     // 401 UNAUTHORIZED: 인증 실패
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증에 실패했습니다."),
 

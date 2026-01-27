@@ -1,9 +1,6 @@
 package com.liverary.backend.auth.controller;
 
-import com.liverary.backend.auth.dto.request.FindPasswordRequest;
-import com.liverary.backend.auth.dto.request.LoginRequest;
-import com.liverary.backend.auth.dto.request.RefreshRequest;
-import com.liverary.backend.auth.dto.request.SignupRequest;
+import com.liverary.backend.auth.dto.request.*;
 import com.liverary.backend.auth.dto.response.LoginResponse;
 import com.liverary.backend.auth.dto.response.RefreshResponse;
 import com.liverary.backend.auth.service.AuthService;
@@ -107,6 +104,24 @@ public class AuthController {
     @PostMapping("/password/find")
     public BaseResponse<Void> findPassword(@Valid @RequestBody FindPasswordRequest request) {
         authService.findPassword(request.getEmail());
+        return BaseResponse.success();
+    }
+
+    /**
+     * 비밀번호 재설정
+     * 로그인한 사용자가 본인의 비밀번호를 변경
+     *
+     * @param user 현재 인증된 사용자의 정보
+     * @return 성공 응답 객체
+     */
+    @PatchMapping("/password/reset")
+    public BaseResponse<Void> resetPassword(
+            @AuthenticationPrincipal UserDetails user,
+            @Valid @RequestBody ResetPasswordRequest request) {
+
+        UUID userId = UUID.fromString(user.getUsername());
+
+        authService.resetPassword(userId, request);
         return BaseResponse.success();
     }
 

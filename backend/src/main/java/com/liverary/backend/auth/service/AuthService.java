@@ -4,6 +4,7 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
 import com.liverary.backend.auth.domain.RefreshToken;
 import com.liverary.backend.auth.dto.request.LoginRequest;
+import com.liverary.backend.auth.dto.request.ResetPasswordRequest;
 import com.liverary.backend.auth.dto.request.SignupRequest;
 import com.liverary.backend.auth.dto.response.LoginResponse;
 import com.liverary.backend.auth.dto.response.RefreshResponse;
@@ -210,6 +211,7 @@ public class AuthService implements UserDetailsService {
      */
     @Transactional
     public void findPassword(String email) {
+        // 유저 정보 조회
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
@@ -225,6 +227,8 @@ public class AuthService implements UserDetailsService {
 
     /**
      * SecureRandom을 사용하여 예측 불가능한 문자열 생성
+     *
+     * @return 랜덤으로 생성된 임시 비밀번호
      */
     private String generateTempPassword() {
         StringBuilder sb = new StringBuilder(10);
@@ -287,6 +291,46 @@ public class AuthService implements UserDetailsService {
             // 전송 실패 시 로그 확인용
             log.error("Gmail API 전송 에러: {}", e.getMessage());
         }
+    }
+
+    /**
+     * 비밀번호 재설정
+     *
+     * @param userId    사용자 UUID
+     * @param request   비밀번호 재설정 요청 정보 DTO
+     */
+    @Transactional
+    public void resetPassword(UUID userId, ResetPasswordRequest request) {
+        // 유저 정보 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 현재 DB에 저장된 비밀번호
+        String userPassword = user.getPassword();
+        // 사용자가 화면에 입력한 기존 비밀번호
+        String oldPassword = request.getOldPassword();
+        // 사용자가 화면에 입력한 새 비밀번호
+        String newPassword = request.getNewPassword();
+        // 사용자가 화면에 입력한 확인 비밀번호
+        String confirmPassword = request.getConfirmPassword();
+
+        // 기존 비밀번호 일치 여부 확인
+        if (!passwordEncoder.matches(oldPassword, userPassword)) {
+            throw new BaseException(ErrorCode.PASSWORD_WRONG);
+        }
+
+        // 새 비밀번호와 확인 비밀번호 일치 여부 확인
+        if (!newPassword.equals(confirmPassword)) {
+            throw new BaseException(ErrorCode.PASSWORD_MISMATCH);
+        }
+
+        // 새 비밀번호가 기존과 동일한지 확인
+        if (oldPassword.equals(newPassword)) {
+            throw new BaseException(ErrorCode.SAME_AS_OLD_PASSWORD);
+        }
+
+        // 새 비밀번호 암호화 및 업데이트
+        user.updatePassword(passwordEncoder.encode(newPassword));
     }
 
 }
