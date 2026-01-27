@@ -6,6 +6,16 @@ import { defineConfig } from 'vite';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), vanillaExtractPlugin()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://i14a307.p.ssafy.io:8080',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
   resolve: {
     alias: {
       // @를 src 폴더의 절대 경로로 매핑
