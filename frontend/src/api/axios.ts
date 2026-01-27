@@ -34,8 +34,9 @@ api.interceptors.request.use(
 
 // Response Interceptor
 api.interceptors.response.use(
-  // 200인 경우 그냥 통과
-  (response) => response,
+  (response) => {
+    return response; // TODO: 이중 포장 상태이므로 추후 response.data로 바꿀 것
+  },
 
   // 에러 처리
   async (error: AxiosError) => {
@@ -50,14 +51,22 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // refresh token 요청
-        const { data } = await api.post('/auth/reissue');
-        const refreshToken = data.refreshToken;
-        useAuthStore.getState().setAccessToken(refreshToken);
+        // refresh Token으로 새로운 accessToken 요청
+        const storedRefreshToken = useAuthStore.getState().refreshToken;
+
+        if (!storedRefreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        const { data } = await api.post('/auth/reissue', {
+          refreshToken: storedRefreshToken, // request body
+        });
+
+        const newAccessToken = data.data.refreshToken;
+        useAuthStore.getState().setAccessToken(newAccessToken);
 
         // 토큰 교체해서 다시 요청
-        originalRequest.headers.Authorization = `Bearer ${refreshToken}`;
-
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         useAuthStore.getState().logout();
