@@ -18,6 +18,7 @@ import com.liverary.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -249,6 +250,62 @@ public class RoomService {
         );
 
         return new UpdateReservationResponse(room.getRoomId(), room.getCode());
+    }
+
+    /**
+     * 예약 전용 방에 참여를 신청합니다.
+     *
+     * <p>다음과 같은 유효성 검사를 수행합니다.</p>
+     * <ul>
+     * <li>방 존재 여부 및 상태(SCHEDULED) 확인</li>
+     * <li>이미 신청한 내역이 있는지 확인 (중복 신청 방지)</li>
+     * <li>정원 초과 여부 확인 (maxUser 도달 시 차단)</li>
+     * <li>신청자의 기존 일정과 겹치는지 확인 (중복 일정 차단)</li>
+     * </ul>
+     *
+     * @param userId 신청하는 유저의 ID
+     * @param roomId 신청할 방의 ID
+     * @throws BaseException 정원 초과(ROOM_FULL), 일정 중복(RESERVATION_CONFLICT) 등
+     */
+    @Transactional
+    public void applyReservation(UUID userId, UUID roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 해당 방이 예약 가능한 상태인지 확인
+        if (room.getStatus() != RoomStatus.SCHEDULED) {
+            throw new BaseException(ErrorCode.ROOM_NOT_RESERVABLE);
+        }
+
+        // 중복 신청 여부 확인
+        boolean isAlreadyReserved = roomReservationRepository.existsByRoomAndUser(room, user);
+        if (isAlreadyReserved) {
+            throw new BaseException(ErrorCode.ALREADY_RESERVED);
+        }
+
+        // 정원 초과 확인 (예약자 수 기준)
+        long currentReservationCount = roomReservationRepository.countByRoom(room);
+        if (currentReservationCount >= room.getMaxUser()) {
+            throw new BaseException(ErrorCode.ROOM_FULL);
+        }
+
+        // 신청자의 기존 일정과 중복되는지 확인
+        boolean isTimeOverlapped = roomReservationRepository.existsOverlappingReservation(
+                user, room.getStartAt(), room.getEndAt()
+        );
+        if (isTimeOverlapped) {
+            throw new BaseException(ErrorCode.RESERVATION_CONFLICT);
+        }
+
+        RoomReservation reservation = RoomReservation.builder()
+                .room(room)
+                .user(user)
+                .build();
+
+        roomReservationRepository.save(reservation);
     }
 
     /**

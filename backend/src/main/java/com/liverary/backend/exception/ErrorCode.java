@@ -23,6 +23,8 @@ public enum ErrorCode {
     INVALID_CODE(HttpStatus.BAD_REQUEST, "R004", "참여 코드가 일치하지 않습니다."),
     INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "R007", "종료 시각은 시작 시각 이후여야 합니다."),
     CANNOT_UPDATE_TIME(HttpStatus.BAD_REQUEST, "R009", "참여자가 있어 시간을 변경할 수 없습니다."),
+    ROOM_NOT_RESERVABLE(HttpStatus.BAD_REQUEST, "R011", "예약할 수 없는 상태의 방입니다."),
+    ALREADY_RESERVED(HttpStatus.BAD_REQUEST, "R012", "이미 예약 신청한 방입니다."),
 
     BOOK_INFO_REQUIRED(HttpStatus.BAD_REQUEST, "BD003", "책 정보를 입력해주세요."),
 
