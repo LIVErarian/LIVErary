@@ -1,5 +1,6 @@
 package com.liverary.backend.auth.controller;
 
+import com.liverary.backend.auth.dto.request.FindPasswordRequest;
 import com.liverary.backend.auth.dto.request.LoginRequest;
 import com.liverary.backend.auth.dto.request.RefreshRequest;
 import com.liverary.backend.auth.dto.request.SignupRequest;
@@ -93,6 +94,19 @@ public class AuthController {
         UUID userId = UUID.fromString(user.getUsername());
 
         authService.logout(userId);
+        return BaseResponse.success();
+    }
+
+    /**
+     * 비밀번호 찾기
+     * 이메일로 임시 비밀번호 전송
+     *
+     * @param request
+     * @return 성공 응답 객체
+     */
+    @PostMapping("/password/find")
+    public BaseResponse<Void> findPassword(@Valid @RequestBody FindPasswordRequest request) {
+        authService.findPassword(request.getEmail());
         return BaseResponse.success();
     }
 

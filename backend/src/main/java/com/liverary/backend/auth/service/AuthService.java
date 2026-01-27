@@ -1,5 +1,7 @@
 package com.liverary.backend.auth.service;
 
+import com.google.api.services.gmail.Gmail;
+import com.google.api.services.gmail.model.Message;
 import com.liverary.backend.auth.domain.RefreshToken;
 import com.liverary.backend.auth.dto.request.LoginRequest;
 import com.liverary.backend.auth.dto.request.SignupRequest;
@@ -7,12 +9,17 @@ import com.liverary.backend.auth.dto.response.LoginResponse;
 import com.liverary.backend.auth.dto.response.RefreshResponse;
 import com.liverary.backend.auth.provider.JwtProvider;
 import com.liverary.backend.auth.repository.RefreshTokenRepository;
+import com.liverary.backend.auth.util.GmailUtil;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,12 +28,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.security.SecureRandom;
 import java.util.Collections;
+import java.util.Properties;
 import java.util.UUID;
 
 /**
  * 인증 관련 비즈니스 로직을 처리하고 Spring Security의 사용자 정보를 로드하는 서비스 클래스
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 public class AuthService implements UserDetailsService {
@@ -35,6 +46,16 @@ public class AuthService implements UserDetailsService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+
+    // 이메일 전송에 사용
+    private final GmailUtil gmailUtil;
+    // 서버 이메일
+    @Value("${ADMIN_MAIL}")
+    private String adminMail;
+
+    // 보안 무작위 생성기
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     /**
      * AuthService 생성자
@@ -50,12 +71,13 @@ public class AuthService implements UserDetailsService {
             UserRepository userRepository,
             RefreshTokenRepository refreshTokenRepository,
             @Lazy PasswordEncoder passwordEncoder,
-            @Lazy JwtProvider jwtProvider
-    ) {
+            @Lazy JwtProvider jwtProvider,
+            GmailUtil gmailUtil) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtProvider = jwtProvider;
+        this.gmailUtil = gmailUtil;
     }
 
     /**
@@ -178,6 +200,93 @@ public class AuthService implements UserDetailsService {
     public void logout(UUID userId) {
         // 해당 유저의 리프레시 토큰이 존재하면 삭제
         refreshTokenRepository.deleteById(userId);
+    }
+
+    /**
+     * 비밀번호 찾기
+     * 임시 비밀번호 생성 및 이메일 발송
+     *
+     * @param email 임시 비밀번호 전송할 사용자 이메일
+     */
+    @Transactional
+    public void findPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 10자리 영문/숫자 혼합 임시 비밀번호 생성
+        String tempPassword = generateTempPassword();
+
+        // 비밀번호 암호화 후 DB 업데이트
+        user.updatePassword(passwordEncoder.encode(tempPassword));
+
+        // 메일 발송
+        sendTemporaryPasswordEmail(email, tempPassword);
+    }
+
+    /**
+     * SecureRandom을 사용하여 예측 불가능한 문자열 생성
+     */
+    private String generateTempPassword() {
+        StringBuilder sb = new StringBuilder(10);
+        for (int i = 0; i < 10; i++) {
+            int randomIndex = SECURE_RANDOM.nextInt(CHAR_SET.length());
+            sb.append(CHAR_SET.charAt(randomIndex));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 사용자의 이메일로 랜덤 생성된 임시 비밀번호 전송
+     *
+     * @param userEmail     사용자 이메일
+     * @param tempPassword  임시 비밀번호
+     */
+    private void sendTemporaryPasswordEmail(String userEmail, String tempPassword) {
+        try {
+            // 인증된 Gmail 서비스 객체 가져옴
+            Gmail service = gmailUtil.getGmailService();
+
+            // 세션, 속성을 기반으로 MimeMessage 객체를 생성
+            MimeMessage email = new MimeMessage(Session.getDefaultInstance(new Properties()));
+
+            // 메일 내용
+            email.setFrom(new InternetAddress(adminMail, "liverarian", "UTF-8"));
+            email.addRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(userEmail));
+            email.setSubject("[LIVErary] 임시 비밀번호 발송 안내");
+
+            String content = "[LIVErary] 임시 비밀번호 발송 안내\n\n" +
+                    "안녕하세요, LIVErary 서비스를 이용해 주셔서 감사합니다.\n" +
+                    "요청하신 임시 비밀번호를 아래와 같이 발급해 드립니다.\n\n" +
+                    "🔑 임시 비밀번호: " + tempPassword + "\n\n" +
+                    "🚨주의 사항\n" +
+                    "* 로그인 후 마이페이지에서 꼭 비밀번호를 변경해 주세요!\n" +
+                    "* 본인이 요청하지 않은 경우, 고객센터로 문의해 주시기 바랍니다.\n\n" +
+                    "언제 어디서나 즐거운 독서 모임, LIVErary 드림\n";
+
+            email.setText(content, "UTF-8");
+
+            // 생성한 메일 데이터를 구글 API로 전달하기 위해 바이트 배열 형태로 추출
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            email.writeTo(buffer);
+            byte[] rawMessageBytes = buffer.toByteArray();
+
+            // Gmail API 규격에 따라 데이터를 URL 통신에 안전한 Base64 형식의 문자열로 변환
+            String encodedEmail = java.util.Base64.getUrlEncoder().encodeToString(rawMessageBytes);
+
+            // 구글 API 전용 메시지 객체에 인코딩된 데이터 주입
+            Message message = new Message();
+            message.setRaw(encodedEmail);
+
+            // 현재 인증된 사용자 본인(me)의 계정 권한으로 실제 메일 전송 명령 수행
+            Message sentMessage = service.users().messages().send("me", message).execute();
+
+            // 전송 성공 시 로그 확인용
+            log.info("Gmail API 전송 성공! Message ID: {}", sentMessage.getId());
+
+        } catch (Exception e) {
+            // 전송 실패 시 로그 확인용
+            log.error("Gmail API 전송 에러: {}", e.getMessage());
+        }
     }
 
 }
