@@ -1,0 +1,28 @@
+package move.dto.request;
+
+import java.util.UUID;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+/**
+ * 사용자의 이동 입력을 전달하는 요청 DTO.
+ */
+@Getter
+@NoArgsConstructor
+public class MoveRequest {
+
+    // 이동이 발생한 floor ID
+    @NotNull
+    private UUID floorId;
+
+    // 현재 위치
+    @NotNull
+    private Double x;
+    @NotNull
+    private Double y;
+
+    // 클라이언트 기준 입력 시각 (epoch millis)
+    @NotNull
+    private Long clientTs;
+}
