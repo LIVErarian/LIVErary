@@ -1,6 +1,7 @@
 package move.dto.request;
 
 import java.util.UUID;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,11 +13,14 @@ import lombok.NoArgsConstructor;
 public class MoveEnterRequest {
 
     // 입장할 floor ID
+    @NotNull
     private UUID floorId;
 
     // 현재 위치 x 좌표
+    @NotNull
     private Double x;
 
     // 현재 위치 y 좌표
+    @NotNull
     private Double y;
 }

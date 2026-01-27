@@ -1,6 +1,7 @@
 package move.dto.response;
 
 import java.util.UUID;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import move.dto.request.MoveRequest;
@@ -13,17 +14,22 @@ import move.dto.request.MoveRequest;
 public class MoveBroadcast {
 
     // 이동한 사용자 ID
+    @NotNull
     private UUID userId;
 
     // 이동이 발생한 floor ID
+    @NotNull
     private UUID floorId;
 
     // 현재 위치
-    private double x;
-    private double y;
+    @NotNull
+    private Double x;
+    @NotNull
+    private Double y;
 
     // 서버 수신 시각 (epoch millis)
-    private long serverTs;
+    @NotNull
+    private Long serverTs;
 
     public static MoveBroadcast of(UUID userId, UUID floorId, Double x, Double y, Long serverTs) {
         return MoveBroadcast.builder()

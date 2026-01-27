@@ -49,10 +49,6 @@ public class MoveService {
      * @param request 이동 입력 DTO
      */
     public void enqueue(UUID userId, MoveRequest request) {
-        if (request == null || request.getFloorId() == null) {
-            return;
-        }
-
         // 입장/활성 여부와 무관하게 먼저 큐에 적재하고 tick에서 필터링
         MoveEvent event = new MoveEvent(userId, request, System.currentTimeMillis());
         floorQueues
@@ -106,10 +102,6 @@ public class MoveService {
      * @return 활성 상태 여부
      */
     public boolean isActive(UUID floorId, UUID userId) {
-        if (floorId == null || userId == null) {
-            return false;
-        }
-
         Set<UUID> users = floorUsers.get(floorId);
         return users != null && users.contains(userId);
     }
@@ -121,10 +113,6 @@ public class MoveService {
      * @param request floor 입장 요청
      */
     public void touch(UUID userId, MoveEnterRequest request) {
-        if (userId == null || request.getFloorId() == null) {
-            return;
-        }
-
         UUID previousFloor = userFloor.put(userId, request.getFloorId());
         // 기존 floor가 다르면 해당 floor의 활성 집합에서 제거
         if (previousFloor != null && !previousFloor.equals(request.getFloorId())) {
@@ -145,10 +133,6 @@ public class MoveService {
      * @param floorId floor ID
      */
     public void removeFromFloor(UUID userId, UUID floorId) {
-        if (userId == null || floorId == null) {
-            return;
-        }
-
         UUID currentFloor = userFloor.get(userId);
         // 다른 floor에 있거나 이미 제거된 경우 무시
         if (currentFloor == null || !currentFloor.equals(floorId)) {

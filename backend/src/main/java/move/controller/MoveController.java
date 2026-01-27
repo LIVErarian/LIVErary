@@ -3,6 +3,7 @@ package move.controller;
 import java.security.Principal;
 import java.util.UUID;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import move.dto.request.MoveEnterRequest;
 import move.dto.request.MoveExitRequest;
@@ -24,7 +25,7 @@ public class MoveController {
      * @param principal 인증된 사용자 Principal
      */
     @MessageMapping("/move")
-    public void move(MoveRequest request, Principal principal) {
+    public void move(@Valid MoveRequest request, Principal principal) {
         UUID userId = UUID.fromString(principal.getName());
         moveService.enqueue(userId, request);
     }
@@ -36,7 +37,7 @@ public class MoveController {
      * @param principal 인증된 사용자 Principal
      */
     @MessageMapping("/move/enter")
-    public void enterFloor(MoveEnterRequest request, Principal principal) {
+    public void enterFloor(@Valid MoveEnterRequest request, Principal principal) {
         UUID userId = UUID.fromString(principal.getName());
         moveService.touch(userId, request);
     }
@@ -48,7 +49,7 @@ public class MoveController {
      * @param principal 인증된 사용자 Principal
      */
     @MessageMapping("/move/exit")
-    public void exitFloor(MoveExitRequest request, Principal principal) {
+    public void exitFloor(@Valid MoveExitRequest request, Principal principal) {
         UUID userId = UUID.fromString(principal.getName());
         moveService.removeFromFloor(userId, request.getFloorId());
     }
