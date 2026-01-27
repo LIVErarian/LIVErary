@@ -170,8 +170,8 @@ public class MoveService {
         double nextY = request.getY();
         if (position != null) {
             // delta 누적 계산
-            nextX = position.x + request.getX();
-            nextY = position.y + request.getY();
+            nextX = position.x() + request.getX();
+            nextY = position.y() + request.getY();
         }
 
         Position next = new Position(nextX, nextY);
