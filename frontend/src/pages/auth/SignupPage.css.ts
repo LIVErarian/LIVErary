@@ -1,8 +1,8 @@
 import { style } from '@vanilla-extract/css';
 
-import { pageContainer } from './AuthCommon.css';
+import { pageContainer } from './authCommon.css';
 
-export { footerText, formWrapper, linkText } from './AuthCommon.css';
+export { footerText, formWrapper, linkText } from './authCommon.css';
 
 export const container = style([
   pageContainer,

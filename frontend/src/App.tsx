@@ -1,9 +1,9 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
-import { GamePage } from './pages/auth/GamePage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { SignupPage } from './pages/auth/SignupPage';
+import { GamePage } from './pages/game/GamePage';
 
 function App() {
   return (
