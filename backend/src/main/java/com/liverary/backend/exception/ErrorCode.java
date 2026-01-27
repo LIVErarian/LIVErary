@@ -30,6 +30,10 @@ public enum ErrorCode {
     PASSWORD_WRONG(HttpStatus.BAD_REQUEST, "A007", "기존 비밀번호가 일치하지 않습니다."),
     SAME_AS_OLD_PASSWORD(HttpStatus.BAD_REQUEST, "A008", "새 비밀번호는 기존 비밀번호와 다르게 설정해야 합니다."),
 
+    VERIFICATION_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "A009", "인증 번호가 만료되었습니다."),
+    VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "A010", "인증 번호가 일치하지 않습니다."),
+    EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "A011", "이메일 인증이 완료되지 않았습니다."),
+
     // 401 UNAUTHORIZED: 인증 실패
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증에 실패했습니다."),
 

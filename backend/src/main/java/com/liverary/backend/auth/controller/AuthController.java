@@ -5,7 +5,6 @@ import com.liverary.backend.auth.dto.response.LoginResponse;
 import com.liverary.backend.auth.dto.response.RefreshResponse;
 import com.liverary.backend.auth.service.AuthService;
 import com.liverary.backend.common.dto.BaseResponse;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +35,32 @@ public class AuthController {
     @SecurityRequirements
     public BaseResponse<Void> checkEmail(@PathVariable String email) {
         authService.checkEmailDuplication(email);
+        return BaseResponse.success();
+    }
+
+    /**
+     * 이메일 인증 코드 발송 요청
+     *
+     * @param request 인증 코드를 발송할 이메일 정보가 담긴 DTO
+     * @return 성공 응답 객체
+     */
+    @PostMapping("/email/verification/request")
+    @SecurityRequirements
+    public BaseResponse<Void> requestVerification(@Valid @RequestBody EmailVerificationRequest request) {
+        authService.sendVerificationCode(request.getEmail());
+        return BaseResponse.success();
+    }
+
+    /**
+     * 이메일 인증 코드 확인
+     *
+     * @param request 이메일과 사용자가 입력한 인증 코드가 담긴 DTO
+     * @return 성공 응답 객체
+     */
+    @PostMapping("/email/verification/confirm")
+    @SecurityRequirements
+    public BaseResponse<Void> confirmVerification(@Valid @RequestBody EmailVerificationRequest request) {
+        authService.confirmVerificationCode(request.getEmail(), request.getCode());
         return BaseResponse.success();
     }
 
