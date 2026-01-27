@@ -27,4 +27,18 @@ public interface RoomReservationRepository extends JpaRepository<RoomReservation
             "AND m.endAt > :targetStart")
     boolean existsOverlappingReservation(@Param("user") User user,
                                          @Param("targetStart") LocalDateTime targetStart,
-                                         @Param("targetEnd") LocalDateTime targetEnd);}
+                                         @Param("targetEnd") LocalDateTime targetEnd);
+
+    // 특정 방을 제외한 해당 유저의 동시간대 중복 예약 존재 여부 확인
+    @Query("SELECT COUNT(rr) > 0 " +
+            "FROM RoomReservation rr " +
+            "JOIN rr.room r " +
+            "WHERE rr.user = :user " +
+            "AND r.roomId != :excludeRoomId " +
+            "AND r.startAt < :end " +
+            "AND r.endAt > :start")
+    boolean existsOverlappingReservationExcludingRoom(@Param("user") User user,
+                                                      @Param("start") LocalDateTime targetStart,
+                                                      @Param("end") LocalDateTime targetEnd,
+                                                      @Param("excludeRoomId") UUID excludeRoomId);
+}

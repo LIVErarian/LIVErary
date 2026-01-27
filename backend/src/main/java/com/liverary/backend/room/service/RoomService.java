@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -169,6 +170,85 @@ public class RoomService {
         roomReservationRepository.save(reservation);
 
         return new CreateReservationResponse(room.getRoomId(), room.getCode());
+    }
+
+    /**
+     * 방의 예약 정보(제목, 시간, 정원, 책/카테고리 등)를 수정합니다.
+     *
+     * <p>방장(Creator)만 예약 정보를 수정할 수 있으며,
+     * 방장 외에 다른 참여자가 존재하는 경우(총원 > 1), 시작 및 종료 시각을 변경할 수 없습니다.
+     * 책(BookId)이 입력된 경우 해당 책의 카테고리를 따르며, 책 없이 카테고리만 입력된 경우 해당 카테고리로 변경됩니다.
+     * </p>
+     *
+     * @param roomId 수정하려는 방의 고유 식별자(UUID)
+     * @param userId 수정을 요청한 유저(방장)의 고유 식별자(UUID)
+     * @param request 수정할 제목, 정원, 시간, 책/카테고리 정보가 담긴 DTO
+     * @return 수정된 방의 ID와 초대 코드를 포함한 응답 객체
+     * @throws BaseException 시간 설정이 잘못되었거나, 중복된 예약이 있을 경우 발생
+     */
+    @Transactional
+    public UpdateReservationResponse updateReservation(UUID roomId, UUID userId, UpdateReservationRequest request) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 방장 권한 검증
+        if (!room.getCreator().getUserId().equals(userId)) {
+            throw new BaseException(ErrorCode.NOT_ROOM_CREATOR);
+        }
+
+        // 시간 변경 여부 확인
+        boolean isTimeUpdate =
+                (request.getStartAt() != null && !request.getStartAt().equals(room.getStartAt())) ||
+                (request.getEndAt() != null && !request.getEndAt().equals(room.getEndAt()));
+
+        if (isTimeUpdate) {
+            // 방장 외에 다른 참여자가 있다면 시간 변경 불가
+            long participantCount = roomReservationRepository.countByRoom(room);
+
+            if (participantCount > 1) {
+                throw new BaseException(ErrorCode.CANNOT_UPDATE_TIME);
+            }
+
+            LocalDateTime newStart = request.getStartAt() != null ? request.getStartAt() : room.getStartAt();
+            LocalDateTime newEnd = request.getEndAt() != null ? request.getEndAt() : room.getEndAt();
+
+            // 시간 유효성 검증
+            if (newEnd.isBefore(newStart) || newEnd.isEqual(newStart)) {
+                throw new BaseException(ErrorCode.INVALID_TIME_RANGE);
+            }
+
+            // 중복 예약 방지
+            boolean isOverlapped = roomReservationRepository.existsOverlappingReservationExcludingRoom(user, newStart, newEnd, roomId);
+            if (isOverlapped) {
+                throw new BaseException(ErrorCode.RESERVATION_CONFLICT);
+            }
+        }
+
+        // 책 및 카테고리에 따라 방의 카테고리 변경
+        Book book = null;
+        Category category = null;
+
+        if (request.getBookId() != null) {
+            book = bookRepository.findById(request.getBookId())
+                    .orElseThrow(() -> new BaseException(ErrorCode.BOOK_NOT_FOUND));
+        } else if (request.getCategoryId() != null) {
+            category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
+        }
+
+        room.updateReservation(
+                request.getTitle(),
+                request.getMaxUser(),
+                request.getStartAt(),
+                request.getEndAt(),
+                book,
+                category
+        );
+
+        return new UpdateReservationResponse(room.getRoomId(), room.getCode());
     }
 
     /**
