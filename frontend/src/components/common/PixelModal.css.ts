@@ -45,3 +45,11 @@ export const closeButton = style({
     color: '#ff0000',
   },
 });
+
+// footer 외부 영역 정렬
+export const modalFooter = style({
+  display: 'flex',
+  alignItems: 'center', // 일부의 경우 변경 필요
+  marginTop: '16px',
+  gap: '12px', // 버튼 사이 간격
+});

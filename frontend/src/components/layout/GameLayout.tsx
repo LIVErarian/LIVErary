@@ -1,6 +1,6 @@
 import type { ReactNode, RefObject } from 'react';
 
-import { GlobalModal } from '../modal/GlobalModal';
+import { GlobalModal } from '../modals/GlobalModal';
 
 import * as styles from './GameLayout.css';
 

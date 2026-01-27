@@ -12,6 +12,7 @@ interface PixelModalProps {
   title?: string;
   children: ReactNode;
   width?: string;
+  footer?: ReactNode;
 }
 
 export const PixelModal = ({
@@ -20,6 +21,7 @@ export const PixelModal = ({
   title = '알림',
   children,
   width = '400px',
+  footer,
 }: PixelModalProps) => {
   // ESC로 닫기
   useEffect(() => {
@@ -56,7 +58,10 @@ export const PixelModal = ({
           </button>
 
           {/* 모달 내용 */}
-          <div style={{ padding: '8px 0' }}>{children}</div>
+          <div style={{ padding: '16px' }}>{children}</div>
+
+          {/* 모달 푸터 */}
+          {footer && <div className={styles.modalFooter}>{footer}</div>}
         </PixelContainer>
       </div>
     </div>,
