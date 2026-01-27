@@ -29,6 +29,8 @@ public class BoardDetailResponse {
     private String bookAuthor;
     private String bookCoverUrl;
 
+    private UUID targetRoomId;
+
     /**
      * Board 엔티티를 BoardDetailResponse DTO로 변환
      *
@@ -48,6 +50,7 @@ public class BoardDetailResponse {
                 .bookTitle(board.getBookTitle())
                 .bookAuthor(board.getBookAuthor())
                 .bookCoverUrl(board.getBookCoverUrl())
+                .targetRoomId(board.getTargetRoomId())
                 .build();
     }
 }

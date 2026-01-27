@@ -70,6 +70,9 @@ public class Board {
     @Column(name = "book_cover_url")
     private String bookCoverUrl;// 표지 이미지 URL
 
+    @Column(name = "target_room_id")
+    private UUID targetRoomId;
+
     /**
      * 게시글 엔티티를 생성하는 빌더 생성자입니다.
      *
@@ -82,9 +85,10 @@ public class Board {
      * @param bookTitle 책 제목
      * @param bookAuthor 저자
      * @param bookCoverUrl 커버 이미지 URL
+     * @param targetRoomId 홍보할 룸 Id
      */
     @Builder
-    public Board(User user, Type type, String title, String content, String imageUrl, Status status, String bookTitle, String bookAuthor, String bookCoverUrl) {
+    public Board(User user, Type type, String title, String content, String imageUrl, Status status, String bookTitle, String bookAuthor, String bookCoverUrl, UUID targetRoomId) {
         this.user = user;
         this.type = type;
         this.title = title;
@@ -96,6 +100,7 @@ public class Board {
         this.bookTitle = bookTitle;
         this.bookAuthor = bookAuthor;
         this.bookCoverUrl = bookCoverUrl;
+        this.targetRoomId = targetRoomId;
     }
 
     /**

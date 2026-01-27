@@ -36,6 +36,9 @@ public class BoardCreateRequest {
 
     private String bookCoverUrl;// 커버 이미지 URL
 
+    // 사용자가 선택한 방 ID (홍보 게시판일 때만 들어옴)
+    private UUID roomId;
+
     /**
      * DTO를 Board 엔티티로 변환합니다.
      *
@@ -60,6 +63,7 @@ public class BoardCreateRequest {
                 .bookTitle(this.bookTitle)
                 .bookAuthor(this.bookAuthor)
                 .bookCoverUrl(this.bookCoverUrl)
+                .targetRoomId(this.roomId)
                 .build();
     }
 }
