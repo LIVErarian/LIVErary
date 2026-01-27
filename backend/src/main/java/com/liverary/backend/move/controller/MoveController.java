@@ -1,14 +1,14 @@
-package move.controller;
+package com.liverary.backend.move.controller;
 
 import java.security.Principal;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import move.dto.request.MoveEnterRequest;
-import move.dto.request.MoveExitRequest;
-import move.dto.request.MoveRequest;
-import move.service.MoveService;
+import com.liverary.backend.move.dto.request.MoveEnterRequest;
+import com.liverary.backend.move.dto.request.MoveExitRequest;
+import com.liverary.backend.move.dto.request.MoveRequest;
+import com.liverary.backend.move.service.MoveService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
@@ -24,7 +24,7 @@ public class MoveController {
      * @param request   이동 입력 DTO
      * @param principal 인증된 사용자 Principal
      */
-    @MessageMapping("/move")
+    @MessageMapping("/com/liverary/backend/move")
     public void move(@Valid MoveRequest request, Principal principal) {
         UUID userId = UUID.fromString(principal.getName());
         moveService.enqueue(userId, request);
@@ -36,7 +36,7 @@ public class MoveController {
      * @param request   floor 입장 DTO
      * @param principal 인증된 사용자 Principal
      */
-    @MessageMapping("/move/enter")
+    @MessageMapping("/com/liverary/backend/move/enter")
     public void enterFloor(@Valid MoveEnterRequest request, Principal principal) {
         UUID userId = UUID.fromString(principal.getName());
         moveService.touch(userId, request);
@@ -48,7 +48,7 @@ public class MoveController {
      * @param request   floor 퇴장 DTO
      * @param principal 인증된 사용자 Principal
      */
-    @MessageMapping("/move/exit")
+    @MessageMapping("/com/liverary/backend/move/exit")
     public void exitFloor(@Valid MoveExitRequest request, Principal principal) {
         UUID userId = UUID.fromString(principal.getName());
         moveService.removeFromFloor(userId, request.getFloorId());

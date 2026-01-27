@@ -1,4 +1,4 @@
-package move.service;
+package com.liverary.backend.move.service;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -11,9 +11,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
 import lombok.RequiredArgsConstructor;
-import move.dto.request.MoveEnterRequest;
-import move.dto.request.MoveRequest;
-import move.dto.response.MoveBroadcast;
+import com.liverary.backend.move.dto.request.MoveEnterRequest;
+import com.liverary.backend.move.dto.request.MoveRequest;
+import com.liverary.backend.move.dto.response.MoveBroadcast;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -65,7 +65,7 @@ public class MoveService {
             List<MoveBroadcast> batch = drain(queue);
             if (!batch.isEmpty()) {
                 // 동일 floor 구독자에게만 배치 전송
-                messagingTemplate.convertAndSend(MOVE_TOPIC_PREFIX + floorId + "/move", batch);
+                messagingTemplate.convertAndSend(MOVE_TOPIC_PREFIX + floorId + "/com/liverary/backend/move", batch);
             }
         });
     }

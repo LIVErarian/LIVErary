@@ -1,10 +1,9 @@
-package move.dto.response;
+package com.liverary.backend.move.dto.response;
 
 import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
-import move.dto.request.MoveRequest;
 
 /**
  * floor 내 참여자들에게 브로드캐스트되는 이동 이벤트 DTO.
