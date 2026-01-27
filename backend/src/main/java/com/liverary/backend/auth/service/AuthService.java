@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -34,6 +35,7 @@ import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 인증 관련 비즈니스 로직을 처리하고 Spring Security의 사용자 정보를 로드하는 서비스 클래스
@@ -54,9 +56,13 @@ public class AuthService implements UserDetailsService {
     @Value("${ADMIN_MAIL}")
     private String adminMail;
 
-    // 보안 무작위 생성기
+    // 랜덤 생성기
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final String CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    private final StringRedisTemplate redisTemplate;
+    private static final String VERIFY_PREFIX = "verify:";
+    private static final String VERIFIED_FLAG = "verified:";
 
     /**
      * AuthService 생성자
@@ -73,12 +79,14 @@ public class AuthService implements UserDetailsService {
             RefreshTokenRepository refreshTokenRepository,
             @Lazy PasswordEncoder passwordEncoder,
             @Lazy JwtProvider jwtProvider,
-            GmailUtil gmailUtil) {
+            GmailUtil gmailUtil,
+            StringRedisTemplate redisTemplate) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtProvider = jwtProvider;
         this.gmailUtil = gmailUtil;
+        this.redisTemplate = redisTemplate;
     }
 
     /**
@@ -117,19 +125,74 @@ public class AuthService implements UserDetailsService {
     }
 
     /**
+     * 이메일 인증 코드 발송
+     *
+     * @param email 인증코드 발송할 이메일
+     */
+    @Transactional
+    public void sendVerificationCode(String email) {
+        // 이메일 중복 확인
+        checkEmailDuplication(email);
+
+        // 6자리 랜덤 숫자 생성
+        String code = String.format("%06d", SECURE_RANDOM.nextInt(1000000));
+
+        // Redis에 인증 코드 저장 (유효시간 3분)
+        redisTemplate.opsForValue().set(VERIFY_PREFIX + email, code, 3, TimeUnit.MINUTES);
+
+        // 메일 발송
+        sendVerificationEmail(email, code);
+    }
+
+    /**
+     * 인증 코드 확인
+     *
+     * @param email 인증코드 수신 이메일
+     * @param code  사용자 화면에 입력한 인증 코드
+     * @throws BaseException 인증 번호가 만료되었거나 일치하지 않는 경우 예외 발생
+     */
+    public void confirmVerificationCode(String email, String code) {
+        // Redis에 저장된 해당 이메일의 인증코드 조회
+        String savedCode = redisTemplate.opsForValue().get(VERIFY_PREFIX + email);
+
+        // 저장된 코드가 없거나 시간 경과한 경우 만료 예외
+        if (savedCode == null) {
+            throw new BaseException(ErrorCode.VERIFICATION_CODE_EXPIRED);
+        }
+
+        // 사용자가 입력한 코드와 저장된 코드가 일치하지 않으면 불일치 예외
+        if (!savedCode.equals(code)) {
+            throw new BaseException(ErrorCode.VERIFICATION_CODE_MISMATCH);
+        }
+
+        // 인증 성공 기존 임시 인증 번호 삭제
+        redisTemplate.delete(VERIFY_PREFIX + email);
+
+        // 해당 이메일의 인증 완료 상태 10분간 Redis 기록
+        redisTemplate.opsForValue().set(VERIFIED_FLAG + email, "true", 10, TimeUnit.MINUTES);
+    }
+
+    /**
      * 회원가입 로직을 수행 (중복 검증, 비밀번호 암호화, 사용자 정보 저장)
+     * 최종 가입 전 Redis를 통해 이메일 인증 완료 여부 확인
      *
      * @param request 회원가입 요청 정보 DTO
      */
     @Transactional
     public void signup(SignupRequest request) {
+        // 인증 완료 여부 확인
+        String isVerified = redisTemplate.opsForValue().get(VERIFIED_FLAG + request.getEmail());
+        if (isVerified == null) {
+            throw new BaseException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
 
         // 이메일 중복 검증
         checkEmailDuplication(request.getEmail());
 
-        // 비밀번호 암호화 및 엔티티 변환
+        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
+        // 엔티티 변환
         User user = User.builder()
                 .nickname(request.getNickname())
                 .email(request.getEmail())
@@ -139,6 +202,63 @@ public class AuthService implements UserDetailsService {
 
         // 저장
         userRepository.save(user);
+
+        // 회원가입 완료시 Redis 인증 완료 플래그 삭제
+        redisTemplate.delete(VERIFIED_FLAG + request.getEmail());
+    }
+
+    /**
+     * 사용자의 이메일로 인증 번호 전송
+     *
+     * @param userEmail 사용자 이메일
+     * @param code  인증 코드
+     */
+    private void sendVerificationEmail(String userEmail, String code) {
+        try {
+            // 인증된 Gmail 서비스 객체 가져옴
+            Gmail service = gmailUtil.getGmailService();
+
+            // 세션, 속성을 기반으로 MimeMessage 객체를 생성
+            MimeMessage email = new MimeMessage(Session.getDefaultInstance(new Properties()));
+
+            // 메일 내용
+            email.setFrom(new InternetAddress(adminMail, "liverarian", "UTF-8"));
+            email.addRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(userEmail));
+            email.setSubject("[LIVErary] 회원가입 인증 번호 안내");
+
+            String content = "[LIVErary] 회원가입 인증 번호 안내\n\n" +
+                    "안녕하세요, LIVErary 서비스를 이용해 주셔서 감사합니다.\n" +
+                    "회원가입을 위한 인증 번호를 아래와 같이 발급해 드립니다.\n\n" +
+                    "🔢 인증 번호: " + code + "\n\n" +
+                    "🚨주의 사항\n" +
+                    "* 인증 번호는 3분간 유효합니다.\n" +
+                    "* 본인이 요청하지 않은 경우, 고객센터로 문의해 주시기 바랍니다.\n\n" +
+                    "언제 어디서나 즐거운 독서 모임, LIVErary 드림\n";
+
+            email.setText(content, "UTF-8");
+
+            // 생성한 메일 데이터를 구글 API로 전달하기 위해 바이트 배열 형태로 추출
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            email.writeTo(buffer);
+            byte[] rawMessageBytes = buffer.toByteArray();
+
+            // Gmail API 규격에 따라 데이터를 URL 통신에 안전한 Base64 형식의 문자열로 변환
+            String encodedEmail = java.util.Base64.getUrlEncoder().encodeToString(rawMessageBytes);
+
+            // 구글 API 전용 메시지 객체에 인코딩된 데이터 주입
+            Message message = new Message();
+            message.setRaw(encodedEmail);
+
+            // 현재 인증된 사용자 본인(me)의 계정 권한으로 실제 메일 전송 명령 수행
+            Message sentMessage = service.users().messages().send("me", message).execute();
+
+            // 전송 성공 시 로그 확인용
+            log.info("인증 번호 전송 성공! Message ID: {}", sentMessage.getId());
+
+        } catch (Exception e) {
+            // 전송 실패 시 로그 확인용
+            log.error("인증 번호 전송 에러: {}", e.getMessage());
+        }
     }
 
     /**
