@@ -30,7 +30,7 @@ public class Book {
     @Column (name = "isbn", nullable = false, length = 20, unique = true)
     private String isbn;
 
-    @Column(name = "title", nullable = false, length = 255)
+    @Column(name = "title", nullable = false)
     private String title;
 
     @Column(name = "author", nullable = false, length = 255)
@@ -39,7 +39,7 @@ public class Book {
     @Column(name = "publisher", nullable = false, length = 100)
     private String publisher;
 
-    @Column(name = "cover_url", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "cover_url", nullable = false)
     private String coverUrl;
 
     @Column (name = "item_id", nullable = false)

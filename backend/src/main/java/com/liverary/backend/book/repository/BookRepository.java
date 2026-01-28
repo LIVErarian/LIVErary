@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -27,21 +28,21 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
     );
 
     // 제목으로 검색
-    Page<Book> searchByTitleContaining(String  title, Pageable pageable);
+    Page<Book> findByTitleContaining(String  title, Pageable pageable);
 
     // 저자로 검색
-    Page<Book> searchByAuthorContaining(String  author, Pageable pageable);
-
-    // 출판사로 검색
-    Page<Book> searchByPublisherContaining(String publisher, Pageable pageable);
+    Page<Book> findByAuthorContaining(String  author, Pageable pageable);
 
     // 카테고리 + 제목 검색 (APPROVED)
     @Query("SELECT b FROM Book b WHERE b.category = :category "+
     "AND b.regStatus = 'APPROVED'" +
     "AND b.title LIKE %:keyword%")
-    Page<Book> searchByCategoryAndKeyword(
+    Page<Book> findByCategoryAndKeyword(
             @Param("category") Category category,
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    // 도서 상세 조회 (DB, redis 캐시에서 isbn으로 조회)
+    Optional<Book> findByIsbn(String isbn);
 }
