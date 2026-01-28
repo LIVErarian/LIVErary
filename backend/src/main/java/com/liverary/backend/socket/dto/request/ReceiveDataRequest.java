@@ -1,6 +1,7 @@
 package com.liverary.backend.socket.dto.request;
 
 import java.util.UUID;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,8 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReceiveDataRequest {
     // 비디오 요청을 보낸 sender의 사용자 ID
+    @NotNull
     private UUID senderId;
 
     // 비디오 요청에 포함된 SDP Offer
+    @NotNull
     private String sdpOffer;
 }
