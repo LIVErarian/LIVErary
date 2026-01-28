@@ -179,4 +179,23 @@ public class RoomController {
 
         return BaseResponse.success(response);
     }
+
+    /**
+     * 예약 방에 참여 신청합니다.
+     *
+     * @param roomId 참여 신청할 방의 고유 식별자 (URL Path)
+     * @param user Spring Security를 통해 인증된 사용자 정보
+     * @return 참여 신청 성공 메시지("참여 신청 완료")를 포함한 공통 응답 객체
+     */
+    @PostMapping("/reservation/{roomId}/apply")
+    public BaseResponse<String> applyReservation(
+            @PathVariable UUID roomId,
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        UUID userId = UUID.fromString(user.getUsername());
+
+        roomService.applyReservation(userId, roomId);
+
+        return BaseResponse.success("참여 신청 완료");
+    }
 }
