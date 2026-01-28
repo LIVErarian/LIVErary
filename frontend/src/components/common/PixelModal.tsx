@@ -1,7 +1,8 @@
 // src/components/common/PixelModal.tsx
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useModalEffect } from '@/hooks/common/useModalEffect';
 import { PixelContainer } from './PixelContainer';
 
 import * as styles from './PixelModal.css';
@@ -24,21 +25,7 @@ export const PixelModal = ({
   footer,
 }: PixelModalProps) => {
   // ESC로 닫기
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-
-    if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose]);
+  useModalEffect(isOpen, onClose);
 
   if (!isOpen) return null;
 
