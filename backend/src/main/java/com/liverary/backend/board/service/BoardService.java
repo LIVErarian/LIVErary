@@ -12,6 +12,7 @@ import com.liverary.backend.board.repository.BoardRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.review.repository.ReviewRepository;
+import com.liverary.backend.user.domain.Role;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,8 @@ public class BoardService {
      */
     @Transactional
     public BoardCreateResponse createBoard(UUID userId, BoardCreateRequest request) {
-        User userRef = userRepository.getReferenceById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
         // 방 정보 입력 여부 확인 (홍보 게시판)
         if (request.getType() == Type.PROMOTION) {
@@ -52,7 +54,14 @@ public class BoardService {
             }
         }
 
-        Board board = request.toEntity(userRef);
+        // 공지 게시판 관리자 권한 확인
+        if (request.getType() == Type.NOTICE) {
+            if(user.getRole() != Role.ADMIN) {
+                throw new BaseException(ErrorCode.INSUFFICIENT_PRIVILEGES);
+            }
+        }
+
+        Board board = request.toEntity(user);
 
         Board savedBoard = boardRepository.save(board);
 

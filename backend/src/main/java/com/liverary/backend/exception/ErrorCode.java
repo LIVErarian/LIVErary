@@ -48,6 +48,7 @@ public enum ErrorCode {
     // 403 FORBIDDEN: 권한 없음
     FORBIDDEN(HttpStatus.FORBIDDEN, "A003", "접근 권한이 없습니다."),
     NOT_BOARD_OWNER(HttpStatus.FORBIDDEN, "BD002", "게시글 수정 및 삭제 권한이 없습니다."),
+    INSUFFICIENT_PRIVILEGES(HttpStatus.FORBIDDEN, "BD004", "관리자 권한이 필요합니다."),
     NOT_REVIEW_OWNER(HttpStatus.FORBIDDEN, "RV002", "댓글 수정 및 삭제 권한이 없습니다."),
     NOT_ROOM_CREATOR(HttpStatus.FORBIDDEN, "R010", "예약 정보 수정 권한이 없습니다."),
 
