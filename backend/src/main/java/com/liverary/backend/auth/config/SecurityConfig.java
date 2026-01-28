@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 // 로그인, 회원가입 등 인증 관련 API 허용
-                                "/auth/**",
+                                "/api/auth/**",
 
                                 // Swagger 관련 api 허용
                                 "/v3/api-docs/**",
