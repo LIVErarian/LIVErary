@@ -9,6 +9,7 @@ export type ModalType =
   | 'roomlist'
   | 'move'
   | 'rank'
+  | 'error'
   | null;
 
 interface ModalProps {
