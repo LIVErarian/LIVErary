@@ -308,6 +308,26 @@ public class RoomService {
         roomReservationRepository.save(reservation);
     }
 
+    @Transactional
+    public void cancelReservation(UUID userId, UUID roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        RoomReservation reservation = roomReservationRepository.findByRoomAndUser(room, user)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_RESERVED));
+
+        // 시작 10분 전까지만 취소 가능
+        LocalDateTime cancelDeadline = room.getStartAt().minusMinutes(10);
+        if (LocalDateTime.now().isAfter(cancelDeadline)) {
+            throw new BaseException(ErrorCode.TOO_LATE_TO_CANCEL);
+        }
+
+        roomReservationRepository.delete(reservation);
+    }
+
     /**
      * 유저가 특정 방에 참여(입장)합니다.
      *

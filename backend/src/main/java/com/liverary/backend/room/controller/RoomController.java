@@ -204,4 +204,22 @@ public class RoomController {
 
         return BaseResponse.success("참여 신청 완료");
     }
+
+    /**
+     * 예약 참여 신청을 취소합니다.
+     *
+     * @param roomId 참여 신청을 취소할 방의 고유 식별자 (URL Path)
+     * @param user Spring Security를 통해 인증된 사용자 정보
+     * @return 참여 신청 성공 메시지("신청 취소 완료")를 포함한 공통 응답 객체
+     */
+    @DeleteMapping("/reservation/{roomId}/apply")
+    public BaseResponse<String> cancelReservation(
+            @PathVariable UUID roomId,
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        UUID userId = getUserId(user);
+        roomService.cancelReservation(userId, roomId);
+
+        return BaseResponse.success("신청 취소 완료");
+    }
 }
