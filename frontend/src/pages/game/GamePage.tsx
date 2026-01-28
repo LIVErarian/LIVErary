@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 
 import { GameLayout } from '@/components/layout/GameLayout';
-import { GlobalModal } from '@/components/modals/GlobalModal';
 import { useGame } from '@/features/core/useGame';
 import { GameSidebar } from '@/features/ui/GameSidebar';
 import { useGameStore } from '@/store/useGameStore';
@@ -21,9 +20,5 @@ export const GamePage = () => {
     }
   }, [currentFloor, gameAppRef, isReady]);
 
-  return (
-    <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />}>
-      <GlobalModal />
-    </GameLayout>
-  );
+  return <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />} />;
 };

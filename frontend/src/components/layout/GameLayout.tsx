@@ -1,13 +1,11 @@
 import type { ReactNode, RefObject } from 'react';
 
-import { GlobalModal } from '../modals/GlobalModal';
-
 import * as styles from './GameLayout.css';
 
 interface GameLayoutProps {
   canvasRef: RefObject<HTMLDivElement | null>; // PixiJS가 붙을 div
   sideMenu: ReactNode; // 사이드 메뉴
-  children: ReactNode; // 위에 띄울 UI
+  children?: ReactNode; // 위에 띄울 UI
 }
 
 export const GameLayout = ({
@@ -28,7 +26,6 @@ export const GameLayout = ({
         {/* UI 레이어(Layer 1) */}
         <div className={styles.uiLayer}>{children}</div>
       </main>
-      <GlobalModal />
     </div>
   );
 };
