@@ -20,16 +20,20 @@ import java.util.List;
 @Component
 public class GmailUtil {
 
-    @Value("${spring.gmail.client-id}")
-    private String clientId;
-
-    @Value("${spring.gmail.secret-key}")
-    private String clientSecret;
-
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
     private static final List<String> SCOPES = Collections.singletonList(GmailScopes.GMAIL_SEND);
+    @Value("${spring.gmail.client-id}")
+    private String clientId;
+    @Value("${spring.gmail.secret-key}")
+    private String clientSecret;
+    private Gmail gmailService;
 
-    public Gmail getGmailService() throws Exception {
+    public synchronized Gmail getGmailService() throws Exception {
+        // 이미 생성된 객체가 있다면 즉시 반환
+        if (gmailService != null) {
+            return gmailService;
+        }
+
         final var httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         final var jsonFactory = GsonFactory.getDefaultInstance();
 
@@ -48,8 +52,11 @@ public class GmailUtil {
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8000).build();
         Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 
-        return new Gmail.Builder(httpTransport, jsonFactory, credential)
+        // 생성된 객체를 필드에 할당
+        gmailService = new Gmail.Builder(httpTransport, jsonFactory, credential)
                 .setApplicationName("LIVErary")
                 .build();
+
+        return gmailService;
     }
 }
