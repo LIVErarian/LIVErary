@@ -1,5 +1,8 @@
 package com.liverary.backend.board.domain;
 
+import com.liverary.backend.exception.BaseException;
+import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.user.domain.Role;
 import com.liverary.backend.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -138,5 +141,18 @@ public class Board {
             this.bookAuthor = null;
             this.bookCoverUrl = null;
         }
+    }
+
+    /**
+     * 문의 게시글 댓글 권한 확인 및 상태 변경
+     */
+    public void validateAndCompleteInquiry(User user) {
+        if(this.type != Type.INQUIRY) return;
+
+        if(user.getRole() != Role.ADMIN) {
+            throw new BaseException(ErrorCode.INSUFFICIENT_PRIVILEGES);
+        }
+
+        this.status = Status.DONE;
     }
 }

@@ -1,6 +1,8 @@
 package com.liverary.backend.review.service;
 
 import com.liverary.backend.board.domain.Board;
+import com.liverary.backend.board.domain.Status;
+import com.liverary.backend.board.domain.Type;
 import com.liverary.backend.board.repository.BoardRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
@@ -9,6 +11,7 @@ import com.liverary.backend.review.dto.request.ReviewCreateRequest;
 import com.liverary.backend.review.dto.request.ReviewUpdateRequest;
 import com.liverary.backend.review.dto.response.ReviewResponse;
 import com.liverary.backend.review.repository.ReviewRepository;
+import com.liverary.backend.user.domain.Role;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,13 +44,17 @@ public class ReviewService {
      */
     @Transactional
     public ReviewResponse createReview(UUID userId, UUID boardId, ReviewCreateRequest request) {
-        User userRef = userRepository.getReferenceById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new BaseException(ErrorCode.BOARD_NOT_FOUND));
 
+        // 문의 게시판 관리자 권한 확인 및 상태 변경
+        board.validateAndCompleteInquiry(user);
+
         Review review = Review.builder()
-                .user(userRef)
+                .user(user)
                 .board(board)
                 .content(request.getContent())
                 .build();
