@@ -48,4 +48,7 @@ public interface RoomReservationRepository extends JpaRepository<RoomReservation
                                                       @Param("start") LocalDateTime targetStart,
                                                       @Param("end") LocalDateTime targetEnd,
                                                       @Param("excludeRoomId") UUID excludeRoomId);
+
+    // 특정 방의 모든 예약 내역 삭제
+    void deleteAllByRoom(Room room);
 }
