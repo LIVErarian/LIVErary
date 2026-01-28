@@ -49,8 +49,7 @@ public class BookController {
      */
     @GetMapping("/{bookId}")
     public BaseResponse<BookDetailResponse> getBookDetail(@PathVariable UUID bookId){
-        BookDetailResponse bookDetail =
-                bookService.getBookDetail(bookId);
+        BookDetailResponse bookDetail = bookService.getBookDetail(bookId);
         return BaseResponse.success(bookDetail);
     }
 

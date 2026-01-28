@@ -5,6 +5,8 @@ import com.liverary.backend.auth.dto.response.LoginResponse;
 import com.liverary.backend.auth.dto.response.RefreshResponse;
 import com.liverary.backend.auth.service.AuthService;
 import com.liverary.backend.common.dto.BaseResponse;
+import com.liverary.backend.exception.BaseException;
+import com.liverary.backend.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,13 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthService authService;
+
+    private UUID getUserId(UserDetails user) {
+        if (user == null) {
+            throw new BaseException(ErrorCode.UNAUTHORIZED);
+        }
+        return UUID.fromString(user.getUsername());
+    }
 
     /**
      * 사용 가능한 이메일인지 중복 여부를 확인
@@ -113,7 +122,7 @@ public class AuthController {
     @PostMapping("/logout")
     public BaseResponse<String> logout(@AuthenticationPrincipal UserDetails user) {
 
-        UUID userId = UUID.fromString(user.getUsername());
+        UUID userId = getUserId(user);
 
         authService.logout(userId);
         return BaseResponse.success();
@@ -144,7 +153,7 @@ public class AuthController {
             @AuthenticationPrincipal UserDetails user,
             @Valid @RequestBody ResetPasswordRequest request) {
 
-        UUID userId = UUID.fromString(user.getUsername());
+        UUID userId = getUserId(user);
 
         authService.resetPassword(userId, request);
         return BaseResponse.success();

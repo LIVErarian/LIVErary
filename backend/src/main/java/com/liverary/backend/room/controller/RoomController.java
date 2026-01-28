@@ -1,6 +1,8 @@
 package com.liverary.backend.room.controller;
 
 import com.liverary.backend.common.dto.BaseResponse;
+import com.liverary.backend.exception.BaseException;
+import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.room.domain.RoomType;
 import com.liverary.backend.room.dto.request.*;
 import com.liverary.backend.room.dto.response.*;
@@ -30,6 +32,13 @@ public class RoomController {
 
     private final RoomService roomService;
 
+    private UUID getUserId(UserDetails user) {
+        if (user == null) {
+            throw new BaseException(ErrorCode.UNAUTHORIZED);
+        }
+        return UUID.fromString(user.getUsername());
+    }
+
     /**
      * 새로운 방(Room)을 생성합니다.
      *
@@ -45,10 +54,9 @@ public class RoomController {
             @AuthenticationPrincipal UserDetails user,
             @Valid @RequestBody RoomCreateRequest request
     ) {
-        UUID userId = UUID.fromString(user.getUsername());
 
+        UUID userId = getUserId(user);
         RoomCreateResponse response = roomService.createRoom(userId, request);
-
         return BaseResponse.success(response);
     }
 
@@ -70,7 +78,7 @@ public class RoomController {
             @AuthenticationPrincipal UserDetails user,
             @RequestBody(required = false) JoinRoomRequest request
     ) {
-        UUID userId = UUID.fromString(user.getUsername());
+        UUID userId = getUserId(user);
 
         // 비밀번호 없는 방은 빈 객체 처리
         if (request == null) {
@@ -97,7 +105,7 @@ public class RoomController {
             @PathVariable UUID roomId,
             @AuthenticationPrincipal UserDetails user
     ) {
-        UUID userId = UUID.fromString(user.getUsername());
+        UUID userId = getUserId(user);
 
         roomService.leaveRoom(roomId, userId);
 
@@ -152,8 +160,7 @@ public class RoomController {
             @AuthenticationPrincipal UserDetails user,
             @Valid @RequestBody CreateReservationRequest request
     ) {
-        UUID userId = UUID.fromString(user.getUsername());
-
+        UUID userId = getUserId(user);
         CreateReservationResponse response = roomService.createReservation(userId, request);
 
         return BaseResponse.success(response);
@@ -173,7 +180,7 @@ public class RoomController {
             @AuthenticationPrincipal UserDetails user,
             @Valid @RequestBody UpdateReservationRequest request
     ) {
-        UUID userId = UUID.fromString(user.getUsername());
+        UUID userId = getUserId(user);
 
         UpdateReservationResponse response = roomService.updateReservation(roomId, userId, request);
 
@@ -192,8 +199,7 @@ public class RoomController {
             @PathVariable UUID roomId,
             @AuthenticationPrincipal UserDetails user
     ) {
-        UUID userId = UUID.fromString(user.getUsername());
-
+        UUID userId = getUserId(user);
         roomService.applyReservation(userId, roomId);
 
         return BaseResponse.success("참여 신청 완료");

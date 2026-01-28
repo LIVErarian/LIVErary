@@ -3,6 +3,8 @@ package com.liverary.backend.bookHistory.controller;
 import com.liverary.backend.bookHistory.DTO.response.WishStatusResponse;
 import com.liverary.backend.bookHistory.service.BookHistoryService;
 import com.liverary.backend.common.dto.BaseResponse;
+import com.liverary.backend.exception.BaseException;
+import com.liverary.backend.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +20,9 @@ public class BookHistoryController {
     private final BookHistoryService bookHistoryService;
 
     private UUID getUserId(UserDetails user) {
+        if (user == null) {
+            throw new BaseException(ErrorCode.UNAUTHORIZED);
+        }
         return UUID.fromString(user.getUsername());
     }
 
@@ -33,7 +38,9 @@ public class BookHistoryController {
             @PathVariable UUID bookId,
             @AuthenticationPrincipal UserDetails user
     ){
-        WishStatusResponse response = bookHistoryService.toggleWish(bookId, getUserId(user));
+        UUID userId = getUserId(user);
+
+        WishStatusResponse response = bookHistoryService.toggleWish(bookId, userId);
         return BaseResponse.success(response);
     }
 
@@ -49,7 +56,9 @@ public class BookHistoryController {
             @PathVariable UUID bookId,
             @AuthenticationPrincipal UserDetails user
     ){
-        WishStatusResponse response = bookHistoryService.getWishStatus(bookId, getUserId(user));
+        UUID userId = getUserId(user);
+
+        WishStatusResponse response = bookHistoryService.getWishStatus(bookId, userId);
         return BaseResponse.success(response);
     }
 

@@ -33,7 +33,11 @@ import java.util.UUID;
 public class BoardController {
 
     private final BoardService boardService;
+
     private UUID getUserId(UserDetails user) {
+        if (user == null) {
+            throw new BaseException(ErrorCode.UNAUTHORIZED);
+        }
         return UUID.fromString(user.getUsername());
     }
 
@@ -47,9 +51,10 @@ public class BoardController {
     @PostMapping
     public BaseResponse<BoardCreateResponse> createBoard(@AuthenticationPrincipal UserDetails user,
                                                          @RequestBody @Valid BoardCreateRequest dto) {
+        UUID userId = getUserId(user);
 
         // 서비스 로직 수행
-        BoardCreateResponse response = boardService.createBoard(getUserId(user), dto);
+        BoardCreateResponse response = boardService.createBoard(userId, dto);
 
         return BaseResponse.success(response);
     }
@@ -101,9 +106,10 @@ public class BoardController {
             @AuthenticationPrincipal UserDetails user,
             @PathVariable UUID boardId,
             @RequestBody @Valid BoardUpdateRequest dto
-    ){
+    ) {
+        UUID userId = getUserId(user);
 
-        BoardDetailResponse response = boardService.updateBoard(getUserId(user), boardId, dto);
+        BoardDetailResponse response = boardService.updateBoard(userId, boardId, dto);
         return BaseResponse.success(response);
     }
 
@@ -119,7 +125,9 @@ public class BoardController {
             @AuthenticationPrincipal UserDetails user,
             @PathVariable UUID boardId) {
 
-        boardService.deleteBoard(getUserId(user), boardId);
+        UUID userId = getUserId(user);
+
+        boardService.deleteBoard(userId, boardId);
         return BaseResponse.success();
     }
 
