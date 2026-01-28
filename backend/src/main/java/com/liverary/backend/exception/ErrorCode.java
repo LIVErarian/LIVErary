@@ -27,6 +27,7 @@ public enum ErrorCode {
     ALREADY_RESERVED(HttpStatus.BAD_REQUEST, "R012", "이미 예약 신청한 방입니다."),
     NOT_RESERVED(HttpStatus.BAD_REQUEST, "R013", "예약 내역이 존재하지 않습니다."),
     TOO_LATE_TO_CANCEL_RESERVATION(HttpStatus.BAD_REQUEST, "R014", "시작 10분 전까지만 취소할 수 있습니다."),
+    TOO_LATE_TO_CANCEL_ROOM(HttpStatus.BAD_REQUEST, "R015", "방 삭제는 시작 1시간 전까지만 가능합니다."),
 
     ROOM_INFO_REQUIRED(HttpStatus.BAD_REQUEST, "BD003", "방 정보를 입력해주세요."),
 
@@ -52,7 +53,7 @@ public enum ErrorCode {
     NOT_BOARD_OWNER(HttpStatus.FORBIDDEN, "BD002", "게시글 수정 및 삭제 권한이 없습니다."),
     INSUFFICIENT_PRIVILEGES(HttpStatus.FORBIDDEN, "BD004", "관리자 권한이 필요합니다."),
     NOT_REVIEW_OWNER(HttpStatus.FORBIDDEN, "RV002", "댓글 수정 및 삭제 권한이 없습니다."),
-    NOT_ROOM_CREATOR(HttpStatus.FORBIDDEN, "R010", "예약 정보 수정 권한이 없습니다."),
+    NOT_ROOM_CREATOR(HttpStatus.FORBIDDEN, "R010", "방 수정 및 삭제 권한이 없습니다."),
 
     // 404 NOT_FOUND: 리소스를 찾을 수 없음
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "요청한 리소스를 찾을 수 없습니다."),

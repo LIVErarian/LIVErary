@@ -253,6 +253,40 @@ public class RoomService {
     }
 
     /**
+     * 예약한 방을 취소(삭제)합니다.
+     *
+     * <p>요청자가 방장(creator)이고,
+     * 시작 시간 1시간 전일 경우 삭제할 수 있습니다.
+     * 삭제 시 연관된 예약자 명단(RoomReservation)과 방(Room) 데이터를 모두 삭제합니다.</p>
+     *
+     * @param userId 방 삭제를 요청하는 유저의 고유 식별자(UUID)
+     * @param roomId 삭제하려는 방의 고유 식별자(UUID)
+     */
+    @Transactional
+    public void deleteReservation(UUID userId, UUID roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 방장 권한 확인
+        if (!room.getCreator().getUserId().equals(user.getUserId())) {
+            throw new BaseException(ErrorCode.NOT_ROOM_CREATOR);
+        }
+
+        // 시작 1시간 전까지만 삭제 가능
+        LocalDateTime deleteDeadline = room.getStartAt().minusHours(1);
+        if (LocalDateTime.now().isAfter(deleteDeadline)) {
+            throw new BaseException(ErrorCode.TOO_LATE_TO_CANCEL_ROOM);
+        }
+
+        // 연관된 예약 내역 전체 삭제
+        roomReservationRepository.deleteAllByRoom(room);
+        roomRepository.delete(room);
+    }
+
+    /**
      * 예약 전용 방에 참여를 신청합니다.
      *
      * <p>다음과 같은 유효성 검사를 수행합니다.</p>

@@ -188,6 +188,24 @@ public class RoomController {
     }
 
     /**
+     * 방 예약을 취소(삭제)합니다.
+     *
+     * @param roomId 예약 취소할 방의 고유 식별자 (URL Path)
+     * @param user Spring Security를 통해 인증된 사용자 정보
+     * @return 예약 취소 성공 메시지("예약 취소 완료")를 포함한 공통 응답 객체
+     */
+    @DeleteMapping("/reservation/{roomId}")
+    public BaseResponse<String> deleteReservation(
+            @PathVariable UUID roomId,
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        UUID userId = getUserId(user);
+        roomService.deleteReservation(userId, roomId);
+
+        return BaseResponse.success("예약 취소 완료");
+    }
+
+    /**
      * 예약 방에 참여 신청합니다.
      *
      * @param roomId 참여 신청할 방의 고유 식별자 (URL Path)
