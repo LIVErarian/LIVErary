@@ -39,6 +39,8 @@ public enum ErrorCode {
     VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "A010", "인증 번호가 일치하지 않습니다."),
     EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "A011", "이메일 인증이 완료되지 않았습니다."),
 
+    INVALID_UUID_FORMAT(HttpStatus.BAD_REQUEST, "A012", "유효한 UUID 형식이 아닙니다" ),
+
     // 401 UNAUTHORIZED: 인증 실패
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증에 실패했습니다."),
 

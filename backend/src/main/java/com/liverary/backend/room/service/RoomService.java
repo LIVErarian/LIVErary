@@ -436,6 +436,27 @@ public class RoomService {
     }
 
     /**
+     * 입장 기록이 존재하는지 검증합니다.
+     *
+     * @param roomId 방의 고유 식별자(UUID)
+     * @param userId 유저의 고유 식별자(UUID)
+     * @throws BaseException 유저/방이 없거나, 입장 기록이 없는 경우 발생
+     */
+    @Transactional(readOnly = true)
+    public void validateJoin(UUID roomId, UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+        boolean joined = roomHistoryRepository.existsByRoomAndUserAndStatus(room, user, HistoryStatus.JOINED);
+        if (!joined) {
+            throw new BaseException(ErrorCode.ROOM_HISTORY_NOT_FOUND);
+        }
+    }
+
+    /**
      * 유저가 현재 참여 중인 방에서 퇴장합니다.
      *
      * <p>유저의 현재 참여 기록(History)을 찾아 '퇴장(LEFT)' 상태로 변경하고,

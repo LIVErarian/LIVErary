@@ -49,6 +49,9 @@ public class SocketController {
         UUID roomId = request.getRoomId();
         UUID userId = UUID.fromString(principal.getName());
 
+        // HTTP 입장 기록이 있는지 확인
+        roomService.validateJoin(roomId, userId);
+
         // 방 입장 처리 후 세션 등록
         UserSession userSession = socketService.join(roomId, userId);
         registry.register(userSession);

@@ -42,7 +42,6 @@ public class SocketService implements Closeable {
      * @param roomId 방 ID
      * @param userId 사용자 ID
      * @return 생성된 사용자 세션
-     * @throws IOException 메시지 전송 실패 시
      */
     public UserSession join(UUID roomId, UUID userId)
             throws IOException {
@@ -50,20 +49,33 @@ public class SocketService implements Closeable {
         MediaPipeline mediaPipeline =
                 roomPipelines.computeIfAbsent(roomId, key -> kurentoClient.createMediaPipeline());
 
-        UserSession participant = new UserSession(roomId, userId, mediaPipeline, messagingTemplate);
-
         // 방별 참여자 맵 생성/조회
         ConcurrentMap<UUID, UserSession> roomParticipants =
                 rooms.computeIfAbsent(roomId, key -> new ConcurrentHashMap<>());
 
-        // 기존 참여자에게 신규 입장 알림
-        broadcastToExistingParticipants(roomParticipants.values(), participant);
-        // 참여자 등록
-        roomParticipants.put(participant.getUserId(), participant);
+        UserSession participant = null;
+        try {
+            participant = new UserSession(roomId, userId, mediaPipeline, messagingTemplate);
 
-        // 신규 참여자에게 기존 참여자 목록 전달
-        sendExistingParticipantsTo(roomParticipants.values(), participant);
-        return participant;
+            // 기존 참여자에게 신규 입장 알림
+            broadcastToExistingParticipants(roomParticipants.values(), participant);
+            // 참여자 등록
+            roomParticipants.put(participant.getUserId(), participant);
+
+            // 신규 참여자에게 기존 참여자 목록 전달
+            sendExistingParticipantsTo(roomParticipants.values(), participant);
+            return participant;
+        } catch (Exception e) {
+            if (participant != null) {
+                try {
+                    participant.close();
+                } catch (IOException ignored) {
+                    // join 실패 후 정리 단계의 예외는 무시
+                }
+            }
+
+            throw e;
+        }
     }
 
     /**
