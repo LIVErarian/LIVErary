@@ -12,7 +12,6 @@ export default defineConfig({
         target: 'http://i14a307.p.ssafy.io:8080',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },

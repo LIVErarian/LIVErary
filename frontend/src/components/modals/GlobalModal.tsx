@@ -1,24 +1,27 @@
 import { useNavigate } from 'react-router-dom';
 
 import { useModalStore } from '@/store/useModalStore';
-import { ConfirmModal } from '../common/ConfirmModal';
 import { PixelModal } from '../common/PixelModal';
+import { ConfirmModal } from './ConfirmModal';
 import { ElevatorModal } from './ElevatorModal';
+import { ErrorModal } from './ErrorModal';
+
+import * as styles from './GlobalModal.css';
 
 const BoardContent = () => (
-  <div style={{ textAlign: 'center', padding: '20px' }}>
+  <div className={styles.contentWrapper}>
     <p>게시판 기능을 준비 중입니다.</p>
   </div>
 );
 
 const RoomContent = () => (
-  <div style={{ textAlign: 'center', padding: '20px' }}>
+  <div className={styles.contentWrapper}>
     <p>방 목록 기능을 준비중입니다.</p>
   </div>
 );
 
 const RankContent = () => (
-  <div style={{ textAlign: 'center', padding: '20px' }}>
+  <div className={styles.contentWrapper}>
     <p>랭킹 기능을 준비중입니다.</p>
   </div>
 );
@@ -98,6 +101,14 @@ export const GlobalModal = () => {
       >
         <p>정말 로그아웃 하시겠습니까?</p>
       </ConfirmModal>
+
+      {/* 에러 알림 모달 */}
+      <ErrorModal
+        isOpen={currentModal === 'error'}
+        onClose={closeModal}
+        title={modalProps.title || '알림'}
+        message={modalProps.message || '알 수 없는 오류가 발생했습니다.'}
+      />
     </>
   );
 };
