@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -19,6 +20,9 @@ public interface RoomReservationRepository extends JpaRepository<RoomReservation
 
     // 유저가 특정 방에 이미 예약했는지 확인
     boolean existsByRoomAndUser(Room room, User user);
+
+    // 유저와 방 정보를 기준으로 예약 내역 조회
+    Optional<RoomReservation> findByRoomAndUser(Room room, User user);
 
     // 해당 유저가 '특정 시간대'에 겹치는 예약이 있는지 확인
     // (기존방.시작 < 타겟.종료) AND (기존방.종료 > 타겟.시작) 이면 겹침
