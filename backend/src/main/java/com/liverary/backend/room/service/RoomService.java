@@ -308,6 +308,13 @@ public class RoomService {
         roomReservationRepository.save(reservation);
     }
 
+    /**
+     * 예약 방 참여 신청을 취소합니다.
+     *
+     * @param userId 취소 신청하는 유저의 ID
+     * @param roomId 취소할 방의 ID
+     * @throws BaseException 예약 내역 없음(NOT_RESERVED), 취소 가능 시간 제한(TOO_LATE_TO_CANCEL_RESERVATION) 등
+     */
     @Transactional
     public void cancelReservation(UUID userId, UUID roomId) {
         Room room = roomRepository.findById(roomId)
@@ -322,7 +329,7 @@ public class RoomService {
         // 시작 10분 전까지만 취소 가능
         LocalDateTime cancelDeadline = room.getStartAt().minusMinutes(10);
         if (LocalDateTime.now().isAfter(cancelDeadline)) {
-            throw new BaseException(ErrorCode.TOO_LATE_TO_CANCEL);
+            throw new BaseException(ErrorCode.TOO_LATE_TO_CANCEL_RESERVATION);
         }
 
         roomReservationRepository.delete(reservation);
