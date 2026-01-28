@@ -1,8 +1,10 @@
 package com.liverary.backend.config;
 
 import com.liverary.backend.auth.provider.JwtProvider;
+import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.*;
 
@@ -16,6 +18,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     // WebSocket 핸드셰이크에서 JWT 검증에 사용하는 Provider.
     private final JwtProvider jwtProvider;
+    private final UserRepository userRepository;
 
     /**
      * STOMP 연결을 수락할 엔드포인트를 등록한다.
@@ -27,7 +30,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // WebSocket 접속 경로와 CORS 허용 범위를 설정하고, JWT 검증 핸드셰이크 핸들러를 적용한다.
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
-                .setHandshakeHandler(new StompHandshakeHandler(jwtProvider));
+                .setHandshakeHandler(new StompHandshakeHandler(jwtProvider, userRepository));
     }
 
     /**
@@ -43,5 +46,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         // 목적지 prefix
         registry.setApplicationDestinationPrefixes("/app");
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(new StompAuthChannelInterceptor(jwtProvider));
     }
 }
