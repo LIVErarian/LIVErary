@@ -1,6 +1,7 @@
 package com.liverary.backend.config;
 
 import org.kurento.client.KurentoClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,7 +16,7 @@ public class WebRtcConfig {
      * @return KurentoClient 인스턴스
      */
     @Bean
-    public KurentoClient kurentoClient() {
-        return KurentoClient.create();
+    public KurentoClient kurentoClient(@Value("${KMS_URL}") String kmsUrl) {
+        return KurentoClient.create(kmsUrl);
     }
 }
