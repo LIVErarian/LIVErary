@@ -1,0 +1,59 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: overlay2
+  IMAGE_NAME: "spring-app"
+  IMAGE_TAG: "$CI_COMMIT_SHA"
+  TAR_NAME: "spring-app_$CI_COMMIT_SHA.tar"
+  EC2_PORT: "22"
+
+cache:
+  key: gradle-cache
+  paths:
+    - .gradle/
+    - build/
+
+build_image:
+  stage: build
+  image: docker:24.0.7
+  services:
+    - docker:24.0.7-dind
+  before_script:
+    - cd backend
+    - apk add --no-cache bash openjdk17-jdk openssh-client
+    - chmod +x ./gradlew
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY_B64" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -p "$EC2_PORT" "$EC2_HOST" >> ~/.ssh/known_hosts
+  script:
+    - ./gradlew bootJar
+    - docker build -t "$IMAGE_NAME:$IMAGE_TAG" .
+    - docker save "$IMAGE_NAME:$IMAGE_TAG" -o "../$TAR_NAME"
+    - ssh -p "$EC2_PORT" "$EC2_USER@$EC2_HOST" "mkdir -p $DEPLOY_DIR"
+    - scp -P "$EC2_PORT" "../$TAR_NAME" "$EC2_USER@$EC2_HOST:$DEPLOY_DIR/"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "back/default"'
+
+deploy_ec2:
+  stage: deploy
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache openssh-client bash
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY_B64" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -p "$EC2_PORT" "$EC2_HOST" >> ~/.ssh/known_hosts
+  script:
+    - ssh -p "$EC2_PORT" "$EC2_USER@$EC2_HOST" "mkdir -p $DEPLOY_DIR"
+    - ssh -p "$EC2_PORT" "$EC2_USER@$EC2_HOST" "cd $DEPLOY_DIR && docker load -i $TAR_NAME && docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:1.0 && docker compose -f compose.yml up -d"
+  environment:
+    name: production
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "back/default"'
+
