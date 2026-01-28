@@ -5,6 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import prettier from 'eslint-config-prettier';
+import pluginQuery from '@tanstack/eslint-plugin-query';
 
 export default tseslint.config(
   { ignores: ['dist'] },
@@ -19,6 +20,7 @@ export default tseslint.config(
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
       'simple-import-sort': simpleImportSort,
+      '@tanstack/query': pluginQuery,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -26,6 +28,9 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+
+      // query 키 누락 방지
+      '@tanstack/query/exhaustive-deps': 'error',
 
       // Import 순서 상세 설정
       'simple-import-sort/imports': [
