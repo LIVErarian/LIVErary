@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/book")
+@RequestMapping("/api/book")
 @RequiredArgsConstructor
 public class BookController {
 

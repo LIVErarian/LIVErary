@@ -18,7 +18,7 @@ import java.util.UUID;
  * 회원 정보 조회 및 관리를 처리하는 API 컨트롤러
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
 
