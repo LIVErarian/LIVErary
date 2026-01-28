@@ -20,13 +20,11 @@ public class Book {
 
     @Id
     @Column(name = "book_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID bookId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     private Category category;
 
     @Column (name = "isbn", nullable = false, length = 20, unique = true)

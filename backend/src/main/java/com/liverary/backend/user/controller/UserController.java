@@ -1,6 +1,8 @@
 package com.liverary.backend.user.controller;
 
 import com.liverary.backend.common.dto.BaseResponse;
+import com.liverary.backend.exception.BaseException;
+import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.user.dto.request.UserUpdateRequest;
 import com.liverary.backend.user.dto.response.ProfileResponse;
 import com.liverary.backend.user.service.UserService;
@@ -18,11 +20,18 @@ import java.util.UUID;
  * 회원 정보 조회 및 관리를 처리하는 API 컨트롤러
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+
+    private UUID getUserId(UserDetails user) {
+        if (user == null) {
+            throw new BaseException(ErrorCode.UNAUTHORIZED);
+        }
+        return UUID.fromString(user.getUsername());
+    }
 
     /**
      * 현재 로그인한 사용자의 마이페이지 정보 조회
@@ -36,7 +45,7 @@ public class UserController {
             @AuthenticationPrincipal UserDetails user,
             @PageableDefault(size = 10) Pageable pageable) {
 
-        UUID userId = UUID.fromString(user.getUsername());
+        UUID userId = getUserId(user);
 
         ProfileResponse response = userService.getProfile(userId, pageable);
 
@@ -55,7 +64,7 @@ public class UserController {
             @AuthenticationPrincipal UserDetails user,
             @Valid @RequestBody UserUpdateRequest request) {
 
-        UUID userId = UUID.fromString(user.getUsername());
+        UUID userId = getUserId(user);
 
         userService.updateProfile(userId, request);
 

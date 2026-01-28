@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/book")
+@RequestMapping("/api/book")
 @RequiredArgsConstructor
 public class BookController {
 
@@ -49,8 +49,7 @@ public class BookController {
      */
     @GetMapping("/{bookId}")
     public BaseResponse<BookDetailResponse> getBookDetail(@PathVariable UUID bookId){
-        BookDetailResponse bookDetail =
-                bookService.getBookDetail(bookId);
+        BookDetailResponse bookDetail = bookService.getBookDetail(bookId);
         return BaseResponse.success(bookDetail);
     }
 

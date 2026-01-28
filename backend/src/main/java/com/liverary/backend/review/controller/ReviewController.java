@@ -3,6 +3,8 @@ package com.liverary.backend.review.controller;
 import com.liverary.backend.board.dto.request.BoardUpdateRequest;
 import com.liverary.backend.board.dto.response.BoardDetailResponse;
 import com.liverary.backend.common.dto.BaseResponse;
+import com.liverary.backend.exception.BaseException;
+import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.review.dto.request.ReviewCreateRequest;
 import com.liverary.backend.review.dto.request.ReviewUpdateRequest;
 import com.liverary.backend.review.dto.response.ReviewResponse;
@@ -24,12 +26,15 @@ import java.util.UUID;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/review")
+@RequestMapping("/api/review")
 public class ReviewController {
 
     private final ReviewService reviewService;
 
-    private UUID getUserId(UserDetails user){
+    private UUID getUserId(UserDetails user) {
+        if (user == null) {
+            throw new BaseException(ErrorCode.UNAUTHORIZED);
+        }
         return UUID.fromString(user.getUsername());
     }
 
@@ -47,8 +52,8 @@ public class ReviewController {
             @PathVariable UUID boardId,
             @RequestBody @Valid ReviewCreateRequest dto){
 
-        ReviewResponse response = reviewService.createReview(getUserId(user), boardId, dto);
-
+        UUID userId = getUserId(user);
+        ReviewResponse response = reviewService.createReview(userId, boardId, dto);
         return BaseResponse.success(response);
     }
 
@@ -80,8 +85,8 @@ public class ReviewController {
             @PathVariable UUID reviewId,
             @RequestBody @Valid ReviewUpdateRequest dto
     ){
-
-        ReviewResponse response = reviewService.updateReview(getUserId(user), reviewId, dto);
+        UUID userId = getUserId(user);
+        ReviewResponse response = reviewService.updateReview(userId, reviewId, dto);
         return BaseResponse.success(response);
     }
 
@@ -96,9 +101,8 @@ public class ReviewController {
     public BaseResponse<String> deleteReview(
             @AuthenticationPrincipal UserDetails user,
             @PathVariable UUID reviewId) {
-
-        reviewService.deleteReview(getUserId(user), reviewId);
-
+        UUID userId = getUserId(user);
+        reviewService.deleteReview(userId, reviewId);
         return BaseResponse.success();
     }
 
