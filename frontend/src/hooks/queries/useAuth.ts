@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 
 import type { LoginRequest, LoginResponseData } from '@/types/auth.types';
 
-export const useAuth = () => {
+export const useLogin = () => {
   const navigate = useNavigate();
   const setTokens = useAuthStore((state) => state.setTokens);
 

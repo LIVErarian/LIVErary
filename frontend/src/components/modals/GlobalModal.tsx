@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 
 import { useModalStore } from '@/store/useModalStore';
-import { ConfirmModal } from '../common/ConfirmModal';
-import { PixelButton } from '../common/PixelButton';
 import { PixelModal } from '../common/PixelModal';
+import { ConfirmModal } from './ConfirmModal';
 import { ElevatorModal } from './ElevatorModal';
+import { ErrorModal } from './ErrorModal';
 
 import * as styles from './GlobalModal.css';
 
@@ -23,23 +23,6 @@ const RoomContent = () => (
 const RankContent = () => (
   <div className={styles.contentWrapper}>
     <p>랭킹 기능을 준비중입니다.</p>
-  </div>
-);
-
-const ErrorContent = ({
-  message,
-  onClose,
-}: {
-  message?: string;
-  onClose: () => void;
-}) => (
-  <div className={styles.contentWrapper}>
-    <div className={styles.errorMessage}>
-      {message || '오류가 발생했습니다.'}
-    </div>
-    <div className={styles.buttonWrapper}>
-      <PixelButton onClick={onClose}>확인</PixelButton>
-    </div>
   </div>
 );
 
@@ -120,14 +103,12 @@ export const GlobalModal = () => {
       </ConfirmModal>
 
       {/* 에러 알림 모달 */}
-      <PixelModal
+      <ErrorModal
         isOpen={currentModal === 'error'}
         onClose={closeModal}
         title={modalProps.title || '알림'}
-        width="400px"
-      >
-        <ErrorContent message={modalProps.message} onClose={closeModal} />
-      </PixelModal>
+        message={modalProps.message || '알 수 없는 오류가 발생했습니다.'}
+      />
     </>
   );
 };

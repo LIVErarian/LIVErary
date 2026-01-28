@@ -11,18 +11,9 @@ export const contentWrapper = style({
   gap: '1rem',
 });
 
-// 에러 메시지 텍스트
 export const errorMessage = style({
   fontSize: '1rem',
   color: theme.colors.black,
   lineHeight: '1.5',
   wordBreak: 'keep-all',
-});
-
-// 버튼 래퍼
-export const buttonWrapper = style({
-  display: 'flex',
-  justifyContent: 'center',
-  marginTop: '1rem',
-  width: '100%',
 });
