@@ -24,7 +24,6 @@ public class RoomHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "history_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID historyId;
 
     // 방 정보 (FK), N:1 관계

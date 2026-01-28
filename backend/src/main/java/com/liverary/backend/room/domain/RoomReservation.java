@@ -31,7 +31,6 @@ public class RoomReservation {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "reservation_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID reservationId;
 
     // 방 정보 (FK), N:1 관계

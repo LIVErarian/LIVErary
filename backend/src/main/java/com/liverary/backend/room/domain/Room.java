@@ -26,7 +26,6 @@ public class Room {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "room_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID roomId;
 
     // 연관된 책 정보 (FK)

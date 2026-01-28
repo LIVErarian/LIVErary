@@ -17,7 +17,6 @@ import java.util.UUID;
 public class Category {
     @Id
     @Column(name = "category_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID categoryId;
 

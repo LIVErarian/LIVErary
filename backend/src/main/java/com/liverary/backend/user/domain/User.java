@@ -25,7 +25,6 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "user_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID userId;
 
     // 사용자 닉네임

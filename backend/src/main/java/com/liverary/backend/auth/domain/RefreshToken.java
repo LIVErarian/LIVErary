@@ -20,7 +20,6 @@ public class RefreshToken {
 
     @Id
     @Column(name = "user_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID userId;
 
     @Column(nullable = false)

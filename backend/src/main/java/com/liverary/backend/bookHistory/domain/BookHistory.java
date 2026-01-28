@@ -23,7 +23,6 @@ public class BookHistory {
 
     @Id
     @Column(name="log_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID logId;
 

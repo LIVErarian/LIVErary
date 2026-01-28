@@ -25,7 +25,6 @@ public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "board_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID boardId;
 
     // 작성자

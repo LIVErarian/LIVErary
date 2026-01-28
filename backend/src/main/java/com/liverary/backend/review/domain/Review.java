@@ -26,7 +26,6 @@ public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "review_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID reviewId;
 
     // 게시글
