@@ -7,6 +7,9 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,6 +26,7 @@ public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "review_id")
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID reviewId;
 
     // 게시글
