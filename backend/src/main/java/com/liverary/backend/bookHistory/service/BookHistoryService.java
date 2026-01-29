@@ -62,16 +62,16 @@ public class BookHistoryService {
 
     /**
      * 특정 책의 찜 상태 확인
-     * @param isbn 도서 isbn
+     * @param bookId 도서 UUID
      * @param userId 유저 ID
      * @return WishStatusResponse
      */
-    public WishStatusResponse getWishStatus(String isbn, UUID userId){
+    public WishStatusResponse getWishStatus(UUID bookId, UUID userId){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
 
-        return bookService.findByIsbn(isbn)
+        return bookService.findByBookId(bookId)
                 .map(book -> {
                     boolean isWished = bookHistoryRepository.existsByUserAndBookAndStatus(user, book, BookStatus.WISH);
                     return WishStatusResponse.of(isWished);

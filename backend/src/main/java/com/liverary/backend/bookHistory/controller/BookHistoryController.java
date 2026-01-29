@@ -47,18 +47,18 @@ public class BookHistoryController {
     /**
      * 특정 도서 찜 상태 확인 API
      * - GET /api/book-history/wish/{bookId}
-     * @param isbn
+     * @param bookId
      * @param user
      * @return
      */
-    @GetMapping("/wish/{isbn}")
+    @GetMapping("/wish/{bookId}")
     public BaseResponse<WishStatusResponse> getWishStatus(
-            @PathVariable String isbn,
+            @PathVariable UUID bookId,
             @AuthenticationPrincipal UserDetails user
     ){
         UUID userId = getUserId(user);
 
-        WishStatusResponse response = bookHistoryService.getWishStatus(isbn, userId);
+        WishStatusResponse response = bookHistoryService.getWishStatus(bookId, userId);
         return BaseResponse.success(response);
     }
 
