@@ -14,14 +14,17 @@ export const PixelButton = ({
   children,
   size = 'md',
   variant = 'primary',
+  disabled = false,
   fullWidth = false,
   shape = 'default',
   className,
   ...props
 }: PixelButtonProps) => {
+  const finalVariant = disabled ? 'disabled' : variant;
   return (
     <button
-      className={`${pixelButton({ size, variant, fullWidth, shape })} ${className || ''}`}
+      className={`${pixelButton({ size, variant: finalVariant, fullWidth, shape })} ${className || ''}`}
+      disabled={disabled}
       {...props}
     >
       {children}
