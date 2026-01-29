@@ -49,3 +49,11 @@ export interface EmailCodeVerifyRequest extends EmailVerifyRequest {
 
 // 이메일 인증 코드 확인 응답
 export type EmailCodeVerifyResponse = CommonResponse<null>;
+
+// 토큰 재발급 응답 데이터
+export interface ReissueResponseData {
+  accessToken: string;
+}
+
+// 토큰 재발급 전체 응답
+export type ReissueResponse = CommonResponse<ReissueResponseData>;
