@@ -5,6 +5,7 @@ import { PixelModal } from '../common/PixelModal';
 import { ConfirmModal } from './ConfirmModal';
 import { ElevatorModal } from './ElevatorModal';
 import { ErrorModal } from './ErrorModal';
+import { ProfileModal } from './ProfileModal';
 
 import * as styles from './GlobalModal.css';
 
@@ -109,6 +110,9 @@ export const GlobalModal = () => {
         title={modalProps.title || '알림'}
         message={modalProps.message || '알 수 없는 오류가 발생했습니다.'}
       />
+
+      {/* 프로필 모달 */}
+      <ProfileModal isOpen={currentModal === 'profile'} onClose={closeModal} />
     </>
   );
 };

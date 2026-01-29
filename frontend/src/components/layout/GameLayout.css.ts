@@ -63,6 +63,18 @@ export const profileRow = style({
   justifyContent: 'center',
   gap: '8px',
   width: '100%',
+
+  // 버튼 기본 스타일 제거
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: '8px',
+
+  ':hover': {
+    opacity: 0.8,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: '16px',
+  },
 });
 
 // 아바타

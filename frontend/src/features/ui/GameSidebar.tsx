@@ -80,7 +80,7 @@ export const GameSidebar = () => {
       return null;
     }
 
-    // 그 외에선느 방 목록
+    // 그 외에서는 방 목록
     return (
       <PixelButton
         variant="beige"
@@ -141,15 +141,18 @@ export const GameSidebar = () => {
 
       {currentFloor === 'myRoom' ? renderMyRoomMenu() : renderLibraryMenu()}
 
-      {/* ⬇️ [하단] 프로필 및 설정 */}
+      {/* 프로필 및 설정 */}
       <div className={styles.profileSection}>
-        {/* 1. 플레이어 정보 */}
-        <div className={styles.profileRow}>
+        {/* 플레이어 정보 */}
+        <button
+          className={styles.profileRow}
+          onClick={() => openModal('profile')}
+        >
           <div className={styles.avatarCircle} />
           <span className={styles.playerName}>Player</span>
-        </div>
+        </button>
 
-        {/* 2. 미디어 컨트롤 (마이크만 남김) */}
+        {/* 미디어 컨트롤 */}
         <div className={styles.mediaRow}>
           <PixelButton
             variant="beige"
@@ -161,7 +164,7 @@ export const GameSidebar = () => {
           </PixelButton>
         </div>
 
-        {/* 3. 로그아웃 (꽉 찬 버튼) */}
+        {/* 로그아웃 */}
         <PixelButton
           variant="danger"
           fullWidth

@@ -31,6 +31,9 @@ export const palette = {
   boardShadow: '#b89f7d',
   boardBorder: '#8d5d3e',
 
+  // 종이 질감 팔레트
+  paper: '#fdf6e3',
+
   // 기능성 컬러
   red: '#810000',
   success: '#002907',
@@ -45,7 +48,7 @@ export const theme = createGlobalTheme(':root', {
   colors: palette,
 
   // 폰트 사이즈, 간격 등
-  spacing: {
+  size: {
     small: '8px',
     medium: '16px',
     large: '24px',
