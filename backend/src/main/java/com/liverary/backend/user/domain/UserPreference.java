@@ -13,7 +13,15 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Table(name = "user_preference")
+@Table(
+        name = "user_preference",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_user_category",
+                        columnNames = {"user_id", "category_id"}
+                )
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserPreference {
 

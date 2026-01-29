@@ -123,6 +123,15 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
+        // 해당 유저의 선호 정보가 이미 존재하는지 조회
+        List<UserPreference> existing = userPreferenceRepository.findByUser(user);
+
+        // 이미 등록된 정보가 있다면 새로 생성하지 않고 업데이트 로직 호출
+        if (!existing.isEmpty()) {
+            updateUserPreferences(userId, categoryIds);
+            return;
+        }
+
         savePreferences(user, categoryIds);
     }
 
@@ -165,18 +174,21 @@ public class UserService {
     }
 
     /**
-     * 카테고리 정보를 데이터베이스에 저장하는 공통 로직입니다.
-     * 모든 카테고리 ID가 유효한지 검증한 후 저장 작업을 수행합니다.
+     * 카테고리 정보를 데이터베이스에 저장하는 공통 로직
+     * 모든 카테고리 ID가 유효한지 검증한 후 저장 작업 수행
      *
      * @param user 사용자 엔티티
      * @param categoryIds 저장할 카테고리 ID 목록
      * @throws BaseException 카테고리 ID가 유효하지 않을 경우 발생 (CATEGORY_NOT_FOUND)
      */
     private void savePreferences(User user, List<UUID> categoryIds) {
-        List<Category> categories = categoryRepository.findAllById(categoryIds);
+        // 중복 제거하여 실제 확인해야 할 고유 ID 목록
+        List<UUID> distinctIds = categoryIds.stream().distinct().toList();
 
-        // 요청한 ID 개수와 조회된 엔티티 개수가 다르면 잘못된 ID가 포함된 것입니다.
-        if (categories.size() != categoryIds.size()) {
+        List<Category> categories = categoryRepository.findAllById(distinctIds);
+
+        // 고유한 요청 ID 개수와 조회된 엔티티 개수가 다르면 잘못된 ID가 포함된 것
+        if (categories.size() != distinctIds.size()) {
             throw new BaseException(ErrorCode.CATEGORY_NOT_FOUND);
         }
 
