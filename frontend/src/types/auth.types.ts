@@ -22,6 +22,9 @@ export interface LoginResponseData {
 // 최종 로그인 응답 타입
 export type LoginResponse = CommonResponse<LoginResponseData>;
 
+// 로그아웃 응답
+export type LogoutResponse = CommonResponse<null>;
+
 // 회원가입 요청
 export interface SignupRequest extends LoginRequest {
   nickname: string;
