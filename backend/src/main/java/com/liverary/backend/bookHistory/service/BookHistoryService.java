@@ -42,7 +42,7 @@ public class BookHistoryService {
                 .orElseThrow(() -> new BaseException(ErrorCode.BOOK_NOT_FOUND));
 
         // 찜 상태의 BookHistory 확인
-        return bookHistoryRepository.findByUser_UserIdAndBook_BookIdAndStatus(userId, bookId, BookStatus.WISH)
+        return bookHistoryRepository.findByUserAndBookAndStatus(user, book, BookStatus.WISH)
                 .map(bookHistory -> {
                     // 이미 찜한 경우 -> 삭제
                     bookHistoryRepository.delete(bookHistory);
@@ -70,8 +70,15 @@ public class BookHistoryService {
      * @return WishStatusResponse
      */
     public WishStatusResponse getWishStatus(UUID bookId, UUID userId){
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
-        boolean isWished = bookHistoryRepository.existsByUser_UserIdAndBook_BookIdAndStatus(userId,bookId,BookStatus.WISH);
+        // 도서 조회
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new BaseException(ErrorCode.BOOK_NOT_FOUND));
+
+        boolean isWished = bookHistoryRepository.existsByUserAndBookAndStatus(user,book,BookStatus.WISH);
 
         return WishStatusResponse.of(isWished);
     }
