@@ -16,7 +16,7 @@ public class WebRtcConfig {
      * @return KurentoClient 인스턴스
      */
     @Bean
-    public KurentoClient kurentoClient(@Value("${KMS_URL}") String kmsUrl) {
+    public KurentoClient kurentoClient(@Value("${kms.url}") String kmsUrl) {
         return KurentoClient.create(kmsUrl);
     }
 }
