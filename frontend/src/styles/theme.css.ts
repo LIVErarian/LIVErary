@@ -34,6 +34,13 @@ export const palette = {
   // 종이 질감 팔레트
   paper: '#fdf6e3',
 
+  // 비활성화 색상 팔레트
+  disabledBg: '#8D7B68',
+  disabledText: '#5C4D42',
+  disabledLight: '#A89F91',
+  disabledDark: '#6B5D4D',
+  disabledDeep: '#4A3E34',
+
   // 기능성 컬러
   red: '#810000',
   success: '#002907',

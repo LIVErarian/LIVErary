@@ -153,6 +153,45 @@ export const pixelButton = recipe({
           `,
         },
       },
+      disabled: {
+        backgroundColor: theme.colors.disabledBg,
+        color: theme.colors.disabledText,
+        cursor: 'not-allowed',
+
+        boxShadow: `
+          inset 2px 2px 0px 0px ${theme.colors.disabledLight},
+          inset -2px -2px 0px 0px ${theme.colors.disabledDark},
+          inset 0px -6px 0px 0px ${theme.colors.disabledDark},
+          
+          4px 0px 0px 0px ${theme.colors.disabledDeep},
+          -4px 0px 0px 0px ${theme.colors.disabledDeep},
+          0px -4px 0px 0px ${theme.colors.disabledDeep},
+          0px 4px 0px 0px ${theme.colors.disabledDeep},
+          4px 4px 0px 0px ${theme.colors.disabledDeep},
+          -4px 4px 0px 0px ${theme.colors.disabledDeep},
+          4px -4px 0px 0px ${theme.colors.disabledDeep},
+          -4px -4px 0px 0px ${theme.colors.disabledDeep}
+        `,
+
+        ':active': {
+          transform: 'none',
+          boxShadow: `
+            inset 2px 2px 0px 0px ${theme.colors.disabledLight},
+            inset -2px -2px 0px 0px ${theme.colors.disabledDark},
+            inset 0px -6px 0px 0px ${theme.colors.disabledDark},
+            
+            /* 외곽선 유지 (위와 동일) */
+            4px 0px 0px 0px ${theme.colors.disabledDeep},
+            -4px 0px 0px 0px ${theme.colors.disabledDeep},
+            0px -4px 0px 0px ${theme.colors.disabledDeep},
+            0px 4px 0px 0px ${theme.colors.disabledDeep},
+            4px 4px 0px 0px ${theme.colors.disabledDeep},
+            -4px 4px 0px 0px ${theme.colors.disabledDeep},
+            4px -4px 0px 0px ${theme.colors.disabledDeep},
+            -4px -4px 0px 0px ${theme.colors.disabledDeep}
+          `,
+        },
+      },
     },
   },
 
