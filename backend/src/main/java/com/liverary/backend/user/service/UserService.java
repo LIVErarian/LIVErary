@@ -44,17 +44,17 @@ public class UserService {
 
         // 찜한 책 (WISH)
         Page<BookSummary> wishBooks = bookHistoryRepository
-                .findByUser_UserIdAndStatus(userId, BookStatus.WISH, pageable)
+                .findByUserAndStatus(user, BookStatus.WISH, pageable)
                 .map(history -> BookSummary.of(history.getBook(), BookStatus.WISH));
 
         // 읽는 중 (READING)
         Page<BookSummary> readingBooks = bookHistoryRepository
-                .findByUser_UserIdAndStatus(userId, BookStatus.READING, pageable)
+                .findByUserAndStatus(user, BookStatus.READING, pageable)
                 .map(history -> BookSummary.of(history.getBook(), BookStatus.READING));
 
         // 다 읽은 책 (COMPLETED)
         Page<BookSummary> completedBooks = bookHistoryRepository
-                .findByUser_UserIdAndStatus(userId, BookStatus.COMPLETED, pageable)
+                .findByUserAndStatus(user, BookStatus.COMPLETED, pageable)
                 .map(history -> BookSummary.of(history.getBook(), BookStatus.COMPLETED));
 
         return ProfileResponse.of(user, readingBooks, wishBooks, completedBooks);
