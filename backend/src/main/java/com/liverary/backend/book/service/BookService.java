@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.liverary.backend.book.domain.Book;
 import com.liverary.backend.book.domain.RegStatus;
+import com.liverary.backend.book.domain.SourceType;
 import com.liverary.backend.book.dto.response.BookDetailResponse;
 import com.liverary.backend.book.dto.response.BookDto;
 import com.liverary.backend.book.dto.response.BookListResponse;
@@ -22,8 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,7 +50,7 @@ public class BookService {
      */
     public Page<BookListResponse> getBooks(String category, Pageable pageable) {
         Page<Book> books;
-        
+
         // 카테고리별 조회
         if (category != null) {
             Category categoryEntity = categoryRepository.findByName(category)
@@ -64,7 +67,7 @@ public class BookService {
         else {
             books = bookRepository.findAllApproved(pageable);
         }
-        
+
         return books.map(BookListResponse::from);
     }
 
@@ -72,32 +75,33 @@ public class BookService {
     /**
      * 도서 검색
      * DB 조회 -> Redis -> 알라딘 API 호출
+     *
      * @param
      * @return
      */
     @Transactional
-    public Page<BookListResponse> searchBooks(String type, String keyword, Pageable pageable){
+    public Page<BookListResponse> searchBooks(String type, String keyword, Pageable pageable) {
 
         // 1. DB 검색
         Page<Book> dbBooks = Page.empty();
-        if("title".equalsIgnoreCase(type)){
+        if ("title".equalsIgnoreCase(type)) {
             dbBooks = bookRepository.findByTitleContaining(keyword, pageable);
-        }
-        else if("author".equalsIgnoreCase(type)){
+        } else if ("author".equalsIgnoreCase(type)) {
             dbBooks = bookRepository.findByAuthorContaining(keyword, pageable);
         }
 
-        if(!dbBooks.isEmpty()){
+        if (!dbBooks.isEmpty()) {
             return dbBooks.map(BookListResponse::from);
         }
 
-        // 2. Redis 검색
-        // Key format: SEARCH::[type]::[keyword]
-        String redisKey = SEARCH_KEY_PREFIX + type + "::" + keyword;
+        // 2. Redis 검색 (검색 결과 리스트 조회)
+        // Key format: SEARCH::[type]::[keyword]::[page]::[size}
+        String redisKey = SEARCH_KEY_PREFIX + type + "::" + keyword + "::" + pageable.getPageNumber() + "::" + pageable.getPageSize();
         String cachedJson = redisTemplate.opsForValue().get(redisKey);
         if (cachedJson != null) {
             try {
-                List<BookDto> cachedList = objectMapper.readValue(cachedJson, new TypeReference<List<BookDto>>() {});
+                List<BookDto> cachedList = objectMapper.readValue(cachedJson, new TypeReference<List<BookDto>>() {
+                });
                 List<BookListResponse> responses = cachedList.stream()
                         .map(BookListResponse::from)
                         .collect(Collectors.toList());
@@ -109,18 +113,29 @@ public class BookService {
 
 
         // 3. API 검색
-        String aladinQueryType = "title".equalsIgnoreCase(type)? "Title":"Author";
-        List<BookDto> apiBooks = aladinApiService.searchBooks(keyword, aladinQueryType);
-        if(!apiBooks.isEmpty()){
-            try{
+        String aladinQueryType = "title".equalsIgnoreCase(type) ? "Title" : "Author";
+        List<BookDto> apiBooks = aladinApiService.searchBooks(keyword, aladinQueryType, pageable.getPageNumber(), pageable.getPageSize());
+        // Redis 저장
+        if (!apiBooks.isEmpty()) {
+
+            try {
+                // 1) 검색 결과 리스트 저장 (도서 검색 시 사용)
                 String jsonString = objectMapper.writeValueAsString(apiBooks);
 
                 redisTemplate.opsForValue().set(redisKey, jsonString, Duration.ofHours(24));
-            }
-            catch(Exception e){
+
+                // 2) 개별 도서 정보 저장 (도서 상세 조회 시 사용)
+                for (BookDto book : apiBooks) {
+                    String bookKey = "BOOK::" + book.getIsbn();
+                    String bookJson = objectMapper.writeValueAsString(book);
+                    redisTemplate.opsForValue().set(bookKey, bookJson, Duration.ofHours(24));
+                }
+            } catch (Exception e) {
                 log.error("Redis Serialization Error", e);
             }
         }
+
+        // Page 객체로 변환
         List<BookListResponse> responses = apiBooks.stream()
                 .map(BookListResponse::from)
                 .collect(Collectors.toList());
@@ -128,31 +143,131 @@ public class BookService {
     }
 
 
-
     /**
      * 도서 상세 조회
+     *
      * @param isbn
      * @return
      */
-    public BookDetailResponse getBookDetail(String isbn){
+    public BookDetailResponse getBookDetail(String isbn) {
         // 1. DB 조회
         Optional<Book> dbBook = bookRepository.findByIsbn(isbn);
 
-        if(dbBook.isPresent()){
+        if (dbBook.isPresent()) {
             return BookDetailResponse.from(dbBook.get());
         }
 
-        // 2. API 조회
-        List<BookDto> apiResults = aladinApiService.searchBooks(isbn, "ISBN");
-        if(!apiResults.isEmpty()){
+        // 2. Redis 조회 (API 호출 전 캐시 확인)
+        String bookKey = "BOOK::" + isbn;
+        String cachedBookJson = redisTemplate.opsForValue().get(bookKey);
+
+        if (cachedBookJson != null) {
+            try {
+                BookDto bookDto = objectMapper.readValue(cachedBookJson, BookDto.class);
+                return BookDetailResponse.from(bookDto);
+            } catch (Exception e) {
+                log.error("Redis Deserialization Error - Detail", e);
+            }
+        }
+
+        // 3. 알라딘 API 조회
+        List<BookDto> apiResults = aladinApiService.searchBooks(isbn, "ISBN", 0, 1);
+        if (!apiResults.isEmpty()) {
             return BookDetailResponse.from(apiResults.get(0));
         }
+
         throw new BaseException(ErrorCode.BOOK_NOT_FOUND);
+
+    }
+
+    /**
+     * ISBN으로 책 엔티티 조회
+     */
+    public Optional<Book> findByIsbn(String isbn) {
+        return bookRepository.findByIsbn(isbn);
+    }
+
+    /**
+     * BookId로 책 엔티티 조회
+     */
+    public Optional<Book> findByBookId(UUID bookId) {
+        return bookRepository.findById(bookId);
     }
 
 
+    /**
+     * 특정 도서 찜, 방 생성 시 isbn으로 도서 정보를 가져옴
+     * - 해당 도서가 DB에 없을 경우, Redis 캐시 확인 / 알라딘 API 호출을 통해 해당 도서 정보를 DB에 저장 후 도서 정보 반환
+     *
+     * @param isbn
+     * @return
+     */
+    @Transactional
+    public Book getOrSaveBook(String isbn) {
+        // 1. DB에 있는 경우
+        Optional<Book> dbBook = bookRepository.findByIsbn(isbn);
+        if (dbBook.isPresent()) {
+            return dbBook.get();
+        }
+
+        // 2. DB에 없는 경우 -> Reids 캐시 확인
+        String bookKey = "BOOK::" + isbn;
+        String cachedJson = redisTemplate.opsForValue().get(bookKey);
+
+        BookDto bookDto = null;
+
+        if (cachedJson != null) {
+            try {
+                bookDto = objectMapper.readValue(cachedJson, BookDto.class);
+            } catch (Exception e) {
+                log.error("Redis Deserialization Error", e);
+            }
+        }
+
+        // 3. Redis에도 없을 경우 -> 알라딘 API 호출
+        if (bookDto == null) {
+            List<BookDto> apiResults = aladinApiService.searchBooks(isbn, "ISBN", 0, 1);
+            if (apiResults.isEmpty()) {
+                throw new BaseException(ErrorCode.BOOK_NOT_FOUND);
+            }
+            bookDto = apiResults.get(0);
+        }
+
+        // 4. BookDto -> Entity 변환 후 DB에 저장
+        String categoryName = bookDto.getCategoryName();
+        // 카테고리가 없는 경우
+        if (categoryName == null || categoryName.trim().isEmpty()) {
+            categoryName = "기타";
+        }
+        final String finalCategoryName = categoryName;
+
+        Category category = categoryRepository.findByName(finalCategoryName)
+                // DB에 없는 카테고리면 새로 생성하기
+                .orElseGet(() -> {
+                    Category newCategory = Category.builder()
+                            .name(finalCategoryName)
+                            .build();
+                    return categoryRepository.save(newCategory);
+                });
 
 
+        Book newBook = Book.builder()
+                .isbn(bookDto.getIsbn())
+                .title(bookDto.getTitle())
+                .author(bookDto.getAuthor())
+                .publisher(bookDto.getPublisher())
+                .coverUrl(bookDto.getCoverUrl())
+                .itemId(bookDto.getItemId())
+                .content(bookDto.getDescription())
+                .category(category)
+                .sourceType(SourceType.API)
+                .regStatus(RegStatus.APPROVED)
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
 
+        return bookRepository.save(newBook);
 
+    }
 }
+   

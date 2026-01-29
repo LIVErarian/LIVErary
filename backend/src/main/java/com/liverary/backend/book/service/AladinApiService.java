@@ -2,7 +2,7 @@ package com.liverary.backend.book.service;
 
 import com.liverary.backend.book.dto.response.BookDto;
 import com.liverary.backend.book.dto.response.aladin.AladinItemDto;
-import com.liverary.backend.book.dto.response.aladin.AladinResponseDto;
+import com.liverary.backend.book.dto.response.aladin.AladinResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +32,7 @@ public class AladinApiService {
     @Value("${aladin.api.url}")
     private String aladinApiUrl;
 
-    public List<BookDto> searchBooks(String keyword, String type) {
+    public List<BookDto> searchBooks(String keyword, String type, int page, int size) {
 
         try {
             // 1. API 요청 URL 생성 (파라미터 설정)
@@ -40,14 +40,15 @@ public class AladinApiService {
                     .queryParam("ttbkey", aladinApiKey)
                     .queryParam("Query", keyword)
                     .queryParam("QueryType", type)
-                    .queryParam("MaxResults", 10)
+                    .queryParam("MaxResults", size)
+                    .queryParam("Start", page + 1)
                     .queryParam("Output", "JS")
                     .queryParam("Version", "20131101")
                     .build()
                     .toUri();
 
             // 2. API 호출 및 결과를 내부 클래스(AladinResponse)로 매핑
-            AladinResponseDto response = restTemplate.getForObject(uri, AladinResponseDto.class);
+            AladinResponse response = restTemplate.getForObject(uri, AladinResponse.class);
 
             // 3. validation
             if (response == null || response.getItem() == null) {

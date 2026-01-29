@@ -30,7 +30,7 @@ public class CreateReservationRequest {
     @Max(value = 16, message = "최대 인원은 16명입니다.")
     private Integer maxUser;
 
-    private UUID bookId;
+    private String isbn;
     private UUID categoryId;
 
     @NotNull(message = "예약 시작 시각은 필수입니다.")
