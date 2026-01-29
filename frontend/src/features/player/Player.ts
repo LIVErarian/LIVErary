@@ -1,9 +1,9 @@
 import { AnimatedSprite, Container, Rectangle, Text, Texture } from 'pixi.js';
 
+import type { Direction } from '@/types/socket.types';
+
 import { contentFont } from '@/styles/global.css';
 import { palette } from '@/styles/theme.css';
-
-export type Direction = 'down' | 'left' | 'right' | 'up';
 
 //TODO: 파츠 별로 스프라이트 추가
 export class Player extends Container {
@@ -12,10 +12,10 @@ export class Player extends Container {
 
   // 텍스쳐를 잘라내서 보관
   private _textures: Record<Direction, Texture[]> = {
-    down: [],
-    left: [],
-    right: [],
-    up: [],
+    DOWN: [],
+    LEFT: [],
+    RIGHT: [],
+    UP: [],
   };
 
   // Readonly 상수
@@ -39,7 +39,7 @@ export class Player extends Container {
     this.sliceTextures(sheetTexture);
 
     // 초기 이미지 설정
-    this._character = new AnimatedSprite(this._textures.down);
+    this._character = new AnimatedSprite(this._textures.DOWN);
     this._character.gotoAndStop(2);
 
     // 애니메이션 속도 지정
@@ -83,7 +83,7 @@ export class Player extends Container {
     const frameWidth = this.FRAME_SIZE;
     const frameHeight = this.FRAME_SIZE;
 
-    const directions: Direction[] = ['down', 'left', 'right', 'up'];
+    const directions: Direction[] = ['DOWN', 'LEFT', 'RIGHT', 'UP'];
 
     for (let row = 0; row < rows; row++) {
       const currentDir = directions[row]; // 현재 방향
