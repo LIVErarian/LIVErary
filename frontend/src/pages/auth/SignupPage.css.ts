@@ -24,5 +24,5 @@ export const checkInput = style({
 });
 
 export const checkBtn = style({
-  minWidth: '80px',
+  minWidth: '60px',
 });
