@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { UserInfo } from '@/types/auth.types';
 
@@ -16,16 +17,31 @@ interface AuthState {
   setTokens: (access: string, refresh: string) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: null,
-  refreshToken: null,
-  isAuthenticated: false,
-  user: null,
+export const useAuthStore = create(
+  persist<AuthState>(
+    (set) => ({
+      accessToken: null,
+      refreshToken: null,
+      isAuthenticated: false,
+      user: null,
 
-  // 로그인 성공 시 토큰 저장
-  setAccessToken: (token) => set({ accessToken: token, isAuthenticated: true }),
-  setUser: (user) => set({ user }),
-  logout: () => set({ accessToken: null, isAuthenticated: false, user: null }),
-  setTokens: (access, refresh) =>
-    set({ accessToken: access, refreshToken: refresh, isAuthenticated: true }),
-}));
+      // 로그인 성공 시 토큰 저장
+      setAccessToken: (token) =>
+        set({ accessToken: token, isAuthenticated: true }),
+      setUser: (user) => set({ user }),
+      logout: () =>
+        set({ accessToken: null, isAuthenticated: false, user: null }),
+      setTokens: (access, refresh) =>
+        set({
+          accessToken: access,
+          refreshToken: refresh,
+          isAuthenticated: true,
+        }),
+    }),
+    // persist 설정
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
+    },
+  ),
+);
