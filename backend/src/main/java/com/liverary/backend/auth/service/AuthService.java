@@ -46,7 +46,7 @@ public class AuthService implements UserDetailsService {
     // 이메일 전송에 사용
     private final GmailUtil gmailUtil;
     // 서버 이메일
-    @Value("${ADMIN_MAIL}")
+    @Value("${spring.gmail.client-id}")
     private String adminMail;
 
     // 랜덤 생성기
