@@ -42,6 +42,9 @@ public enum ErrorCode {
 
     INVALID_UUID_FORMAT(HttpStatus.BAD_REQUEST, "A012", "유효한 UUID 형식이 아닙니다" ),
 
+    CANNOT_FRIEND_SELF(HttpStatus.BAD_REQUEST, "F001", "자기 자신에게 친구 요청을 보낼 수 없습니다."),
+
+
     // 401 UNAUTHORIZED: 인증 실패
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증에 실패했습니다."),
 
@@ -51,34 +54,56 @@ public enum ErrorCode {
 
     PASSWORD_INVALID(HttpStatus.UNAUTHORIZED, "U003", "비밀번호가 일치하지 않습니다."),
 
+
     // 403 FORBIDDEN: 권한 없음
     FORBIDDEN(HttpStatus.FORBIDDEN, "A003", "접근 권한이 없습니다."),
+
     NOT_BOARD_OWNER(HttpStatus.FORBIDDEN, "BD002", "게시글 수정 및 삭제 권한이 없습니다."),
     INSUFFICIENT_PRIVILEGES(HttpStatus.FORBIDDEN, "BD004", "관리자 권한이 필요합니다."),
+
     NOT_REVIEW_OWNER(HttpStatus.FORBIDDEN, "RV002", "댓글 수정 및 삭제 권한이 없습니다."),
+
     NOT_ROOM_CREATOR(HttpStatus.FORBIDDEN, "R010", "방 수정 및 삭제 권한이 없습니다."),
+
+    NOT_FRIEND_RECEIVER(HttpStatus.FORBIDDEN, "F002", "친구 요청 수락 권한이 없습니다."),
+    NOT_FRIEND_RELATION(HttpStatus.FORBIDDEN, "F003", "해당 친구 관계에 대한 접근 권한이 없습니다."),
+
 
     // 404 NOT_FOUND: 리소스를 찾을 수 없음
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "요청한 리소스를 찾을 수 없습니다."),
+
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "해당 도서를 찾을 수 없습니다."),
+
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CT001", "해당 카테고리를 찾을 수 없습니다."),
+
     BOARD_NOT_FOUND(HttpStatus.NOT_FOUND, "BD001", "게시글을 찾을 수 없습니다."),
+
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U002", "존재하지 않는 사용자입니다."),
+
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 방을 찾을 수 없습니다."),
     ROOM_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "R006", "참여 기록을 찾을 수 없습니다."),
+
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "RV001", "댓글을 찾을 수 없습니다."),
+
+    FRIEND_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "F004", "존재하지 않거나 이미 처리된 친구 요청입니다."),
+    FRIEND_RELATION_NOT_FOUND(HttpStatus.NOT_FOUND, "F006", "친구 관계 정보를 찾을 수 없습니다."),
+
 
     // 409 CONFLICT: 중복된 리소스
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "C004", "이미 존재하는 데이터입니다."),
 
     EMAIL_DUPLICATE(HttpStatus.CONFLICT, "U001", "이미 사용중인 이메일입니다."),
+
     ALREADY_JOINED_ROOM(HttpStatus.CONFLICT, "R005", "이미 참여 중인 방입니다."),
     RESERVATION_CONFLICT(HttpStatus.CONFLICT, "R008", "해당 시간에 이미 예약된 일정이 존재합니다."),
+
+    ALREADY_FRIEND_REQUEST(HttpStatus.CONFLICT, "F005", "이미 친구 상태이거나 수락 대기 중인 요청이 존재합니다."),
 
     // 500 INTERNAL_SERVER_ERROR: 서버 에러
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S001", "서버 내부 오류가 발생했습니다."),
     EXTERNAL_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S002", "외부 API 연동 중 오류가 발생했습니다."),
     FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S003", "파일 처리 중 오류가 발생했습니다.");
+
 
     // 응답으로 반환할 HTTP 상태 코드
     private final HttpStatus status;

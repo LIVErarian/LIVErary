@@ -12,6 +12,9 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * 유저 간의 친구 관계 및 요청 정보를 관리하는 엔티티
+ */
 @Entity
 @Getter
 @Table(
