@@ -1,3 +1,5 @@
+import type { CommonResponse } from './api.types';
+
 export type UserRole = 'USER' | 'ADMIN';
 
 export interface UserProfile {
@@ -12,3 +14,6 @@ export interface UserProfile {
     completed: number;
   };
 }
+
+// ======================= API =======================
+export type getUserResponse = CommonResponse<UserProfile>;

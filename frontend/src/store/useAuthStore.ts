@@ -1,18 +1,18 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import type { UserInfo } from '@/types/auth.types';
+import type { UserProfile } from '@/types/user.types';
 
 interface AuthState {
   // 상태
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
-  user: UserInfo | null;
+  user: UserProfile | null;
 
   // 액션
   setAccessToken: (token: string) => void;
-  setUser: (user: UserInfo) => void;
+  setUser: (user: UserProfile) => void;
   logout: () => void;
   setTokens: (access: string, refresh: string) => void;
 }
