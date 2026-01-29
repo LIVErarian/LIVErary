@@ -1,7 +1,9 @@
 package com.liverary.backend.move.dto.response;
 
 import java.util.UUID;
+
 import jakarta.validation.constraints.NotNull;
+import com.liverary.backend.move.dto.Direction;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -26,16 +28,22 @@ public class MoveBroadcast {
     @NotNull
     private Double y;
 
+    // 현재 방향
+    @NotNull
+    private Direction direction;
+
     // 서버 수신 시각 (epoch millis)
     @NotNull
     private Long serverTs;
 
-    public static MoveBroadcast of(UUID userId, UUID floorId, Double x, Double y, Long serverTs) {
+    public static MoveBroadcast of(UUID userId, UUID floorId, Double x, Double y, Direction direction,
+                                   Long serverTs) {
         return MoveBroadcast.builder()
                 .userId(userId)
                 .floorId(floorId)
                 .x(x)
                 .y(y)
+                .direction(direction)
                 .serverTs(serverTs)
                 .build();
     }
