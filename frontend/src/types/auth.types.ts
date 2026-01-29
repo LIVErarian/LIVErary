@@ -6,7 +6,7 @@ export interface UserInfo {
   nickname: string;
 }
 
-// ============== API 관련 =======================
+// ======================= API =======================
 // 로그인 요청
 export interface LoginRequest {
   email: string;
@@ -19,5 +19,29 @@ export interface LoginResponseData {
   refreshToken: string;
 }
 
-// 최종 응답 타입
+// 최종 로그인 응답 타입
 export type LoginResponse = CommonResponse<LoginResponseData>;
+
+// 회원가입 요청
+export interface SignupRequest extends LoginRequest {
+  nickname: string;
+}
+
+// 회원가입 응답
+export type SignupResponse = CommonResponse<null>;
+
+// 이메일 인증 코드 요청
+export interface EmailVerifyRequest {
+  email: string;
+}
+
+// 이메일 인증 코드 응답
+export type EmailVerifyResponse = CommonResponse<null>;
+
+// 이메일 인증 코드 확인 요청
+export interface EmailCodeVerifyRequest extends EmailVerifyRequest {
+  code: string;
+}
+
+// 이메일 인증 코드 확인 응답
+export type EmailCodeVerifyResponse = CommonResponse<null>;
