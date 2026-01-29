@@ -23,4 +23,7 @@ public interface BookHistoryRepository extends JpaRepository<BookHistory, UUID> 
 
     // 찜 존재 여부 확인
     boolean existsByUserAndBookAndStatus(User user, Book book, BookStatus status);
+
+    // 사용자의 특정 상태의 독서 기록 수
+    long countByUserAndStatus(User user, BookStatus bookStatus);
 }
