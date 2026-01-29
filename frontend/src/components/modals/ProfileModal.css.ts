@@ -36,7 +36,7 @@ export const contentContainer = style({
   display: 'flex',
   flexDirection: 'row',
   gap: '24px',
-  alignItems: 'flex-start',
+  alignItems: 'center',
 });
 
 // 사진 영역
@@ -61,7 +61,7 @@ export const infoArea = style({
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
-  height: '140px',
+  minHeight: '140px',
 });
 
 // 닉네임
@@ -70,16 +70,41 @@ export const nicknameRow = style({
   alignItems: 'center',
   justifyContent: 'space-between',
   marginBottom: '10px',
-  height: '40px',
+  minHeight: '40px',
 });
 
 export const nicknameText = style({
   fontSize: '1.2rem',
   fontWeight: 'bold',
   color: theme.colors.woodDeep,
-  textDecoration: 'underline',
+
   textDecorationColor: theme.colors.beigeMain,
   textUnderlineOffset: '4px',
+});
+
+export const editInput = style({
+  width: '85%',
+  backgroundColor: 'transparent',
+  border: 'none',
+  borderBottom: `2px solid ${theme.colors.woodDeep}`,
+  borderRadius: 0,
+
+  color: theme.colors.woodDeep,
+  fontSize: '1.2rem',
+  fontWeight: 'bold',
+  fontFamily: 'inherit',
+
+  padding: '0 4px',
+  outline: 'none',
+
+  '::placeholder': {
+    color: theme.colors.beigeDark,
+    opacity: 0.7,
+  },
+
+  ':focus': {
+    borderBottomColor: theme.colors.warning,
+  },
 });
 
 // 카테고리
@@ -90,6 +115,8 @@ export const categoryRow = style({
   marginBottom: '8px',
   fontSize: '0.8rem',
   color: theme.colors.boardText,
+  wordBreak: 'keep-all',
+  overflowWrap: 'break-word',
 });
 
 // 독서 시간 섹션
