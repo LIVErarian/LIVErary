@@ -1,5 +1,4 @@
-import { useNavigate } from 'react-router-dom';
-
+import { useLogout } from '@/hooks/queries/useAuth';
 import { useModalStore } from '@/store/useModalStore';
 import { PixelModal } from '../common/PixelModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -29,16 +28,13 @@ const RankContent = () => (
 
 export const GlobalModal = () => {
   const { currentModal, modalProps, closeModal } = useModalStore();
-
-  const navigate = useNavigate();
+  const { mutate: logout } = useLogout();
 
   if (!currentModal) return null;
 
   const handleLogout = () => {
-    //TODO: 실제 API 호출
-    alert('로그아웃 되었습니다');
     closeModal();
-    navigate('/login');
+    logout();
   };
 
   return (
