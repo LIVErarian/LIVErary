@@ -89,7 +89,7 @@ public class MoveService {
             // delta 누적 후 현재 위치 계산
             Position currentPosition = computePosition(event.userId(), event.request());
             batch.add(MoveBroadcast.of(event.userId(), request.getFloorId(), currentPosition.x,
-                    currentPosition.y(), event.serverTs()));
+                    currentPosition.y(), request.getDirection(), event.serverTs()));
         }
         return batch;
     }
