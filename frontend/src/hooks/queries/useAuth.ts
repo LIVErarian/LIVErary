@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import { authApi } from '@/api/auth.api';
@@ -38,6 +38,27 @@ export const useLogin = () => {
 
     onError: (error: AxiosError) => {
       console.error('로그인 실패:', error.message);
+    },
+  });
+};
+
+export const useLogout = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const logout = useAuthStore((state) => state.logout);
+
+  return useMutation({
+    mutationFn: () => authApi.logout(),
+
+    // 성공하든 실패하든 로그아웃은 시켜야하므로 onSettled 쓰기
+    onSettled: () => {
+      logout();
+
+      // 캐싱된 유저 정보 있으면 제거
+      queryClient.removeQueries({ queryKey: ['user'] });
+
+      alert('로그아웃 되었습니다.');
+      navigate('/login', { replace: true });
     },
   });
 };
