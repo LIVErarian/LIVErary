@@ -1,13 +1,16 @@
 package com.liverary.backend.user.controller;
 
+import com.liverary.backend.bookHistory.domain.BookStatus;
 import com.liverary.backend.common.dto.BaseResponse;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.user.dto.request.UserUpdateRequest;
+import com.liverary.backend.user.dto.response.BookSummary;
 import com.liverary.backend.user.dto.response.ProfileResponse;
 import com.liverary.backend.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,17 +40,36 @@ public class UserController {
      * 현재 로그인한 사용자의 마이페이지 정보 조회
      *
      * @param user     인증된 사용자 정보
-     * @param pageable 페이징 설정 (기본값: 페이지당 10개 항목)
      * @return 성공 시 ProfileResponse를 담은 BaseResponse
      */
     @GetMapping
     public BaseResponse<ProfileResponse> getMyProfile(
+            @AuthenticationPrincipal UserDetails user) {
+
+        UUID userId = getUserId(user);
+
+        ProfileResponse response = userService.getProfile(userId);
+
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 특정 상태의 도서 목록을 페이징하여 조회
+     *
+     * @param user   인증된 사용자 정보
+     * @param status 조회할 도서 상태
+     * @param pageable 페이징 설정 (기본값: 페이지당 10개 항목)
+     * @return 페이징된 도서 목록을 담은 BaseResponse
+     */
+    @GetMapping("/books")
+    public BaseResponse<Page<BookSummary>> getMyBooks(
             @AuthenticationPrincipal UserDetails user,
+            @RequestParam BookStatus status,
             @PageableDefault(size = 10) Pageable pageable) {
 
         UUID userId = getUserId(user);
 
-        ProfileResponse response = userService.getProfile(userId, pageable);
+        Page<BookSummary> response = userService.getUserBooksByStatus(userId, status, pageable);
 
         return BaseResponse.success(response);
     }

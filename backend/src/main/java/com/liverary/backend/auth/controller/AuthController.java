@@ -55,7 +55,7 @@ public class AuthController {
      */
     @PostMapping("/email/verification/request")
     @SecurityRequirements
-    public BaseResponse<Void> requestVerification(@Valid @RequestBody EmailVerificationRequest request) {
+    public BaseResponse<Void> requestVerification(@Valid @RequestBody EmailSendRequest request) {
         authService.sendVerificationCode(request.getEmail());
         return BaseResponse.success();
     }
@@ -68,7 +68,7 @@ public class AuthController {
      */
     @PostMapping("/email/verification/confirm")
     @SecurityRequirements
-    public BaseResponse<Void> confirmVerification(@Valid @RequestBody EmailVerificationRequest request) {
+    public BaseResponse<Void> confirmVerification(@Valid @RequestBody EmailVerifyRequest request) {
         authService.confirmVerificationCode(request.getEmail(), request.getCode());
         return BaseResponse.success();
     }
@@ -132,7 +132,7 @@ public class AuthController {
      * 비밀번호 찾기
      * 이메일로 임시 비밀번호 전송
      *
-     * @param request
+     * @param request 비밀번호 찾기 요청 DTO
      * @return 성공 응답 객체
      */
     @PostMapping("/password/find")
