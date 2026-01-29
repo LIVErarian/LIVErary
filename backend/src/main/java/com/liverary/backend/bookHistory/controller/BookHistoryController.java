@@ -28,37 +28,37 @@ public class BookHistoryController {
 
     /**
      * 도서 찜하기 토글 API
-     * - POST /api/book-history/wish/toggle/{bookId}
-     * @param bookId
+     * - POST /api/book-history/wish/toggle/{isbn}
+     * @param isbn
      * @param user
      * @return
      */
-    @PostMapping("/wish/toggle/{bookId}")
+    @PostMapping("/wish/toggle/{isbn}")
     public BaseResponse<WishStatusResponse> toggleWish(
-            @PathVariable UUID bookId,
+            @PathVariable String isbn,
             @AuthenticationPrincipal UserDetails user
     ){
         UUID userId = getUserId(user);
 
-        WishStatusResponse response = bookHistoryService.toggleWish(bookId, userId);
+        WishStatusResponse response = bookHistoryService.toggleWish(isbn, userId);
         return BaseResponse.success(response);
     }
 
     /**
      * 특정 도서 찜 상태 확인 API
      * - GET /api/book-history/wish/{bookId}
-     * @param bookId
+     * @param isbn
      * @param user
      * @return
      */
-    @GetMapping("/wish/{bookId}")
+    @GetMapping("/wish/{isbn}")
     public BaseResponse<WishStatusResponse> getWishStatus(
-            @PathVariable UUID bookId,
+            @PathVariable String isbn,
             @AuthenticationPrincipal UserDetails user
     ){
         UUID userId = getUserId(user);
 
-        WishStatusResponse response = bookHistoryService.getWishStatus(bookId, userId);
+        WishStatusResponse response = bookHistoryService.getWishStatus(isbn, userId);
         return BaseResponse.success(response);
     }
 
