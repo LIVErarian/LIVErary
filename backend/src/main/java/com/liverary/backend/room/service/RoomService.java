@@ -374,10 +374,9 @@ public class RoomService {
      *
      * <p>방 입장 전 다음과 같은 유효성 검사를 수행합니다:</p>
      * <ul>
-     * <li>방 상태가 'LIVE'인지 확인</li>
-     * <li>이미 참여 중인 유저인지 확인</li>
-     * <li>방의 정원(Max User) 초과 여부 확인</li>
-     * <li>PRIVATE 방일 경우, 입력된 초대 코드 일치 여부 확인</li>
+     * <li>LIVE 상태: 즉시 입장 가능</li>
+     * <li>RESERVED 상태: 시작 10분 전부터 입장 가능</li>
+     * <li>공통: 중복 참여, 정원 초과, PRIVATE 방의 초대 코드 검증</li>
      * </ul>
      *
      * <p>검증이 완료되면 참여 이력(RoomHistory)을 'JOINED' 상태로 생성하고,
@@ -397,8 +396,14 @@ public class RoomService {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
 
-        // 진행 중인 방만 입장 가능
-        if (room.getStatus() != RoomStatus.LIVE) {
+        // 예약 방은 시작 시간 10분 전부터 입장 가능
+        if (room.getStatus() == RoomStatus.SCHEDULED) {
+            LocalDateTime entryAllowedTime = room.getStartAt().minusMinutes(10);
+            if (LocalDateTime.now().isBefore(entryAllowedTime)) {
+                throw new BaseException(ErrorCode.TOO_EARLY_TO_JOIN);
+            }
+        } else if (room.getStatus() != RoomStatus.LIVE) {
+            // 진행 중인 방만 입장 가능
             throw new BaseException(ErrorCode.ROOM_NOT_LIVE);
         }
 
