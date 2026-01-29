@@ -28,6 +28,7 @@ public enum ErrorCode {
     NOT_RESERVED(HttpStatus.BAD_REQUEST, "R013", "예약 내역이 존재하지 않습니다."),
     TOO_LATE_TO_CANCEL_RESERVATION(HttpStatus.BAD_REQUEST, "R014", "시작 10분 전까지만 취소할 수 있습니다."),
     TOO_LATE_TO_CANCEL_ROOM(HttpStatus.BAD_REQUEST, "R015", "방 삭제는 시작 1시간 전까지만 가능합니다."),
+    TOO_EARLY_TO_JOIN(HttpStatus.BAD_REQUEST, "R016", "입장은 시작 10분 전부터 가능합니다."),
 
     ROOM_INFO_REQUIRED(HttpStatus.BAD_REQUEST, "BD003", "방 정보를 입력해주세요."),
 
