@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import { authApi } from '@/api/auth.api';
+import { userApi } from '@/api/user.api';
 import { useAuthStore } from '@/store/useAuthStore';
 
 import type {
@@ -20,6 +21,7 @@ import type {
 export const useLogin = () => {
   const navigate = useNavigate();
   const setTokens = useAuthStore((state) => state.setTokens);
+  const setUser = useAuthStore((state) => state.setUser);
 
   return useMutation<
     LoginResponseData,
@@ -29,11 +31,20 @@ export const useLogin = () => {
     // 실행할 API 함수
     mutationFn: (req: LoginRequest) => authApi.login(req),
 
-    onSuccess: (data: LoginResponseData) => {
+    onSuccess: async (data: LoginResponseData) => {
       setTokens(data.accessToken, data.refreshToken);
       console.log('로그인 성공');
 
-      navigate('/game', { replace: true }); // 뒤로가기 방지
+      try {
+        const userProfile = await userApi.getMyProfile();
+
+        setUser(userProfile);
+        console.log('유저 정보 로드 완료:', userProfile);
+        navigate('/game', { replace: true }); // 뒤로가기 방지
+      } catch (error) {
+        console.error('유저 정보를 불러오기 실패:', error);
+        navigate('/game', { replace: true });
+      }
     },
 
     onError: (error: AxiosError) => {

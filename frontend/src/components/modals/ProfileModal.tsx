@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useGetMyProfile } from '@/hooks/queries/useUser';
 import { DUMMY_USER } from '@/mocks/dummyData';
 import { BaseModal } from '../common/BaseModal';
 import { PixelButton } from '../common/PixelButton';
@@ -13,8 +14,10 @@ interface ProfileModalProps {
 }
 
 export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
+  const { data: user } = useGetMyProfile();
+
   const [isEditing, setIsEditing] = useState(false);
-  const [nickname, setNickname] = useState(DUMMY_USER.nickname);
+  const [nickname, setNickname] = useState(user?.nickname || 'test');
   const [tempNickname, setTempNickname] = useState(nickname);
   const [errorMessage, setErrorMessage] = useState('');
 

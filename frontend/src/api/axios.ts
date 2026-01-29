@@ -2,6 +2,8 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
 import { useAuthStore } from '@/store/useAuthStore';
 
+import type { ReissueResponse } from '@/types/auth.types';
+
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
@@ -35,7 +37,7 @@ api.interceptors.request.use(
 // Response Interceptor
 api.interceptors.response.use(
   (response) => {
-    return response; // TODO: 이중 포장 상태이므로 추후 response.data로 바꿀 것
+    return response;
   },
 
   // 에러 처리
@@ -47,6 +49,7 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // 토큰 만료시
     if (error.response?.status === 401) {
       originalRequest._retry = true;
 
@@ -55,14 +58,19 @@ api.interceptors.response.use(
         const storedRefreshToken = useAuthStore.getState().refreshToken;
 
         if (!storedRefreshToken) {
-          throw new Error('No refresh token available');
+          throw new Error('사용할 수 있는 refresh token이 존재하지 않습니다.');
         }
 
-        const { data } = await api.post('/auth/reissue', {
-          refreshToken: storedRefreshToken, // request body
-        });
+        // AccessToken 재발급 요청 (지정해둔 api로 요청보내면 헤더가 붙어서 가므로 오류 발생 가능)
+        const { data } = await axios.post<ReissueResponse>(
+          `${BASE_URL}/auth/reissue`,
+          { refreshToken: storedRefreshToken },
+        );
 
-        const newAccessToken = data.data.refreshToken;
+        const newAccessToken = data.data?.accessToken;
+        if (!newAccessToken) {
+          throw new Error('새로운 access token이 존재하지 않습니다.');
+        }
         useAuthStore.getState().setAccessToken(newAccessToken);
 
         // 토큰 교체해서 다시 요청
@@ -70,6 +78,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         useAuthStore.getState().logout();
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
