@@ -1,7 +1,5 @@
 package com.liverary.backend.auth.service;
 
-import com.google.api.services.gmail.Gmail;
-import com.google.api.services.gmail.model.Message;
 import com.liverary.backend.auth.domain.RefreshToken;
 import com.liverary.backend.auth.dto.request.LoginRequest;
 import com.liverary.backend.auth.dto.request.ResetPasswordRequest;
@@ -15,9 +13,6 @@ import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
-import jakarta.mail.Session;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,10 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayOutputStream;
 import java.security.SecureRandom;
 import java.util.Collections;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
