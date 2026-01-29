@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * 이메일 인증 번호 발송 요청 시 사용하는 데이터 객체
+ */
 @Getter
 @NoArgsConstructor
 public class EmailSendRequest {
