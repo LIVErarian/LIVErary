@@ -47,6 +47,9 @@ public class SecurityConfig {
                                 // 로그인, 회원가입 등 인증 관련 API 허용
                                 "/api/auth/**",
 
+                                // WebSocket 핸드셰이크 허용
+                                "/ws",
+
                                 // Swagger 관련 api 허용
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
