@@ -201,7 +201,6 @@ public class AuthService implements UserDetailsService {
                 .nickname(request.getNickname())
                 .email(request.getEmail())
                 .password(encodedPassword)
-                .gender(request.getGender())
                 .build();
 
         // 저장

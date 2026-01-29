@@ -6,8 +6,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -39,11 +37,6 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    // 사용자 성별
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Gender gender;
-
     // 사용자 권한
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -67,15 +60,13 @@ public class User {
      * @param nickname 사용자 닉네임
      * @param email 사용자 이메일
      * @param password 사용자 비밀번호
-     * @param gender 사용자 성별
      * @param role 사용자 권한 (기본값: USER)
      */
     @Builder
-    public User(String nickname, String email, String password, Gender gender, Role role) {
+    public User(String nickname, String email, String password, Role role) {
         this.nickname = nickname;
         this.email = email;
         this.password = password;
-        this.gender = gender;
         this.role = role != null ? role : Role.USER;
         this.totalReadingTime = 0L;
         this.createdAt = LocalDateTime.now();
