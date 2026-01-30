@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.liverary.backend.exception.BaseException;
+import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import com.liverary.backend.move.dto.request.MoveEnterRequest;
 import com.liverary.backend.move.dto.request.MoveRequest;
@@ -36,6 +39,10 @@ public class MoveService {
 
     // userId -> 마지막 위치 스냅샷
     private final ConcurrentMap<UUID, MoveBroadcast> userPositions = new ConcurrentHashMap<>();
+    // userId -> nickname 캐시
+    private final ConcurrentMap<UUID, String> userNicknames = new ConcurrentHashMap<>();
+
+    private final UserRepository userRepository;
 
     /**
      * 사용자의 마지막 위치를 갱신한다.
@@ -45,9 +52,12 @@ public class MoveService {
      */
     public void enqueue(UUID userId, MoveRequest request) {
         long serverTs = System.currentTimeMillis();
+        String nickname = resolveNickname(userId);
+
         // 최신 위치 캐시
         userPositions.put(userId, MoveBroadcast.of(
                 userId,
+                nickname,
                 request.getFloorId(),
                 request.getX(),
                 request.getY(),
@@ -81,6 +91,7 @@ public class MoveService {
      * @param request floor 입장 요청
      */
     public void touch(UUID userId, MoveEnterRequest request) {
+        String nickname = resolveNickname(userId);
         UUID previousFloor = userFloor.get(userId);
         // 기존 floor가 다르면 해당 floor의 활성 집합에서 제거
         if (previousFloor != null && !previousFloor.equals(request.getFloorId())) {
@@ -101,6 +112,7 @@ public class MoveService {
         // 입장 시 초기 위치 저장 (정지 상태로 간주)
         userPositions.put(userId, MoveBroadcast.of(
                 userId,
+                nickname,
                 request.getFloorId(),
                 request.getX(),
                 request.getY(),
@@ -146,6 +158,7 @@ public class MoveService {
         } else {
             userPositions.remove(userId);
         }
+        userNicknames.remove(userId);
     }
 
 
@@ -183,4 +196,16 @@ public class MoveService {
         removeUser(UUID.fromString(principal.getName()));
     }
 
+    private String resolveNickname(UUID userId) {
+        String cached = userNicknames.get(userId);
+        if (cached != null) {
+            return cached;
+        }
+
+        String nickname = userRepository.findById(userId)
+                .map(user -> user.getNickname())
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+        userNicknames.put(userId, nickname);
+        return nickname;
+    }
 }
