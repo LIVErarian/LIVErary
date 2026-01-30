@@ -6,6 +6,7 @@ export interface BasePosition {
   x: number; // 사용자 위치 (이동량 x)
   y: number; // 사용자 위치
   direction: Direction; // 바라보는 방향
+  // isMoving: boolean; // 움직이는 중인지
 }
 
 // ==================== 위치 동기화 ======================
@@ -30,7 +31,6 @@ export interface MoveBroadcast extends BasePosition {
 }
 
 // =================== WebRTC 관련 =======================
-
 // [요청] 방 입장 (/app/joinRoom)
 export interface JoinRoomRequest {
   roomId: string;

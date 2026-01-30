@@ -7,8 +7,9 @@ export type FloorType =
   | 'myRoom';
 
 export interface MapConfig {
+  floorId: string;
   name: string;
   img: string;
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
 }
