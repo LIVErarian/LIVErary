@@ -12,6 +12,6 @@ import java.util.List;
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true) // API 응답 중 매핑하지 않은 불필요한 필드는 무시
-public class AladinResponseDto {
+public class AladinResponse {
     private List<AladinItemDto> item; // 도서 리스트
 }

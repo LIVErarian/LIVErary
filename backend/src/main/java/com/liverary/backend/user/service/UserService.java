@@ -1,13 +1,19 @@
 package com.liverary.backend.user.service;
 
+import com.liverary.backend.book.repository.BookRepository;
 import com.liverary.backend.bookHistory.domain.BookStatus;
 import com.liverary.backend.bookHistory.repository.BookHistoryRepository;
+import com.liverary.backend.category.domain.Category;
+import com.liverary.backend.category.repository.CategoryRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.user.domain.User;
+import com.liverary.backend.user.domain.UserPreference;
 import com.liverary.backend.user.dto.request.UserUpdateRequest;
 import com.liverary.backend.user.dto.response.BookSummary;
 import com.liverary.backend.user.dto.response.ProfileResponse;
+import com.liverary.backend.user.dto.response.UserPreferenceResponse;
+import com.liverary.backend.user.repository.UserPreferenceRepository;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -26,7 +33,9 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserPreferenceRepository userPreferenceRepository;
     private final BookHistoryRepository bookHistoryRepository;
+    private final CategoryRepository categoryRepository;
 
     /**
      * 사용자의 프로필 정보와 상태별 도서 활동 내역 조회
@@ -99,6 +108,118 @@ public class UserService {
 
         // TotalReadingTime 업데이트
         user.updateTotalReadingTime(minutes);
+    }
+
+    /**
+     * 사용자의 선호 카테고리를 최초 등록합니다.
+     *
+     * @param userId 사용자 UUID
+     * @param categoryIds 등록할 카테고리 ID 목록
+     */
+    @Transactional
+    public void createUserPreferences(UUID userId, List<UUID> categoryIds) {
+
+        // 유저 정보 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 해당 유저의 선호 정보가 이미 존재하는지 조회
+        List<UserPreference> existing = userPreferenceRepository.findByUser(user);
+
+        // 이미 등록된 정보가 있다면 새로 생성하지 않고 업데이트 로직 호출
+        if (!existing.isEmpty()) {
+            updateUserPreferences(userId, categoryIds);
+            return;
+        }
+
+        savePreferences(user, categoryIds);
+    }
+
+    /**
+     * 사용자의 선호 카테고리 정보를 수정합니다.
+     *
+     * @param userId 사용자 UUID
+     * @param categoryIds 수정할 카테고리 ID 목록
+     */
+    @Transactional
+    public void updateUserPreferences(UUID userId, List<UUID> categoryIds) {
+
+        // 유저 정보 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 현재 설정된 선호 정보 리스트 조회
+        List<UserPreference> currentPreferences = userPreferenceRepository.findByUser(user);
+        List<UUID> currentCategoryIds = currentPreferences.stream()
+                .map(p -> p.getCategory().getCategoryId())
+                .toList();
+
+        // 삭제할 항목: 현재 정보에는 있지만 요청에는 없는 ID
+        List<UserPreference> toDelete = currentPreferences.stream()
+                .filter(p -> !categoryIds.contains(p.getCategory().getCategoryId()))
+                .toList();
+
+        if (!toDelete.isEmpty()) {
+            userPreferenceRepository.deleteAll(toDelete);
+        }
+
+        // 추가할 항목: 요청에는 있지만 현재 정보에는 없는 ID
+        List<UUID> toAddIds = categoryIds.stream()
+                .filter(id -> !currentCategoryIds.contains(id))
+                .toList();
+
+        if (!toAddIds.isEmpty()) {
+            savePreferences(user, toAddIds);
+        }
+    }
+
+    /**
+     * 카테고리 정보를 데이터베이스에 저장하는 공통 로직
+     * 모든 카테고리 ID가 유효한지 검증한 후 저장 작업 수행
+     *
+     * @param user 사용자 엔티티
+     * @param categoryIds 저장할 카테고리 ID 목록
+     * @throws BaseException 카테고리 ID가 유효하지 않을 경우 발생 (CATEGORY_NOT_FOUND)
+     */
+    private void savePreferences(User user, List<UUID> categoryIds) {
+        // 중복 제거하여 실제 확인해야 할 고유 ID 목록
+        List<UUID> distinctIds = categoryIds.stream().distinct().toList();
+
+        List<Category> categories = categoryRepository.findAllById(distinctIds);
+
+        // 고유한 요청 ID 개수와 조회된 엔티티 개수가 다르면 잘못된 ID가 포함된 것
+        if (categories.size() != distinctIds.size()) {
+            throw new BaseException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+
+        // 새로운 선호 정보 엔티티 생성 및 저장
+        List<UserPreference> preferences = categories.stream()
+                .map(category -> UserPreference.builder()
+                        .user(user)
+                        .category(category)
+                        .build())
+                .toList();
+
+        userPreferenceRepository.saveAll(preferences);
+    }
+
+    /**
+     * 사용자가 설정한 선호 카테고리 목록을 조회합니다.
+     *
+     * @param userId 사용자 UUID
+     * @return 선호 카테고리 정보가 담긴 응답 객체
+     */
+    @Transactional(readOnly = true)
+    public UserPreferenceResponse getUserPreferences(UUID userId) {
+
+        // 유저 정보 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 해당 유저의 모든 선호 카테고리 엔티티 조회
+        List<UserPreference> preferences = userPreferenceRepository.findByUser(user);
+
+        return UserPreferenceResponse.from(preferences);
     }
 
 }

@@ -40,7 +40,7 @@ public class RoomCreateRequest {
     @Max(value = 16, message = "최대 인원은 16명입니다.")
     private Integer maxUser;
 
-    private UUID bookId;
+    private String isbn;
     private UUID categoryId;
 
     private LocalDateTime startAt;

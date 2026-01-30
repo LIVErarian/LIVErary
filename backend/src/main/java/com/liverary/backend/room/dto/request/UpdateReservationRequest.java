@@ -25,6 +25,6 @@ public class UpdateReservationRequest {
     @Future(message = "종료 시각은 현재보다 미래여야 합니다.")
     private LocalDateTime endAt;
 
-    private UUID bookId;
+    private String isbn;
     private UUID categoryId;
 }

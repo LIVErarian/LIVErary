@@ -1,7 +1,9 @@
 package com.liverary.backend.move.dto.request;
 
 import java.util.UUID;
+
 import jakarta.validation.constraints.NotNull;
+import com.liverary.backend.move.dto.Direction;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,4 +25,8 @@ public class MoveEnterRequest {
     // 현재 위치 y 좌표
     @NotNull
     private Double y;
+
+    // 현재 방향
+    @NotNull
+    private Direction direction;
 }

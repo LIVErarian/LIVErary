@@ -2,6 +2,7 @@ package com.liverary.backend.room.service;
 
 import com.liverary.backend.book.domain.Book;
 import com.liverary.backend.book.repository.BookRepository;
+import com.liverary.backend.book.service.BookService;
 import com.liverary.backend.category.domain.Category;
 import com.liverary.backend.category.repository.CategoryRepository;
 import com.liverary.backend.exception.BaseException;
@@ -44,6 +45,7 @@ public class RoomService {
     private final RoomHistoryRepository roomHistoryRepository;
     private final UserService userService;
     private final RoomReservationRepository roomReservationRepository;
+    private final BookService bookService;
 
     /**
      * 새로운 방(Room)을 생성합니다.
@@ -67,10 +69,9 @@ public class RoomService {
         Category category;
 
         // 책 선택 여부에 따라 방의 카테고리 결정
-        if (request.getBookId() != null) {
+        if (request.getIsbn() != null) {
             // Case 1: 책을 선택한 경우
-            book = bookRepository.findById(request.getBookId())
-                    .orElseThrow(() -> new BaseException(ErrorCode.BOOK_NOT_FOUND));
+            book = bookService.getOrSaveBook(request.getIsbn());
             category = book.getCategory();
         } else if (request.getCategoryId() != null) {
             // Case 2: 책 없이 카테고리만 직접 선택한 경우
@@ -133,10 +134,9 @@ public class RoomService {
         Category category;
 
         // 책 선택 여부에 따라 방의 카테고리 결정
-        if (request.getBookId() != null) {
-            // Case 1: 책을 선택한 경우
-            book = bookRepository.findById(request.getBookId())
-                    .orElseThrow(() -> new BaseException(ErrorCode.BOOK_NOT_FOUND));
+        if (request.getIsbn() != null) {
+            // Case 1: 책을 선택한 경우 (없으면 저장 후 가져옴)
+            book = bookService.getOrSaveBook(request.getIsbn());
             category = book.getCategory();
         } else if (request.getCategoryId() != null) {
             // Case 2: 책 없이 카테고리만 직접 선택한 경우
@@ -232,9 +232,8 @@ public class RoomService {
         Book book = null;
         Category category = null;
 
-        if (request.getBookId() != null) {
-            book = bookRepository.findById(request.getBookId())
-                    .orElseThrow(() -> new BaseException(ErrorCode.BOOK_NOT_FOUND));
+        if (request.getIsbn() != null) {
+            book = bookService.getOrSaveBook(request.getIsbn());
         } else if (request.getCategoryId() != null) {
             category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));

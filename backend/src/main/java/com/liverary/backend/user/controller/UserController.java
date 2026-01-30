@@ -4,9 +4,12 @@ import com.liverary.backend.bookHistory.domain.BookStatus;
 import com.liverary.backend.common.dto.BaseResponse;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.user.dto.request.UserPreferenceCreateRequest;
+import com.liverary.backend.user.dto.request.UserPreferenceUpdateRequest;
 import com.liverary.backend.user.dto.request.UserUpdateRequest;
 import com.liverary.backend.user.dto.response.BookSummary;
 import com.liverary.backend.user.dto.response.ProfileResponse;
+import com.liverary.backend.user.dto.response.UserPreferenceResponse;
 import com.liverary.backend.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -91,6 +94,61 @@ public class UserController {
         userService.updateProfile(userId, request);
 
         return BaseResponse.success();
+    }
+
+    /**
+     * 사용자의 선호 카테고리를 최초 등록
+     *
+     * @param user    인증된 사용자 정보
+     * @param request 등록할 카테고리 정보 객체
+     * @return 성공 응답
+     */
+    @PostMapping("/preferences")
+    public BaseResponse<Void> createPreferences(
+            @AuthenticationPrincipal UserDetails user,
+            @RequestBody UserPreferenceCreateRequest request) {
+
+        UUID userId = getUserId(user);
+
+        userService.createUserPreferences(userId, request.getCategoryIds());
+
+        return BaseResponse.success();
+    }
+
+    /**
+     * 사용자의 선호 카테고리 정보 수정
+     *
+     * @param user    인증된 사용자 정보
+     * @param request 수정할 카테고리 정보 객체
+     * @return 성공 응답
+     */
+    @PatchMapping("/preferences")
+    public BaseResponse<Void> updatePreferences(
+            @AuthenticationPrincipal UserDetails user,
+            @RequestBody UserPreferenceUpdateRequest request) {
+
+        UUID userId = getUserId(user);
+
+        userService.updateUserPreferences(userId, request.getCategoryIds());
+
+        return BaseResponse.success();
+    }
+
+    /**
+     * 사용자가 설정한 선호 카테고리 목록을 조회
+     *
+     * @param user 인증된 사용자 정보
+     * @return 선호 카테고리 목록 응답 객체
+     */
+    @GetMapping("/preferences")
+    public BaseResponse<UserPreferenceResponse> getPreferences(
+            @AuthenticationPrincipal UserDetails user) {
+
+        UUID userId = getUserId(user);
+
+        UserPreferenceResponse response = userService.getUserPreferences(userId);
+
+        return BaseResponse.success(response);
     }
 
 }

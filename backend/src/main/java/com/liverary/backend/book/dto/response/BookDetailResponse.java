@@ -19,8 +19,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookDetailResponse {
-    private UUID bookId;
-    private Long itemId;
     private String isbn;
     private String title;
     private String author;
@@ -33,7 +31,6 @@ public class BookDetailResponse {
     // DB 엔티티 -> 상세 응답 DTO 변환
     public static BookDetailResponse from(Book book) {
         return BookDetailResponse.builder()
-                .bookId(book.getBookId())
                 .isbn(book.getIsbn())
                 .title(book.getTitle())
                 .author(book.getAuthor())
@@ -48,8 +45,6 @@ public class BookDetailResponse {
     // 알라딘 DTO -> 상세 응답 DTO 변환
     public static BookDetailResponse from(BookDto bookDto){
         return BookDetailResponse.builder()
-                .bookId(null) // 미저장 상태
-                .itemId(bookDto.getItemId())
                 .isbn(bookDto.getIsbn())
                 .title(bookDto.getTitle())
                 .author(bookDto.getAuthor())
