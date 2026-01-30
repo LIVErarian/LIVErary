@@ -12,6 +12,9 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * 유저 간의 친구 관계 및 요청 정보를 관리하는 엔티티
+ */
 @Entity
 @Getter
 @Table(
@@ -50,10 +53,10 @@ public class Friend {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Friend(User sender, User receiver) {
+    public Friend(User sender, User receiver, FriendStatus status) {
         this.sender = sender;
         this.receiver = receiver;
-        this.status = FriendStatus.PENDING; // 최초 저장 시 대기 상태
+        this.status = (status != null) ? status : FriendStatus.PENDING;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -67,10 +70,12 @@ public class Friend {
     }
 
     /**
-     * 친구 요청 거절 시 상태 변경
+     * 친구 차단 시 상태 변경
      */
-    public void reject() {
-        this.status = FriendStatus.REJECTED;
+    public void block(User blocker, User blocked) {
+        this.sender = blocker;
+        this.receiver = blocked;
+        this.status = FriendStatus.BLOCKED;
         this.updatedAt = LocalDateTime.now();
     }
 
