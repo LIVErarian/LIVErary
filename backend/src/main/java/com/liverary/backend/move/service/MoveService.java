@@ -7,9 +7,12 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import lombok.RequiredArgsConstructor;
 import com.liverary.backend.move.dto.request.MoveEnterRequest;
@@ -17,9 +20,11 @@ import com.liverary.backend.move.dto.request.MoveRequest;
 import com.liverary.backend.move.dto.response.MoveBroadcast;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 /**
  * floor별 이동 입력을 처리하고 tick 주기로 브로드캐스트하는 서비스.
@@ -29,6 +34,8 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 public class MoveService {
 
     private static final String MOVE_TOPIC_PREFIX = "/topic/floor/";
+    private static final Pattern FLOOR_MOVE_DEST =
+            Pattern.compile("^/topic/floor/([0-9a-fA-F-]+)/move$");
     private final SimpMessagingTemplate messagingTemplate;
 
     // floorId -> 이동 입력 큐 (tick에서 일괄 소비)
@@ -40,6 +47,9 @@ public class MoveService {
     // floorId -> active userIds (브로드캐스트 필터링 기준)
     private final ConcurrentMap<UUID, Set<UUID>> floorUsers = new ConcurrentHashMap<>();
 
+    // userId -> 마지막 위치 스냅샷 (floor 구독 시 초기 동기화용)
+    private final ConcurrentMap<UUID, MoveBroadcast> userPositions = new ConcurrentHashMap<>();
+
     /**
      * 이동 입력을 floor 큐에 적재한다.
      *
@@ -47,8 +57,19 @@ public class MoveService {
      * @param request 이동 입력 DTO
      */
     public void enqueue(UUID userId, MoveRequest request) {
+        long serverTs = System.currentTimeMillis();
+        // 최신 위치 캐시 (구독 시 스냅샷 전송용)
+        userPositions.put(userId, MoveBroadcast.of(
+                userId,
+                request.getFloorId(),
+                request.getX(),
+                request.getY(),
+                request.getDirection(),
+                serverTs,
+                request.getIsMoving()
+        ));
         // 입장/활성 여부와 무관하게 먼저 큐에 적재하고 tick에서 필터링
-        MoveEvent event = new MoveEvent(userId, request, System.currentTimeMillis());
+        MoveEvent event = new MoveEvent(userId, request, serverTs);
         floorQueues
                 .computeIfAbsent(request.getFloorId(), id -> new ConcurrentLinkedQueue<>())
                 .add(event);
@@ -94,7 +115,7 @@ public class MoveService {
                 return;
             }
 
-            // 현재 위치 사용 (저장하지 않음)
+            // 현재 위치 사용
             batch.add(MoveBroadcast.of(userId, request.getFloorId(), request.getX(),
                     request.getY(), request.getDirection(), lastEvent.serverTs(), request.getIsMoving()));
         });
@@ -129,6 +150,17 @@ public class MoveService {
         floorUsers
                 .computeIfAbsent(request.getFloorId(), id -> ConcurrentHashMap.newKeySet())
                 .add(userId);
+
+        // 입장 시 초기 위치 저장 (정지 상태로 간주)
+        userPositions.put(userId, MoveBroadcast.of(
+                userId,
+                request.getFloorId(),
+                request.getX(),
+                request.getY(),
+                request.getDirection(),
+                System.currentTimeMillis(),
+                false
+        ));
     }
 
     /**
@@ -146,6 +178,7 @@ public class MoveService {
 
         userFloor.remove(userId);
         removeFromFloor(floorId, userId);
+        userPositions.remove(userId);
     }
 
     /**
@@ -158,6 +191,26 @@ public class MoveService {
         if (floorId != null) {
             removeFromFloor(floorId, userId);
         }
+        userPositions.remove(userId);
+    }
+
+
+    /**
+     * floor 구독 시 사용할 현재 위치 스냅샷을 반환한다.
+     *
+     * @param floorId floor ID
+     * @return 활성 사용자들의 마지막 위치 목록
+     */
+    public List<MoveBroadcast> snapshot(UUID floorId) {
+        Set<UUID> users = floorUsers.get(floorId);
+        if (users == null || users.isEmpty()) {
+            return List.of();
+        }
+
+        return users.stream()
+                .map(userPositions::get)
+                .filter(position -> position != null && floorId.equals(position.getFloorId()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -174,6 +227,38 @@ public class MoveService {
 
         // 연결 종료 시 모든 floor 상태 정리
         removeUser(UUID.fromString(principal.getName()));
+    }
+
+    /**
+     * floor 구독 시 현재 위치 스냅샷을 전송한다.
+     *
+     * @param event 구독 이벤트
+     */
+    @EventListener
+    public void handleSubscription(SessionSubscribeEvent event) {
+        SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
+        String destination = accessor.getDestination();
+        Principal principal = accessor.getUser();
+        if (destination == null || principal == null) {
+            return;
+        }
+
+        Matcher matcher = FLOOR_MOVE_DEST.matcher(destination);
+        if (!matcher.matches()) {
+            return;
+        }
+
+        UUID floorId = UUID.fromString(matcher.group(1));
+        List<MoveBroadcast> snapshot = snapshot(floorId);
+        if (snapshot.isEmpty()) {
+            return;
+        }
+
+        messagingTemplate.convertAndSendToUser(
+                principal.getName(),
+                "/topic/floor/" + floorId + "/snapshot",
+                snapshot
+        );
     }
 
     /**
