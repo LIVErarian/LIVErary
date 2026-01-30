@@ -63,7 +63,7 @@ public class ReviewController {
      * @param boardId 조회할 게시글의 UUID
      * @return 해당 게시글에 달린 댓글 목록 리스트
      */
-    @GetMapping("{boardId}")
+    @GetMapping("/{boardId}")
     public BaseResponse<Page<ReviewResponse>> getReviews(@PathVariable UUID boardId, @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
                                                          Pageable pageable){
         Page<ReviewResponse> response = reviewService.getReviewList(boardId, pageable);
