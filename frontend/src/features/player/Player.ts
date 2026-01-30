@@ -114,6 +114,10 @@ export class Player extends Container {
    * @param isMoving 이동 중인지 확인
    */
   public setAnimation(direction: Direction, isMoving: boolean) {
+    if (!this._textures[direction] || this._textures[direction].length === 0) {
+      return;
+    }
+
     // 현재 재생 중인 텍스처와 이동 방향이 다르다면 재생 중인 텍스쳐를 현재 방향으로 변경
     if (this._character.textures !== this._textures[direction]) {
       this._character.textures = this._textures[direction];
