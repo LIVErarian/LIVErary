@@ -36,8 +36,12 @@ public class MoveBroadcast {
     @NotNull
     private Long serverTs;
 
+    // 사용자가 움직이고 있는지
+    @NotNull
+    private Boolean isMoving;
+
     public static MoveBroadcast of(UUID userId, UUID floorId, Double x, Double y, Direction direction,
-                                   Long serverTs) {
+                                   Long serverTs, Boolean isMoving) {
         return MoveBroadcast.builder()
                 .userId(userId)
                 .floorId(floorId)
@@ -45,6 +49,7 @@ public class MoveBroadcast {
                 .y(y)
                 .direction(direction)
                 .serverTs(serverTs)
+                .isMoving(isMoving)
                 .build();
     }
 }

@@ -31,4 +31,8 @@ public class MoveRequest {
     // 클라이언트 기준 입력 시각 (epoch millis)
     @NotNull
     private Long clientTs;
+
+    // 사용자가 움직이고 있는지
+    @NotNull
+    private Boolean isMoving;
 }
