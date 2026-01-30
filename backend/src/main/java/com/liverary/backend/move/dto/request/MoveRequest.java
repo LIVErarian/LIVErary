@@ -18,7 +18,7 @@ public class MoveRequest {
     @NotNull
     private UUID floorId;
 
-    // 현재 위치
+    // 현재 위치(절대 좌표)
     @NotNull
     private Double x;
     @NotNull

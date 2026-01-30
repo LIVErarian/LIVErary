@@ -2,6 +2,7 @@ package com.liverary.backend.move.service;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 /**
- * floor별 이동 입력을 누적 처리하고 tick 주기로 브로드캐스트하는 서비스.
+ * floor별 이동 입력을 처리하고 tick 주기로 브로드캐스트하는 서비스.
  */
 @Service
 @RequiredArgsConstructor
@@ -38,9 +39,6 @@ public class MoveService {
 
     // floorId -> active userIds (브로드캐스트 필터링 기준)
     private final ConcurrentMap<UUID, Set<UUID>> floorUsers = new ConcurrentHashMap<>();
-
-    // 사용자별 현재 위치 (delta 누적 계산의 기준점)
-    private final ConcurrentMap<UUID, Position> userPositions = new ConcurrentHashMap<>();
 
     /**
      * 이동 입력을 floor 큐에 적재한다.
@@ -78,19 +76,28 @@ public class MoveService {
      */
     private List<MoveBroadcast> drain(Queue<MoveEvent> queue) {
         List<MoveBroadcast> batch = new ArrayList<>();
+        // tick 내 사용자별 마지막 이벤트만 사용
+        HashMap<UUID, MoveEvent> lastEvents = new HashMap<>();
         MoveEvent event;
         while ((event = queue.poll()) != null) {
-            MoveRequest request = event.request();
+            MoveEvent previous = lastEvents.get(event.userId());
+            if (previous == null
+                    || event.request().getClientTs() > previous.request().getClientTs()) {
+                lastEvents.put(event.userId(), event);
+            }
+        }
+
+        lastEvents.forEach((userId, lastEvent) -> {
+            MoveRequest request = lastEvent.request();
             // 활성 상태가 아니면 전파하지 않음
-            if (!isActive(request.getFloorId(), event.userId())) {
-                continue;
+            if (!isActive(request.getFloorId(), userId)) {
+                return;
             }
 
-            // delta 누적 후 현재 위치 계산
-            Position currentPosition = computePosition(event.userId(), event.request());
-            batch.add(MoveBroadcast.of(event.userId(), request.getFloorId(), currentPosition.x,
-                    currentPosition.y(), request.getDirection(), event.serverTs()));
-        }
+            // 현재 위치 사용 (저장하지 않음)
+            batch.add(MoveBroadcast.of(userId, request.getFloorId(), request.getX(),
+                    request.getY(), lastEvent.serverTs()));
+        });
         return batch;
     }
 
@@ -119,8 +126,6 @@ public class MoveService {
             removeFromFloor(previousFloor, userId);
         }
 
-        // 입장 시 초기 위치 등록
-        userPositions.put(userId, new Position(request.getX(), request.getY()));
         floorUsers
                 .computeIfAbsent(request.getFloorId(), id -> ConcurrentHashMap.newKeySet())
                 .add(userId);
@@ -140,8 +145,6 @@ public class MoveService {
         }
 
         userFloor.remove(userId);
-        // 위치 상태도 함께 정리
-        userPositions.remove(userId);
         removeFromFloor(floorId, userId);
     }
 
@@ -155,29 +158,6 @@ public class MoveService {
         if (floorId != null) {
             removeFromFloor(floorId, userId);
         }
-    }
-
-    /**
-     * 이동량을 누적해 현재 위치를 계산하고 저장한다.
-     *
-     * @param userId  사용자 ID
-     * @param request 이동 입력 DTO
-     * @return 계산된 현재 위치
-     */
-    private Position computePosition(UUID userId, MoveRequest request) {
-        Position position = userPositions.get(userId);
-        double nextX = request.getX();
-        double nextY = request.getY();
-        if (position != null) {
-            // delta 누적 계산
-            nextX = position.x() + request.getX();
-            nextY = position.y() + request.getY();
-        }
-
-        Position next = new Position(nextX, nextY);
-        // 계산된 최신 위치를 저장
-        userPositions.put(userId, next);
-        return next;
     }
 
     /**
@@ -195,11 +175,6 @@ public class MoveService {
         // 연결 종료 시 모든 floor 상태 정리
         removeUser(UUID.fromString(principal.getName()));
     }
-
-    /**
-     * 사용자 좌표를 나타내는 불변 레코드.
-     */
-    private record Position(Double x, Double y) {}
 
     /**
      * 이동 이벤트 큐에 저장되는 항목.
