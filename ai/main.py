@@ -20,12 +20,16 @@ def recommend_rooms(data: dict = Body(...)):
     room_history = data.get('room_history', []) # 참여 히스토리
     raw_rooms = data.get('room_list', [])       # 추천 후보 방 목록 (현재 방 목록)
     room_texts = []
+    room_ids = [] 
 
     # 방 목록이 비어있으면 종료
     if not raw_rooms:
         return {"top_indices": []}
     
     for item in raw_rooms:
+        r_id = item.get('room_id')
+        room_ids.append(r_id)
+
         cat = item.get('category')
         title = item.get('title')
 
@@ -90,5 +94,6 @@ def recommend_rooms(data: dict = Body(...)):
     top_k = min(4, len(room_texts))
     top_results = torch.topk(scores, k=top_k)
     result_indices = top_results.indices.tolist()
+    final_ids = [room_ids[idx] for idx in result_indices]
 
-    return {"top_indices": result_indices}
+    return {"top_indices": final_ids}
