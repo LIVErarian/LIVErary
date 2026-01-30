@@ -158,9 +158,9 @@ public class RoomService {
                 .category(category)
                 .startAt(request.getStartAt())
                 .endAt(request.getEndAt())
+                .status(RoomStatus.SCHEDULED)
                 .build();
 
-        room.confirmReservation();
         roomRepository.save(room);
 
         // host를 예약 신청 내역에 추가
@@ -489,7 +489,7 @@ public class RoomService {
 
         // LIVE 상태이면서 인원이 0명인 경우 방 종료
         if (room.getStatus() == RoomStatus.LIVE && room.getCurrentCount() <= 0) {
-            room.finish();
+            room.updateStatus(RoomStatus.FINISHED);
         }
 
         // 참여 기록을 통해 독서 시간(분) 계산
