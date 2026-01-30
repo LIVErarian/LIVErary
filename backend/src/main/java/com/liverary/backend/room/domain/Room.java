@@ -101,9 +101,11 @@ public class Room {
      * @param category 방에서 이야기할 카테고리
      * @param code 방의 초대 코드
      * @param startAt 방을 시작하는 시각 (기본값: 생성일시)
+     * @param endAt 방을 종료하는 시각 (예약 방 필수)
+     * @param status 방의 상태 (RESERVED, LIVE, FINISHED)
      */
     @Builder
-    public Room(String title, RoomType roomType, AccessType accessType, Integer maxUser, User creator, Book book, Category category, String code, LocalDateTime startAt, LocalDateTime endAt) {
+    public Room(String title, RoomType roomType, AccessType accessType, Integer maxUser, User creator, Book book, Category category, String code, LocalDateTime startAt, LocalDateTime endAt, RoomStatus status) {
         this.title = title;
         this.roomType = roomType;
         this.accessType = accessType;
@@ -125,7 +127,7 @@ public class Room {
         this.startAt = (startAt != null) ? startAt : LocalDateTime.now();
         this.endAt = endAt;
 
-        this.status = RoomStatus.LIVE;
+        this.status = (status != null) ? status : RoomStatus.LIVE;
         this.currentCount = 0;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -172,21 +174,11 @@ public class Room {
     }
 
     /**
-     * 방 종료를 위한 비즈니스 로직입니다.
-     *
-     * 방 상태를 종료(FINISHED)로 변경합니다.
+     * 방 상태 변경을 위한 비즈니스 로직입니다.
      */
-    public void finish() {
-        this.status = RoomStatus.FINISHED;
-    }
-
-    /**
-     * 방 예약 확정을 위한 비즈니스 로직입니다.
-     *
-     * 방 상태를 예약(SCHEDULED)로 변경합니다.
-     */
-    public void confirmReservation() {
-        this.status = RoomStatus.SCHEDULED;
+    public void updateStatus(RoomStatus status) {
+        this.status = status;
+        this.updatedAt = LocalDateTime.now();
     }
 
     /**
