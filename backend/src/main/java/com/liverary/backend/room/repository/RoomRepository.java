@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,4 +30,13 @@ public interface RoomRepository extends JpaRepository<Room, UUID> {
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    // [자동 시작 대상] 시작 시간까지 10분 이하로 남은 예약 방 조회
+    List<Room> findAllByStatusAndStartAtLessThanEqual(RoomStatus status, LocalDateTime time);
+
+    // [노쇼 종료 대상] 시작 후 10분 경과했고, 인원이 0명인 라이브 방 조회
+    List<Room> findAllByStatusAndStartAtLessThanEqualAndCurrentCount(RoomStatus status, LocalDateTime time, int currentCount);
+
+    // [자동 종료 대상] 종료 시간이 지난 라이브 방 조회
+    List<Room> findAllByStatusAndEndAtLessThanEqual(RoomStatus status, LocalDateTime time);
 }
