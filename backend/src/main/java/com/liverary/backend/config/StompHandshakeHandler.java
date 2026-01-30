@@ -9,8 +9,6 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.UUID;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.util.StringUtils;
@@ -74,13 +72,4 @@ public class StompHandshakeHandler extends DefaultHandshakeHandler {
         return null;
     }
 
-    /**
-     * STOMP에서 사용할 Principal 구현체.
-     */
-    @Getter
-    @AllArgsConstructor
-    private static class StompPrincipal implements Principal {
-        // Principal 이름(사용자 식별자)
-        private final String name;
-    }
 }

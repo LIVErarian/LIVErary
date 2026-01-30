@@ -29,8 +29,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // WebSocket 접속 경로와 CORS 허용 범위를 설정하고, JWT 검증 핸드셰이크 핸들러를 적용한다.
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
-                .setHandshakeHandler(new StompHandshakeHandler(jwtProvider, userRepository));
+                .setAllowedOriginPatterns("*");
     }
 
     /**
@@ -50,6 +49,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new StompAuthChannelInterceptor(jwtProvider));
+        registration.interceptors(new StompAuthChannelInterceptor(jwtProvider, userRepository));
     }
 }

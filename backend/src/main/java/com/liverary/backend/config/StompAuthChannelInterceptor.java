@@ -3,9 +3,10 @@ package com.liverary.backend.config;
 import com.liverary.backend.auth.provider.JwtProvider;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.user.repository.UserRepository;
+import java.util.UUID;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -21,6 +22,7 @@ import org.springframework.util.StringUtils;
 public class StompAuthChannelInterceptor implements ChannelInterceptor {
 
     private final JwtProvider jwtProvider;
+    private final UserRepository userRepository;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -30,7 +32,7 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
         }
 
         StompCommand command = accessor.getCommand();
-        if (command == null || command == StompCommand.CONNECT || command == StompCommand.DISCONNECT) {
+        if (command == null || command == StompCommand.DISCONNECT) {
             return message;
         }
 
@@ -40,6 +42,22 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
         }
 
         jwtProvider.validateToken(token);
+
+        if (command == StompCommand.CONNECT) {
+            String jwtUserId = jwtProvider.parseClaims(token).getSubject();
+            UUID userId;
+            try {
+                userId = UUID.fromString(jwtUserId);
+            } catch (IllegalArgumentException e) {
+                throw new BaseException(ErrorCode.INVALID_UUID_FORMAT);
+            }
+
+            if (!userRepository.existsById(userId)) {
+                throw new BaseException(ErrorCode.USER_NOT_FOUND);
+            }
+
+            accessor.setUser(new StompPrincipal(jwtUserId));
+        }
         return message;
     }
 
