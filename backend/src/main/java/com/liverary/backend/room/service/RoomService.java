@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,23 +66,21 @@ public class RoomService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
-        Book book = null;
-        Category category;
-
-        // 책 선택 여부에 따라 방의 카테고리 결정
-        if (request.getIsbn() != null) {
-            // Case 1: 책을 선택한 경우
-            book = bookService.getOrSaveBook(request.getIsbn());
-            category = book.getCategory();
-        } else if (request.getCategoryId() != null) {
-            // Case 2: 책 없이 카테고리만 직접 선택한 경우
-            category = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
-        } else {
-            // Case 3: 둘 다 선택하지 않은 경우
-            category = categoryRepository.findByName("기타")
-                    .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
+        // 동일 시간대에 중복 예약을 방지
+        if (request.getStatus() == RoomStatus.SCHEDULED) {
+            boolean isOverlapped = roomReservationRepository.existsOverlappingReservation(user, request.getStartAt(), request.getEndAt());
+            if (isOverlapped) {
+                throw new BaseException(ErrorCode.RESERVATION_CONFLICT);
+            }
         }
+
+        // 책 정보 조회
+        Book book = (request.getIsbn() != null)
+                ? bookService.getOrSaveBook(request.getIsbn())
+                : null;
+
+        // 카테고리 결정
+        Category category = determineCategory(book, request.getCategoryId());
 
         Room room = Room.builder()
                 .title(request.getTitle())
@@ -94,85 +91,45 @@ public class RoomService {
                 .book(book)
                 .category(category)
                 .startAt(request.getStartAt())
+                .endAt(request.getEndAt())
+                .status(request.getStatus())
                 .build();
-
         roomRepository.save(room);
+
+        // 예약 내역 저장 (예약 방인 경우)
+        if (request.getStatus() == RoomStatus.SCHEDULED) {
+            RoomReservation reservation = RoomReservation.builder()
+                    .room(room)
+                    .user(user)
+                    .build();
+            roomReservationRepository.save(reservation);
+        }
 
         return RoomCreateResponse.from(room);
     }
 
     /**
-     * 예약된 방(Reserved Room)을 생성합니다.
+     * 우선순위에 따라 카테고리를 결정합니다.
      *
-     * <p>방 생성과 동시에 생성자(Host)의 예약 내역을 저장합니다.<br/>
-     * 시작/종료 시간의 순서 논리 검증과
-     * 생성자의 동시간대 중복 예약 여부 검증을 수행합니다.
-     * </p>
-     *
-     * @param userId  예약 방을 생성하는 유저(Host)의 고유 식별자
-     * @param request 예약 방 생성 요청 정보가 담긴 DTO (startAt, endAt 필수)
-     * @return 생성된 방의 식별자와 초대 코드를 포함한 응답 DTO
-     * @throws BaseException 시간 설정이 잘못되었거나, 중복된 예약이 있을 경우 발생
+     * 1순위: 선택된 책의 카테고리
+     * 2순위: 직접 선택한 카테고리
+     * 3순위: '기타' 카테고리 (Default)
      */
-    @Transactional
-    public CreateReservationResponse createReservation(UUID userId, CreateReservationRequest request) {
-        User host = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
-
-        // 시작 시각보다 종료 시각이 나중인지 검증
-        if (request.getStartAt().isAfter(request.getEndAt()) || request.getStartAt().isEqual(request.getEndAt())) {
-            throw new BaseException(ErrorCode.INVALID_TIME_RANGE);
+    private Category determineCategory(Book book, UUID categoryId) {
+        // Case 1: 책을 선택한 경우
+        if (book != null) {
+            return book.getCategory();
         }
 
-        // 동일 시간대에 중복 예약을 방지
-        boolean isOverlapped = roomReservationRepository.existsOverlappingReservation(
-                host, request.getStartAt(), request.getEndAt()
-        );
-        if (isOverlapped) {
-            throw new BaseException(ErrorCode.RESERVATION_CONFLICT);
-        }
-
-        Book book = null;
-        Category category;
-
-        // 책 선택 여부에 따라 방의 카테고리 결정
-        if (request.getIsbn() != null) {
-            // Case 1: 책을 선택한 경우 (없으면 저장 후 가져옴)
-            book = bookService.getOrSaveBook(request.getIsbn());
-            category = book.getCategory();
-        } else if (request.getCategoryId() != null) {
-            // Case 2: 책 없이 카테고리만 직접 선택한 경우
-            category = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
-        } else {
-            // Case 3: 둘 다 선택하지 않은 경우
-            category = categoryRepository.findByName("기타")
+        // Case 2: 책 없이 카테고리만 직접 선택한 경우
+        if (categoryId != null) {
+            return categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
         }
 
-        Room room = Room.builder()
-                .title(request.getTitle())
-                .roomType(request.getRoomType())
-                .accessType(request.getAccessType())
-                .maxUser(request.getMaxUser())
-                .creator(host)
-                .book(book)
-                .category(category)
-                .startAt(request.getStartAt())
-                .endAt(request.getEndAt())
-                .status(RoomStatus.SCHEDULED)
-                .build();
-
-        roomRepository.save(room);
-
-        // host를 예약 신청 내역에 추가
-        RoomReservation reservation = RoomReservation.builder()
-                .room(room)
-                .user(host)
-                .build();
-        roomReservationRepository.save(reservation);
-
-        return new CreateReservationResponse(room.getRoomId(), room.getCode());
+        // Case 3: 둘 다 선택하지 않은 경우
+        return categoryRepository.findByName("기타")
+                .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
     /**
