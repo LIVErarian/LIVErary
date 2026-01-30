@@ -90,8 +90,7 @@ export const SignupPage = () => {
     }
 
     signup(
-      // TODO: api 수정 후 gender 삭제 필요
-      { email, nickname, password, gender: 'FEMALE' },
+      { email, nickname, password },
       {
         onSuccess: () => {
           alert('회원 가입 성공!');
