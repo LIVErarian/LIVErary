@@ -17,6 +17,7 @@ import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import com.liverary.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.parameters.P;
@@ -36,6 +37,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class RoomService {
 
     private final RoomRepository roomRepository;
@@ -550,4 +552,57 @@ public class RoomService {
         return RoomDetailResponse.from(room);
     }
 
+    /**
+     * 예약 방 자동 시작 스케줄러
+     *
+     * 시작 시간이 10분 이하로 남은 SCHEDULED 방의 상태를 LIVE로 변경합니다.
+     */
+    @Transactional
+    public void autoStartScheduledRooms() {
+        LocalDateTime threshold = LocalDateTime.now().plusMinutes(10);
+        List<Room> rooms = roomRepository.findAllByStatusAndStartAtLessThanEqual(RoomStatus.SCHEDULED, threshold);
+
+        for (Room room : rooms) {
+            room.updateStatus(RoomStatus.LIVE);
+        }
+    }
+
+    /**
+     * 예약 방 노쇼 종료 스케줄러
+     *
+     * 시작 시간 10분 이후에도 참여자가 0명이라면 방의 상태를 FINISHED로 변경합니다.
+     */
+    @Transactional
+    public void autoCloseNoShowRooms() {
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(10);
+        List<Room> rooms = roomRepository.findAllByStatusAndStartAtLessThanEqualAndCurrentCount(RoomStatus.LIVE, threshold, 0);
+
+        for (Room room : rooms) {
+            room.updateStatus(RoomStatus.FINISHED);
+            log.info("No-show room closed: {}", room.getRoomId());
+        }
+    }
+
+    /**
+     * 예약 방 자동 종료 스케줄러
+     *
+     * 예약 시 설정한 종료 시각이 되면 방의 상태를 FINISED로 변경합니다.
+     * 아직 방에 남아있던 참여자들의 상태를 LEFT로 변경하여 퇴장 처리를 합니다.
+     */
+    public void autoCloseFinishedRooms() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Room> rooms = roomRepository.findAllByStatusAndEndAtLessThanEqual(RoomStatus.LIVE, now);
+
+        for (Room room : rooms) {
+            room.updateStatus(RoomStatus.FINISHED);
+
+            roomHistoryRepository.exitAllUsersByRoom(
+                    room,
+                    HistoryStatus.LEFT,
+                    now,
+                    HistoryStatus.JOINED
+            );
+            log.info("Auto-closed finished room: {}", room.getRoomId());
+        }
+    }
 }
