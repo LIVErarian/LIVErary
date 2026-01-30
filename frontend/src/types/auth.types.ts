@@ -28,7 +28,6 @@ export type LogoutResponse = CommonResponse<null>;
 // 회원가입 요청
 export interface SignupRequest extends LoginRequest {
   nickname: string;
-  gender: string; // TODO: API 변경 후 제거 필요
 }
 
 // 회원가입 응답

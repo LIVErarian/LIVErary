@@ -9,29 +9,31 @@ import { useSocketStore } from '@/store/useSocketStore';
 export const GamePage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { gameAppRef, isReady } = useGame(containerRef);
+  const lastFloorRef = useRef<string | null>(null);
   const currentFloor = useGameStore((state) => state.currentFloor);
 
-  const connect = useSocketStore((state) => state.connect);
-  const disconnect = useSocketStore((state) => state.disconnect);
-  const isConnected = useSocketStore((state) => state.isConnected);
+  const { connect, disconnect, isConnected } = useSocketStore();
 
+  /**
+   * 게임 화면에서 연결 유지
+   */
   useEffect(() => {
     connect();
-    return () => disconnect(); // 나갈 땐 끊기
+    // 컴포넌트 언마운트 시에만 연결 해제
+    return () => disconnect();
   }, [connect, disconnect]);
-
-  // ✨ 화면에 상태 표시 (테스트용)
-  console.log('현재 소켓 상태:', isConnected ? '🟢 연결됨' : '🔴 연결 안됨');
 
   /**
    * PixiJS가 준비된 후 층 변경 감지
    */
   useEffect(() => {
-    if (gameAppRef.current && currentFloor && isReady) {
-      console.log(`층 변경 감지: ${currentFloor}`);
+    if (isConnected && gameAppRef.current && currentFloor && isReady) {
+      if (lastFloorRef.current === currentFloor) return;
+
+      console.log(`층 변경 시도: ${currentFloor}`);
       gameAppRef.current.changeMap(currentFloor);
     }
-  }, [currentFloor, gameAppRef, isReady]);
+  }, [currentFloor, gameAppRef, isConnected, isReady]);
 
   return <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />} />;
 };

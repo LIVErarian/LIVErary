@@ -18,6 +18,7 @@ interface SocketState {
   client: Client | null;
   isConnected: boolean;
   moveSubscription: StompSubscription | null;
+  subscribedFloorId: string | null;
 
   // 소켓 연결 / 해제
   connect: () => void;
@@ -47,10 +48,22 @@ export const useSocketStore = create<SocketState>((set, get) => ({
   client: null,
   isConnected: false,
   moveSubscription: null,
+  subscribedFloorId: null,
 
-  connect: () => {
-    // 이미 연결되어있으면 패스
-    if (get().client?.activate) return;
+  connect: async () => {
+    const state = get();
+
+    // 이미 연결 중이거나 연결된 클라이언트가 있다면 실행하지 않음
+    if (state.client?.active || state.client?.connected) {
+      console.log('[Store] 이미 소켓이 활성화되어 있어 연결을 유지합니다.');
+      return;
+    }
+
+    // 만약 남은 client가 있으면 disconnect
+    if (state.client) {
+      state.disconnect();
+      await new Promise((resolve) => setTimeout(resolve, 200)); // 서버 세션 정리 시간 확보
+    }
 
     const headers = getHeaders();
     if (!headers['Authorization']) {
@@ -58,33 +71,36 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       return;
     }
 
-    const client = new Client({
+    const newClient = new Client({
       brokerURL: SOCKET_URL,
       connectHeaders: headers,
-      reconnectDelay: 5000, // 5초 뒤 자동 재연결
+      reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
 
       onConnect: () => {
-        console.log('소켓이 연결되었습니다.');
+        console.log('[Store] 소켓이 연결되었습니다.');
         set({ isConnected: true });
       },
       onStompError: (frame) => {
-        console.error('오류가 발생했습니다:', frame.headers['message']);
+        console.error('[Store] STOMP 오류:', frame.headers['message']);
+        // 에러 발생 시 즉시 상태 초기화하여 Ghost 상태 방지
+        set({ isConnected: false, moveSubscription: null });
       },
       onWebSocketClose: () => {
-        console.log('소켓 연결이 해제되었습니다.');
-        set({ isConnected: false });
+        console.log('[Store] 소켓 연결이 해제되었습니다.');
+        set({ isConnected: false, moveSubscription: null });
       },
     });
 
-    client.activate();
-    set({ client });
+    newClient.activate();
+    set({ client: newClient });
   },
 
   disconnect: () => {
-    const { client } = get();
+    const { client, unsubscribeMove } = get();
     if (client) {
+      unsubscribeMove();
       client.deactivate();
       set({
         client: null,
@@ -95,33 +111,69 @@ export const useSocketStore = create<SocketState>((set, get) => ({
   },
 
   // 이동 로직
-  subscribeMove: (floorId, onMoveReceive) => {
-    const { client } = get();
-    if (!client || !client.active) {
-      console.warn('소켓이 연결되지 않아 구독할 수 없습니다.');
+  subscribeMove: async (floorId, onMoveReceive) => {
+    const { client, unsubscribeMove, isConnected } = get();
+
+    // isConnected가 true일 때만 진행
+    if (!client || !client.connected || !isConnected) {
+      console.warn('[Store] 소켓이 준비되지 않아 구독할 수 없습니다.');
       return;
     }
 
-    // 기존 구독 해제
-    get().unsubscribeMove();
+    try {
+      unsubscribeMove();
+      // 해제 패킷이 먼저 처리되도록 미세 지연
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
-    const subscription = client.subscribe(
-      `/topic/floor/${floorId}/move`,
-      (message) => {
-        try {
-          const moves: MoveBroadcast[] = JSON.parse(message.body);
-          onMoveReceive(moves);
-        } catch (error) {
-          console.error('이동 데이터 파싱 실패:', error);
-        }
-      },
-    );
+      const subscriptionId = `sub-${floorId}`;
+      const headers = { ...getHeaders(), id: subscriptionId };
 
-    set({ moveSubscription: subscription });
+      if (!client.connected) return;
+
+      // 새로운 층 구독
+      const subscription = client.subscribe(
+        `/topic/floor/${floorId}/move`,
+        (message) => {
+          try {
+            const moves: MoveBroadcast[] = JSON.parse(message.body);
+            onMoveReceive(moves);
+          } catch (e) {
+            console.error(e);
+          }
+        },
+        headers,
+      );
+
+      set({ moveSubscription: subscription, subscribedFloorId: floorId });
+      console.log(`[Store] ${floorId} 구독 시작`);
+    } catch (error) {
+      console.error('구독 실패:', error);
+    }
   },
+
   unsubscribeMove: () => {
-    get().moveSubscription?.unsubscribe();
-    set({ moveSubscription: null });
+    const { sendExit, moveSubscription, client, subscribedFloorId } = get();
+    if (client?.connected) {
+      // 구독 해제 전에 백엔드에 퇴장 메시지 전송
+      if (subscribedFloorId) {
+        sendExit({ floorId: subscribedFloorId });
+        console.log(`[Store] ${subscribedFloorId} 퇴장 메시지 전송`);
+      }
+
+      if (moveSubscription) {
+        try {
+          moveSubscription.unsubscribe(getHeaders());
+          console.log('[Store] 구독 해제 요청 전송');
+        } catch (error) {
+          console.warn(
+            // 이미 닫힌 소켓에 대한 에러 방지
+            '[Store] 구독 해제 실패:',
+            error,
+          );
+        }
+      }
+    }
+    set({ moveSubscription: null, subscribedFloorId: null });
   },
 
   sendEnter: (req) => {
