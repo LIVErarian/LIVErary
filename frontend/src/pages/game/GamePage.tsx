@@ -12,7 +12,7 @@ export const GamePage = () => {
   const lastFloorRef = useRef<string | null>(null);
   const currentFloor = useGameStore((state) => state.currentFloor);
 
-  const { connect, disconnect, isConnected } = useSocketStore();
+  const { connect, disconnect } = useSocketStore();
 
   /**
    * 게임 화면에서 연결 유지
@@ -27,13 +27,13 @@ export const GamePage = () => {
    * PixiJS가 준비된 후 층 변경 감지
    */
   useEffect(() => {
-    if (isConnected && gameAppRef.current && currentFloor && isReady) {
+    if (gameAppRef.current && currentFloor && isReady) {
       if (lastFloorRef.current === currentFloor) return;
 
       console.log(`층 변경 시도: ${currentFloor}`);
       gameAppRef.current.changeMap(currentFloor);
     }
-  }, [currentFloor, gameAppRef, isConnected, isReady]);
+  }, [currentFloor, gameAppRef, isReady]);
 
   return <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />} />;
 };

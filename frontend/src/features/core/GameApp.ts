@@ -126,9 +126,11 @@ export class GameApp {
       this._player.setAnimation('DOWN', false);
     }
 
-    const { subscribeMove, isConnected, sendEnter } = useSocketStore.getState();
+    const { subscribeMove, unsubscribeMove, isConnected, sendEnter } =
+      useSocketStore.getState();
 
     // 기존 데이터 정리 및 구독 해제
+    unsubscribeMove();
     this.clearOtherPlayers();
 
     // 내 방이 아니고 연결되어 있을 때만 구독
@@ -313,6 +315,19 @@ export class GameApp {
   // 다른 플레이어들 위치 업데이트
   public updateOtherPlayers(moves: MoveBroadcast[]) {
     if (!moves) return;
+
+    // 활성 유저 ID 목록
+    const activeUserIds = new Set(moves.map((m) => m.userId));
+
+    this._otherPlayers.forEach((player, userId) => {
+      // 현재 화면에 있는 유저 중 명단에 존재하지 않으면 제거
+      if (!activeUserIds.has(userId)) {
+        this._viewport.removeChild(player);
+        player.destroy();
+        this._otherPlayers.delete(userId);
+        console.log('유저 퇴장 확인 및 제거:', userId);
+      }
+    });
 
     moves.forEach((data) => {
       if (data.userId === this._myId) return;
