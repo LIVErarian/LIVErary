@@ -16,8 +16,9 @@ import java.util.UUID;
 @Table(name = "NOTIFICATION")
 public class Notification {
     @Id
+    @Column(name = "notification_id")
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID notificationId;
 
     // 수신자
     @ManyToOne(fetch = FetchType.LAZY)

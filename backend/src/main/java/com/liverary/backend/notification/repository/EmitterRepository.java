@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * - Emitter 관리: 사용자별 연결 객체를 저장하여 알림 발송 시 타겟을 식별함
  * - Event Cache 관리: 전송된 알림 데이터를 임시 저장하며, 연결 끊김 후 재접속 시 유실된 데이터를 재전송함
  */
-
 @Repository
 @RequiredArgsConstructor
 public class EmitterRepository {
