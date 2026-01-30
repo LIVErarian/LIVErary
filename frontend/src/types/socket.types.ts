@@ -6,7 +6,6 @@ export interface BasePosition {
   x: number; // 사용자 위치 (이동량 x)
   y: number; // 사용자 위치
   direction: Direction; // 바라보는 방향
-  // isMoving: boolean; // 움직이는 중인지
 }
 
 // ==================== 위치 동기화 ======================
@@ -15,6 +14,7 @@ export type MoveEnterRequest = BasePosition;
 
 // [요청] 이동 중 (/app/move)
 export interface MoveRequest extends BasePosition {
+  isMoving: boolean;
   clientTs: number; // 클라이언트 타임스탬프
 }
 
@@ -27,6 +27,7 @@ export interface MoveExitRequest {
 // 200ms마다 전체 사용자 위치 전송
 export interface MoveBroadcast extends BasePosition {
   userId: string;
+  isMoving: boolean;
   serverTs: number;
 }
 
