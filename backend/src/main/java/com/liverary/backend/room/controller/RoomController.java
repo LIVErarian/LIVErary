@@ -149,24 +149,6 @@ public class RoomController {
     }
 
     /**
-     * 새로운 방 예약 (RoomReservation)을 생성합니다.
-     *
-     * @param user Spring Security를 통해 인증된 사용자 정보
-     * @param request 예약 방 생성 요청 정보가 담긴 DTO (startAt, endAt 필수)
-     * @return 생성된 방의 식별자와 초대 코드를 포함한 성공 응답 객체 (BaseResponse)
-     */
-    @PostMapping("/reservation")
-    public BaseResponse<CreateReservationResponse> createReservation(
-            @AuthenticationPrincipal UserDetails user,
-            @Valid @RequestBody CreateReservationRequest request
-    ) {
-        UUID userId = getUserId(user);
-        CreateReservationResponse response = roomService.createReservation(userId, request);
-
-        return BaseResponse.success(response);
-    }
-
-    /**
      * 예약 방 정보를 수정합니다.
      *
      * @param user Spring Security를 통해 인증된 사용자 정보
