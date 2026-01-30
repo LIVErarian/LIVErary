@@ -43,7 +43,8 @@ public enum ErrorCode {
     INVALID_UUID_FORMAT(HttpStatus.BAD_REQUEST, "A012", "유효한 UUID 형식이 아닙니다" ),
 
     CANNOT_FRIEND_SELF(HttpStatus.BAD_REQUEST, "F001", "자기 자신에게 친구 요청을 보낼 수 없습니다."),
-
+    USER_BLOCKED(HttpStatus.BAD_REQUEST, "F007", "차단된 사용자입니다."),
+    CANNOT_BLOCK_SELF(HttpStatus.BAD_REQUEST, "F008", "자기 자신을 차단할 수 없습니다."),
 
     // 401 UNAUTHORIZED: 인증 실패
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증에 실패했습니다."),

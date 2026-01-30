@@ -1,6 +1,7 @@
 package com.liverary.backend.friend.repository;
 
 import com.liverary.backend.friend.domain.Friend;
+import com.liverary.backend.friend.domain.FriendStatus;
 import com.liverary.backend.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,6 +12,8 @@ import java.util.UUID;
  */
 public interface FriendRepository extends JpaRepository<Friend, UUID> {
 
-    boolean existsBySenderAndReceiver(User sender, User receiver);
+    Friend findBySenderAndReceiver(User sender, User receiver);
+
+    boolean existsBySenderAndReceiverAndStatus(User sender, User receiver, FriendStatus status);
 
 }

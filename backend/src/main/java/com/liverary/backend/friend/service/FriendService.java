@@ -3,6 +3,7 @@ package com.liverary.backend.friend.service;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.friend.domain.Friend;
+import com.liverary.backend.friend.domain.FriendStatus;
 import com.liverary.backend.friend.repository.FriendRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
@@ -43,10 +44,15 @@ public class FriendService {
             throw new BaseException(ErrorCode.CANNOT_FRIEND_SELF);
         }
 
+        // 상대방이 나를 차단했는지 확인
+        if (friendRepository.existsBySenderAndReceiverAndStatus(receiver, sender, FriendStatus.BLOCKED)) {
+            throw new BaseException(ErrorCode.USER_BLOCKED);
+        }
+
         // 이미 친구 요청이 존재하거나 친구 상태인지 확인
         // A->B 요청뿐만 아니라 B->A 요청도 체크
-        if (friendRepository.existsBySenderAndReceiver(sender, receiver) ||
-                friendRepository.existsBySenderAndReceiver(receiver, sender)) {
+        if (friendRepository.findBySenderAndReceiver(sender, receiver) != null ||
+                friendRepository.findBySenderAndReceiver(receiver, sender) != null) {
             throw new BaseException(ErrorCode.ALREADY_FRIEND_REQUEST);
         }
 
@@ -66,6 +72,8 @@ public class FriendService {
      */
     @Transactional
     public void acceptFriendRequest(UUID friendId, UUID userId) {
+
+        // 친구 요청 존재 여부 조회
         Friend friend = friendRepository.findById(friendId)
                 .orElseThrow(() -> new BaseException(ErrorCode.FRIEND_REQUEST_NOT_FOUND));
 
@@ -86,7 +94,8 @@ public class FriendService {
      */
     @Transactional
     public void rejectFriendRequest(UUID friendId, UUID userId) {
-        //
+
+        // 친구 요청 존재 여부 조회
         Friend friend = friendRepository.findById(friendId)
                 .orElseThrow(() -> new BaseException(ErrorCode.FRIEND_REQUEST_NOT_FOUND));
 
@@ -95,8 +104,46 @@ public class FriendService {
             throw new BaseException(ErrorCode.NOT_FRIEND_RECEIVER);
         }
 
-        // 요청 상태 거절로 변경
-        friend.reject();
+        //  DB에서 즉시 삭제 -> 사용자가 재신청할 수 있도록 하기 위함
+        friendRepository.delete(friend);
+    }
+
+    @Transactional
+    public void blockUser(UUID userId, String blockUserEmail) {
+
+        // 차단 하는 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 차단 당하는 사용자 조회
+        User blockUser = userRepository.findByEmail(blockUserEmail)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 본인 차단은 불가능
+        if (user.equals(blockUser)) {
+            throw new BaseException(ErrorCode.CANNOT_BLOCK_SELF);
+        }
+
+        // user -> blockUser 관계 있는지 조회
+        Friend relation = friendRepository.findBySenderAndReceiver(user, blockUser);
+
+        // user -> blockUser 관계가 없다면 blockUser -> user 관계 있는지 조회
+        if (relation == null) {
+            relation = friendRepository.findBySenderAndReceiver(blockUser, user);
+        }
+
+        // 관계가 존재한다면 상태를 차단으로 변경
+        if (relation != null) {
+            relation.block(user, blockUser);
+        } else {
+            Friend newBlock = Friend.builder()
+                    .sender(user)
+                    .receiver(blockUser)
+                    .status(FriendStatus.BLOCKED)
+                    .build();
+
+            friendRepository.save(newBlock);
+        }
     }
 
 }

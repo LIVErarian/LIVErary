@@ -5,8 +5,8 @@ import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.friend.dto.request.FriendRequest;
 import com.liverary.backend.friend.service.FriendService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +43,7 @@ public class FriendController {
     @PostMapping("/request")
     public BaseResponse<Void> sendFriendRequest(
             @AuthenticationPrincipal UserDetails user,
-            @RequestBody FriendRequest request) {
+            @Valid @RequestBody FriendRequest request) {
 
         UUID userId = getUserId(user);
 
@@ -78,7 +78,7 @@ public class FriendController {
      * @param friendId 친구 요청(관계)의 식별자
      * @return 성공 응답
      */
-    @PatchMapping("/{friendId}/reject")
+    @DeleteMapping("/{friendId}/reject")
     public BaseResponse<Void> rejectFriendRequest(
             @PathVariable UUID friendId,
             @AuthenticationPrincipal UserDetails user) {
@@ -86,6 +86,18 @@ public class FriendController {
         UUID userId = getUserId(user);
 
         friendService.rejectFriendRequest(friendId, userId);
+
+        return BaseResponse.success();
+    }
+
+    @PostMapping("/block")
+    public BaseResponse<Void> blockUser(
+            @AuthenticationPrincipal UserDetails user,
+            @Valid @RequestBody FriendRequest request) {
+
+        UUID userId = getUserId(user);
+
+        friendService.blockUser(userId, request.getReceiverEmail());
 
         return BaseResponse.success();
     }
