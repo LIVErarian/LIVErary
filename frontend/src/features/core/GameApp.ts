@@ -110,6 +110,22 @@ export class GameApp {
     this._worldHeight = mapConfig.height ?? this.DEFAULT_HEIGHT;
     this._currentFloorId = mapConfig.floorId;
 
+    // 플레이어 위치 및 방향 초기화
+    if (this._player) {
+      if (floor === 'myRoom') {
+        this._player.x = this._worldWidth / 2;
+        this._player.y = this._worldHeight / 2;
+      } else if (floor === 'bookConcert') {
+        this._player.x = this._worldWidth / 2;
+        this._player.y = this._worldHeight;
+      } else {
+        this._player.x = this._worldWidth * 0.38;
+        this._player.y = this._worldHeight * 0.25;
+      }
+      this._lookingDirection = 'DOWN';
+      this._player.setAnimation('DOWN', false);
+    }
+
     const { subscribeMove, isConnected, sendEnter } = useSocketStore.getState();
 
     // 기존 데이터 정리 및 구독 해제
@@ -117,12 +133,12 @@ export class GameApp {
 
     // 내 방이 아니고 연결되어 있을 때만 구독
     if (floor !== 'myRoom' && isConnected) {
-      // [직렬화] 구독 시작 로그를 실제 로직 호출 직전에 남깁니다.
+      // 구독 시작 로그를 실제 로직 호출 직전에 남기기
       console.log(
         `[GameApp] ${floor}(${this._currentFloorId}) 구독 프로세스 시작`,
       );
 
-      // [직렬화] await를 사용하여 내부의 unsubscribe -> delay -> subscribe 순서를 보장합니다.
+      // await를 사용하여 순서 보장
       await subscribeMove(this._currentFloorId, (moves) => {
         this.updateOtherPlayers(moves);
       });
@@ -169,6 +185,7 @@ export class GameApp {
       this._viewport.moveCenter(this._worldWidth / 2, this._worldHeight / 2);
     } else {
       if (this._player) {
+        this._viewport.moveCenter(this._player.x, this._player.y);
         this._viewport.follow(this._player);
       } else {
         this._viewport.moveCenter(this._worldWidth / 2, this._worldHeight / 2);
