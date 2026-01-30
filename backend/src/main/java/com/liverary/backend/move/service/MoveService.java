@@ -96,7 +96,7 @@ public class MoveService {
 
             // 현재 위치 사용 (저장하지 않음)
             batch.add(MoveBroadcast.of(userId, request.getFloorId(), request.getX(),
-                    request.getY(), request.getDirection(), lastEvent.serverTs()));
+                    request.getY(), request.getDirection(), lastEvent.serverTs(), request.getIsMoving()));
         });
         return batch;
     }
