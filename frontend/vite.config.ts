@@ -1,24 +1,27 @@
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), vanillaExtractPlugin()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://i14a307.p.ssafy.io:8080',
-        changeOrigin: true,
-        secure: false,
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+
+  return {
+    plugins: [react(), vanillaExtractPlugin()],
+    server: {
+      proxy: {
+        '/api': {
+          target: env.VITE_API_TARGET_URL,
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
-  },
-  resolve: {
-    alias: {
-      // @를 src 폴더의 절대 경로로 매핑
-      '@': path.resolve(__dirname, './src'),
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
     },
-  },
+  };
 });
