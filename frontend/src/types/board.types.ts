@@ -27,8 +27,8 @@ export interface PageResponse<T> {
     empty: boolean;
 }
 
-// 게시글 목록 아이템
-export interface BoardListItem {
+// 게시글 기본 데이터
+export interface BaseBoard {
     boardId: string; // UUID
     title: string;
     nickname: string;
@@ -37,16 +37,13 @@ export interface BoardListItem {
     createdAt: string;
 }
 
+// 게시글 목록 아이템
+export interface BoardListItem extends BaseBoard {}
+
 // 상세 조회 응답 데이터
-export interface BoardDetail {
-    boardId: string;
-    nickname: string;
-    title: string;
+export interface BoardDetail extends BaseBoard {
     content: string;
-    type: BoardType;
-    status: BoardStatus;
     imageUrl?: string;
-    createdAt: string;
     
     // 홍보 게시글 전용 필드 (Nullable)
     targetRoomId?: string;
