@@ -70,7 +70,7 @@ public class RoomController {
      * @param roomId  참여하려는 방의 고유 식별자 (URL Path)
      * @param user    Spring Security를 통해 인증된 사용자 객체
      * @param request 초대 코드를 포함한 요청 DTO (PRIVATE 방일 경우 필수)
-     * @return 방 참여 성공 시 생성된 참여 이력 ID(historyId)와 방 ID를 포함한 공통 응답 객체
+     * @return 방 참여 성공 시 방 ID를 포함한 공통 응답 객체
      */
     @PostMapping("/{roomId}/join")
     public BaseResponse<JoinRoomResponse> joinRoom(

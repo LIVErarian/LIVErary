@@ -395,7 +395,6 @@ public class RoomService {
         room.increaseCurrentCount();
 
         return JoinRoomResponse.builder()
-                .historyId(history.getHistoryId())
                 .roomId(room.getRoomId())
                 .build();
     }
