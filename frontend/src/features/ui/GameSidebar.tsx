@@ -35,7 +35,7 @@ export const GameSidebar = () => {
 
   const title = FLOOR_TITLES[currentFloor] || currentFloor;
 
-  // 마이크 버튼 클릭 롲기
+  // 마이크 버튼 클릭 로직
   const handleMicClick = () => {
     const nextState = !isMicOn;
     setIsMicOn(nextState);
