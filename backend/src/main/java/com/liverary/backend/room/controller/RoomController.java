@@ -195,14 +195,14 @@ public class RoomController {
      * @return 참여 신청 성공 메시지("참여 신청 완료")를 포함한 공통 응답 객체
      */
     @PostMapping("/reservation/{roomId}/apply")
-    public BaseResponse<String> applyReservation(
+    public BaseResponse<ApplyReservationResponse> applyReservation(
             @PathVariable UUID roomId,
             @AuthenticationPrincipal UserDetails user
     ) {
         UUID userId = getUserId(user);
-        roomService.applyReservation(userId, roomId);
+        ApplyReservationResponse response = roomService.applyReservation(userId, roomId);
 
-        return BaseResponse.success("참여 신청 완료");
+        return BaseResponse.success(response);
     }
 
     /**
