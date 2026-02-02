@@ -3,9 +3,9 @@ import type { CommonResponse } from './api.types';
 export type RoomType = 'READING' | 'TALK' | 'CONCERT';
 export type AccessType = 'PUBLIC' | 'PRIVATE';
 export type RoomStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED'; // LIVE가 default
-export type HistoryStatus = 'JOINED' | 'LEFT'; // 자동
 export type RoomRole = 'GUEST' | 'MANAGER' | 'AUTHOR'; // GUEST가 default
 
+// 기본 방 정보
 export interface ROOM_INFO {
   title: string;
   roomType: RoomType;
@@ -13,6 +13,7 @@ export interface ROOM_INFO {
   maxUser: number;
 }
 
+// 상세 정보
 export interface ROOM_DETAIL extends ROOM_INFO {
   roomId: string; // uuid
   status: RoomStatus;
@@ -22,27 +23,50 @@ export interface ROOM_DETAIL extends ROOM_INFO {
 
 // ======================= API =======================
 // 방 검색 요청
-export interface GetRoomRequest {
-  roomId: string; // uuid
+export interface GetRoomListRequest {
+  roomType?: RoomType;
+  keyword?: string;
+  page?: number;
+  size?: number;
+  sort?: string[];
 }
 
-// 방 검색 응답
-export interface GetRoomResponseData extends ROOM_DETAIL {
+// Pagination Wrapepr
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export type GetRoomListResponse = CommonResponse<PageResponse<ROOM_DETAIL>>;
+
+// 방 상세 검색 요청
+export interface GetRoomDetailRequest {
+  roomId: string;
+}
+
+// 방 상세 검색 응답
+export interface GetRoomDetailResponseData extends ROOM_DETAIL {
   bookTitle?: string;
   bookAuthor?: string;
   bookCoverUrl?: string;
 }
 
-// 방 검색 전체 응답
-export type GetRoomResponse = CommonResponse<GetRoomResponseData>;
+// 방 상세 검색 전체 응답
+export type GetRoomDetailResponse = CommonResponse<GetRoomDetailResponseData>;
 
 // 방 만들기 요청
 export interface CreateRoomRequest extends ROOM_INFO {
   status: RoomStatus;
   isbn?: string;
   categoryId: string; // uuid
-  startAt?: string; // status scheduled인 경우만
-  endAt?: string; // status scheduled인 경우만
+  startAt?: string; // status scheduled인 경우만 (ISO String)
+  endAt?: string; // status scheduled인 경우만 (ISO String)
 }
 
 // 방 만들기 응답
@@ -97,7 +121,7 @@ export type DeleteApplyScheduledResponse = CommonResponse<null>;
 
 // 방 예약 정보 수정 요청
 export interface PatchScheduledRoomRequest {
-  roomId?: string;
+  roomId?: string; // roomId만 path variable
   title?: string;
   maxUser?: number;
   startAt?: string;
@@ -113,7 +137,7 @@ export interface PatchScheduledRoomResponseData {
 }
 
 export type PatchScheduledRoomResponse =
-  CommonResponse<PatchScheduledRoomResponse>;
+  CommonResponse<PatchScheduledRoomResponseData>;
 
 // 예약된 방 취소 요청
 export interface DeleteScheduledRoomRequest {
@@ -129,4 +153,6 @@ export interface GetScheduledRoomResponseData {
   title: string;
 }
 
-export type GetScheduledRoomResponse = CommonResponse<GetRoomResponseData>;
+export type GetScheduledRoomResponse = CommonResponse<
+  GetScheduledRoomResponseData[]
+>;
