@@ -260,7 +260,7 @@ public class RoomService {
      * @throws BaseException 정원 초과(ROOM_FULL), 일정 중복(RESERVATION_CONFLICT) 등
      */
     @Transactional
-    public void applyReservation(UUID userId, UUID roomId) {
+    public ApplyReservationResponse applyReservation(UUID userId, UUID roomId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
 
@@ -298,6 +298,8 @@ public class RoomService {
                 .build();
 
         roomReservationRepository.save(reservation);
+
+        return ApplyReservationResponse.from(room);
     }
 
     /**
@@ -393,7 +395,6 @@ public class RoomService {
         room.increaseCurrentCount();
 
         return JoinRoomResponse.builder()
-                .historyId(history.getHistoryId())
                 .roomId(room.getRoomId())
                 .build();
     }
