@@ -1,4 +1,5 @@
 import { PixelButton } from '@/components/common/PixelButton';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 
@@ -17,6 +18,8 @@ const FLOOR_TITLES: Record<string, string> = {
 
 export const GameSidebar = () => {
   const { currentFloor, setCurrentFloor } = useGameStore();
+
+  const user = useAuthStore((state) => state.user);
   const openModal = useModalStore((state) => state.openModal);
 
   const title = FLOOR_TITLES[currentFloor] || currentFloor;
@@ -149,7 +152,7 @@ export const GameSidebar = () => {
           onClick={() => openModal('profile')}
         >
           <div className={styles.avatarCircle} />
-          <span className={styles.playerName}>Player</span>
+          <span className={styles.playerName}>{user?.nickname}</span>
         </button>
 
         {/* 미디어 컨트롤 */}
