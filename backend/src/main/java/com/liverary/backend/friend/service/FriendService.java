@@ -155,53 +155,58 @@ public class FriendService {
         }
     }
 
-    // 내 친구 목록 (ACCEPTED)
+    /**
+     * 내 친구 목록 (ACCEPTED)
+     *
+     * @param userId    조회 요청한 유저 식별자
+     * @param pageable  페이징 설정
+     * @return  DTO로 변환된 내 친구 목록 페이지
+     */
     public Page<FriendResponse> getAcceptedFriends(UUID userId, Pageable pageable) {
-
+        // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
+        // 친구 목록 리턴
         return friendRepository.findAllFriends(user, FriendStatus.ACCEPTED, pageable)
                 .map(friend -> {
-                    User targetUser = friend.getSender().getUserId().equals(userId) ? friend.getReceiver() : friend.getSender();
-                    return FriendResponse.builder()
-                            .friendId(friend.getFriendId())
-                            .email(targetUser.getEmail())
-                            .nickname(targetUser.getNickname())
-                            .build();
+                    User friendUser = friend.getSender().getUserId().equals(userId) ? friend.getReceiver() : friend.getSender();
+                    return FriendResponse.of(friend, friendUser);
                 });
     }
 
-    // 받은 요청 목록 (PENDING)
+    /**
+     * 받은 요청 목록 (PENDING)
+     *
+     * @param userId    조회 요청한 유저 식별자
+     * @param pageable  페이징 설정
+     * @return  DTO로 변환된 받은 요청 목록 페이지
+     */
     public Page<FriendResponse> getPendingRequests(UUID userId, Pageable pageable) {
+        // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
-        return friendRepository.findAllByReceiverAndStatus(user, FriendStatus.PENDING, pageable)
-                .map(friend -> {
-                         return FriendResponse.builder()
-                                 .friendId(friend.getFriendId())
-                                 .email(friend.getSender().getEmail())
-                                 .nickname(friend.getSender().getNickname())
-                                 .build();
-                     }
-                );
+        // 요청 목록 리턴
+        return friendRepository.findAllByReceiverAndStatusOrderByCreatedAtDesc(user, FriendStatus.PENDING, pageable)
+                .map(friend -> FriendResponse.of(friend, friend.getSender()));
     }
 
-    // 차단 목록 (BLOCKED)
+    /**
+     * 차단 목록 (BLOCKED)
+     *
+     * @param userId 조회 요청한 유저 식별자
+     * @param pageable 페이징 설정
+     * @return  DTO로 변환된 차단 목록 페이지
+     */
     public Page<FriendResponse> getBlockedFriends(UUID userId, Pageable pageable) {
+        // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
-        return friendRepository.findAllBySenderAndStatus(user, FriendStatus.BLOCKED, pageable)
-                .map(friend -> {
-                         return FriendResponse.builder()
-                                 .friendId(friend.getFriendId())
-                                 .email(friend.getReceiver().getEmail())
-                                 .nickname(friend.getReceiver().getNickname())
-                                 .build();
-                     }
-                    );
+        // 차단 목록 리턴
+        return friendRepository.findAllBySenderAndStatusOrderByUpdatedAtDesc(user, FriendStatus.BLOCKED, pageable)
+                .map(friend -> FriendResponse.of(friend, friend.getReceiver()));
     }
 
 }

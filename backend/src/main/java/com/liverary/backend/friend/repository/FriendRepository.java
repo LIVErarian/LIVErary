@@ -23,13 +23,13 @@ public interface FriendRepository extends JpaRepository<Friend, UUID> {
     boolean existsBySenderAndReceiverAndStatus(User sender, User receiver, FriendStatus status);
 
     // 내 친구 목록 조회
-    @Query("SELECT f FROM Friend f WHERE (f.sender = :user OR f.receiver = :user) AND f.status = :status")
+    @Query("SELECT f FROM Friend f WHERE (f.sender = :user OR f.receiver = :user) AND f.status = :status ORDER BY f.updatedAt DESC")
     Page<Friend> findAllFriends(@Param("user") User user, @Param("status") FriendStatus status, Pageable pageable);
 
     // 받은 요청 목록 조회
-    Page<Friend> findAllByReceiverAndStatus(User receiver, FriendStatus status, Pageable pageable);
+    Page<Friend> findAllByReceiverAndStatusOrderByCreatedAtDesc(User receiver, FriendStatus status, Pageable pageable);
 
     // 내가 차단한 사용자 목록 조회
-    Page<Friend> findAllBySenderAndStatus(User sender, FriendStatus status, Pageable pageable);
+    Page<Friend> findAllBySenderAndStatusOrderByUpdatedAtDesc(User sender, FriendStatus status, Pageable pageable);
 
 }
