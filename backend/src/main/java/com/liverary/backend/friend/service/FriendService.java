@@ -251,18 +251,20 @@ public class FriendService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
+        // 이메일로 다른 사용자 존재 조회
         User otherUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
-        // 나를 차단했거나 내가 차단한 경우 -> 검색 결과 없음 처리
+        // 관계 정보 조회
         Friend relation = friendRepository.findRelation(user, otherUser).orElse(null);
 
+        // 나를 차단했거나 내가 차단한 경우 -> 검색 결과 없음 처리
         if (relation != null && relation.getStatus() == FriendStatus.BLOCKED) {
             throw new BaseException(ErrorCode.USER_NOT_FOUND);
         }
 
-        // 관계 상태 추출 (null이면 아무 관계 없음 -> 신청 버튼 활성화)
-        FriendStatus status = (relation != null) ? relation.getStatus() : null;
+        // 관계 상태 결정
+        String status = (relation != null) ? relation.getRelationStatus(userId) : "NONE";
 
         return UserSearchResponse.of(otherUser, status);
     }

@@ -7,7 +7,6 @@ import com.liverary.backend.category.repository.CategoryRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.friend.domain.Friend;
-import com.liverary.backend.friend.domain.FriendStatus;
 import com.liverary.backend.friend.repository.FriendRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.domain.UserPreference;
@@ -256,44 +255,9 @@ public class UserService {
         Friend relation = friendRepository.findRelation(user, otherUser).orElse(null);
         
         // 관계 상태 결정
-        String status = determineRelationStatus(relation, userId);
+        String status = (relation != null) ? relation.getRelationStatus(userId) : "NONE";
 
         return OtherProfileResponse.of(otherUser, wish, reading, completed, status);
-    }
-
-    /**
-     * 관계 상태 설정
-     *
-     * @param relation  관계 객체
-     * @param userId    사용자 UUID
-     * @return  관계 상태
-     */
-    private String determineRelationStatus(Friend relation, UUID userId) {
-        // 관계 없음
-        if (relation == null) {
-            return "NONE";
-        }
-
-        FriendStatus status = relation.getStatus();
-        boolean isMeSender = relation.getSender().getUserId().equals(userId);
-
-        // 수락된 친구 관계
-        if (status == FriendStatus.ACCEPTED) {
-            return "FRIEND";
-        }
-
-        // [대기 중] vs [수락/거절]
-        if (status == FriendStatus.PENDING) {
-            return isMeSender ? "PENDING_SENT" : "PENDING_RECEIVED";
-        }
-
-        if (status == FriendStatus.BLOCKED) {
-            // 내가 차단한 경우에만 차단 상태 전달, 상대가 나를 차단했으면 NONE으로 은폐
-            return isMeSender ? "BLOCKED_BY_ME" : "NONE";
-        }
-
-        // 아무 관계 없음
-        return "NONE";
     }
 
 }

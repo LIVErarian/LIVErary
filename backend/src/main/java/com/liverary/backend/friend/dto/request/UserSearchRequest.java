@@ -4,8 +4,13 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+/**
+ * 다른 사용자 검색 요청을 위한 DTO
+ */
 @Getter
+@Setter
 @NoArgsConstructor
 public class UserSearchRequest {
 
