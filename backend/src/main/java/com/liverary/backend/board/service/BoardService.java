@@ -8,6 +8,7 @@ import com.liverary.backend.board.dto.request.BoardUpdateRequest;
 import com.liverary.backend.board.dto.response.BoardCreateResponse;
 import com.liverary.backend.board.dto.response.BoardDetailResponse;
 import com.liverary.backend.board.dto.response.BoardListResponse;
+import com.liverary.backend.board.dto.response.BoardUpdateResponse;
 import com.liverary.backend.board.repository.BoardRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
@@ -113,11 +114,11 @@ public class BoardService {
      * @param userId  수정을 요청한 사용자의 ID
      * @param boardId 수정할 게시글의 ID
      * @param request 수정할 내용이 담긴 DTO
-     * @return 수정된 게시글 상세 응답 DTO
+     * @return 수정된 게시글 응답 DTO
      * @throws BaseException 게시글이 없거나(404), 작성자가 아닌 경우(403)
      */
     @Transactional
-    public BoardDetailResponse updateBoard(UUID userId, UUID boardId, BoardUpdateRequest request) {
+    public BoardUpdateResponse updateBoard(UUID userId, UUID boardId, BoardUpdateRequest request) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new BaseException(ErrorCode.BOARD_NOT_FOUND));
 
@@ -134,7 +135,7 @@ public class BoardService {
                 request.getRoomId(), request.getCategoryName(), request.getBookTitle(),
                 request.getBookAuthor(), request.getBookCoverUrl());
 
-        return BoardDetailResponse.from(board);
+        return BoardUpdateResponse.from(board);
     }
 
     /**
