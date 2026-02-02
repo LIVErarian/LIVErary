@@ -89,6 +89,7 @@ public enum ErrorCode {
     FRIEND_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "F004", "존재하지 않거나 이미 처리된 친구 요청입니다."),
     FRIEND_RELATION_NOT_FOUND(HttpStatus.NOT_FOUND, "F006", "친구 관계 정보를 찾을 수 없습니다."),
 
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "N001", "알림을 찾을 수 없습니다."),
 
     // 409 CONFLICT: 중복된 리소스
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "C004", "이미 존재하는 데이터입니다."),

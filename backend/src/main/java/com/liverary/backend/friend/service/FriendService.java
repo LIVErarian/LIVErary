@@ -7,6 +7,8 @@ import com.liverary.backend.friend.domain.FriendStatus;
 import com.liverary.backend.friend.dto.response.FriendResponse;
 import com.liverary.backend.friend.dto.response.UserSearchResponse;
 import com.liverary.backend.friend.repository.FriendRepository;
+import com.liverary.backend.notification.domain.NotificationType;
+import com.liverary.backend.notification.service.NotificationService;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,8 @@ public class FriendService {
 
     private final FriendRepository friendRepository;
     private final UserRepository userRepository;
+
+    private final NotificationService notificationService;
 
     /**
      * 친구 요청 보내기
@@ -66,7 +70,15 @@ public class FriendService {
                 .build();
 
         friendRepository.save(friend);
+
+        // 친구 요청 알림 발송: 친구 요청을 받은 사람에게 알림 전달
+        notificationService.send(
+                receiver,
+                NotificationType.FRIEND_REQUEST,
+                sender.getNickname()+"님이 친구 요청을 보냈습니다.",
+                "/friends/requests"); // 프론트 상의 후 url 수정
     }
+
 
     /**
      * 친구 요청 수락
