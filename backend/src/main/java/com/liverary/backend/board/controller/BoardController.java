@@ -6,6 +6,7 @@ import com.liverary.backend.board.dto.request.BoardUpdateRequest;
 import com.liverary.backend.board.dto.response.BoardCreateResponse;
 import com.liverary.backend.board.dto.response.BoardDetailResponse;
 import com.liverary.backend.board.dto.response.BoardListResponse;
+import com.liverary.backend.board.dto.response.BoardUpdateResponse;
 import com.liverary.backend.board.service.BoardService;
 import com.liverary.backend.common.dto.BaseResponse;
 import com.liverary.backend.exception.BaseException;
@@ -102,14 +103,14 @@ public class BoardController {
      * @return 수정된 게시글의 상세 정보가 포함된 공통 응답 객체
      */
     @PatchMapping("/{boardId}")
-    public BaseResponse<BoardDetailResponse> updateBoard(
+    public BaseResponse<BoardUpdateResponse> updateBoard(
             @AuthenticationPrincipal UserDetails user,
             @PathVariable UUID boardId,
             @RequestBody @Valid BoardUpdateRequest dto
     ) {
         UUID userId = getUserId(user);
 
-        BoardDetailResponse response = boardService.updateBoard(userId, boardId, dto);
+        BoardUpdateResponse response = boardService.updateBoard(userId, boardId, dto);
         return BaseResponse.success(response);
     }
 
