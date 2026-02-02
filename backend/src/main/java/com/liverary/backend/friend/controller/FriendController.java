@@ -5,7 +5,9 @@ import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.friend.dto.request.BlockRequest;
 import com.liverary.backend.friend.dto.request.FriendRequest;
+import com.liverary.backend.friend.dto.request.UserSearchRequest;
 import com.liverary.backend.friend.dto.response.FriendResponse;
+import com.liverary.backend.friend.dto.response.UserSearchResponse;
 import com.liverary.backend.friend.service.FriendService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -188,6 +190,25 @@ public class FriendController {
         Page<FriendResponse> responses = friendService.getBlockedFriends(userId, pageable);
 
         return BaseResponse.success(responses);
+    }
+
+    /**
+     * 이메일로 다른 사용자 조회
+     *
+     * @param user  인증된 사용자 정보
+     * @param request   검색할 사용자의 이메일 정보가 담긴 요청 객체
+     * @return  검색된 사용자의 정보가 담긴 객체
+     */
+    @GetMapping("/search")
+    public BaseResponse<UserSearchResponse> searchFriend(
+            @AuthenticationPrincipal UserDetails user,
+            @Valid @ModelAttribute UserSearchRequest request) {
+
+        UUID userId = getUserId(user);
+
+        UserSearchResponse response = friendService.searchUserByEmail(userId, request.getEmail());
+
+        return BaseResponse.success(response);
     }
 
 }
