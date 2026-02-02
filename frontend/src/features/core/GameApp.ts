@@ -337,8 +337,7 @@ export class GameApp {
       // 없으면 생성
       if (!otherPlayer) {
         const sheetTexture = Assets.get('playerSheet');
-        // 닉네임이 없으면 userId로 표시
-        otherPlayer = new Player(data.x, data.y, data.userId, sheetTexture);
+        otherPlayer = new Player(data.x, data.y, data.nickname, sheetTexture);
         this._viewport.addChild(otherPlayer);
         this._otherPlayers.set(data.userId, otherPlayer);
       }

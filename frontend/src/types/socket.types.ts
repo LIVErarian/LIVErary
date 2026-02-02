@@ -27,6 +27,7 @@ export interface MoveExitRequest {
 // 200ms마다 전체 사용자 위치 전송
 export interface MoveBroadcast extends BasePosition {
   userId: string;
+  nickname: string;
   isMoving: boolean;
   serverTs: number;
 }
