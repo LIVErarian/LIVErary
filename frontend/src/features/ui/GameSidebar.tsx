@@ -54,7 +54,7 @@ export const GameSidebar = () => {
         variant="beige"
         shape="square"
         size="lg"
-        onClick={() => openModal('board')}
+        onClick={() => openModal('boardList')}
       >
         📋
       </PixelButton>
@@ -127,7 +127,7 @@ export const GameSidebar = () => {
         variant="beige"
         shape="square"
         size="lg"
-        onClick={() => openModal('board')}
+        onClick={() => openModal('boardList')}
         title="게시판"
       >
         📋

@@ -4,7 +4,10 @@ export type ModalType =
   | 'settings'
   | 'profile'
   | 'elevator'
-  | 'board'
+  | 'boardList'
+  | 'boardDetail'
+  | 'boardCreate'
+  | 'boardUpdate'
   | 'logout'
   | 'roomlist'
   | 'move'
@@ -16,6 +19,7 @@ interface ModalProps {
   title?: string;
   message?: string;
   onConfirm?: () => void;
+  boardId?: string;
 }
 
 interface ModalState {
