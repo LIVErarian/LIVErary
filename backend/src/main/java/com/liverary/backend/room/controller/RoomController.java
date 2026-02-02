@@ -98,10 +98,10 @@ public class RoomController {
      *
      * @param roomId 퇴장하려는 방의 고유 식별자 (URL Path)
      * @param user   Spring Security를 통해 인증된 사용자 객체
-     * @return 퇴장 처리 성공 메시지("퇴장 완료")를 포함한 공통 응답 객체
+     * @return {data: null} 인 공통 응답 객체
      */
     @PostMapping("/{roomId}/leave")
-    public BaseResponse<String> leaveRoom(
+    public BaseResponse<Void> leaveRoom(
             @PathVariable UUID roomId,
             @AuthenticationPrincipal UserDetails user
     ) {
@@ -109,7 +109,7 @@ public class RoomController {
 
         roomService.leaveRoom(roomId, userId);
 
-        return BaseResponse.success("퇴장 완료");
+        return BaseResponse.success(null);
     }
 
     /**
@@ -174,17 +174,17 @@ public class RoomController {
      *
      * @param roomId 예약 취소할 방의 고유 식별자 (URL Path)
      * @param user Spring Security를 통해 인증된 사용자 정보
-     * @return 예약 취소 성공 메시지("예약 취소 완료")를 포함한 공통 응답 객체
+     * @return {data: null} 인 공통 응답 객체
      */
     @DeleteMapping("/reservation/{roomId}")
-    public BaseResponse<String> deleteReservation(
+    public BaseResponse<Void> deleteReservation(
             @PathVariable UUID roomId,
             @AuthenticationPrincipal UserDetails user
     ) {
         UUID userId = getUserId(user);
         roomService.deleteReservation(userId, roomId);
 
-        return BaseResponse.success("예약 취소 완료");
+        return BaseResponse.success(null);
     }
 
     /**
@@ -192,7 +192,7 @@ public class RoomController {
      *
      * @param roomId 참여 신청할 방의 고유 식별자 (URL Path)
      * @param user Spring Security를 통해 인증된 사용자 정보
-     * @return 참여 신청 성공 메시지("참여 신청 완료")를 포함한 공통 응답 객체
+     * @return 참여 코드를 포함한 공통 응답 객체
      */
     @PostMapping("/reservation/{roomId}/apply")
     public BaseResponse<ApplyReservationResponse> applyReservation(
@@ -210,16 +210,16 @@ public class RoomController {
      *
      * @param roomId 참여 신청을 취소할 방의 고유 식별자 (URL Path)
      * @param user Spring Security를 통해 인증된 사용자 정보
-     * @return 참여 신청 성공 메시지("신청 취소 완료")를 포함한 공통 응답 객체
+     * @return {data: null} 인 공통 응답 객체
      */
     @DeleteMapping("/reservation/{roomId}/apply")
-    public BaseResponse<String> cancelReservation(
+    public BaseResponse<Void> cancelReservation(
             @PathVariable UUID roomId,
             @AuthenticationPrincipal UserDetails user
     ) {
         UUID userId = getUserId(user);
         roomService.cancelReservation(userId, roomId);
 
-        return BaseResponse.success("신청 취소 완료");
+        return BaseResponse.success(null);
     }
 }
