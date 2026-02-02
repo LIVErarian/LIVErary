@@ -156,6 +156,34 @@ public class FriendService {
     }
 
     /**
+     * 사용자 차단 해제 -> 아무 관계도 아닌 상태로 전환
+     *
+     * @param userId        차단 해제 요청한 유저 식별자
+     * @param unblockEmail  차단 해제할 사용자 이메일
+     */
+    @Transactional
+    public void unblockUser(UUID userId, String unblockEmail) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 차단 해제할 사용자 조회
+        User unblockUser = userRepository.findByEmail(unblockEmail)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 내가 차단한 기록이 있는지 확인 (차단 시 내가 sender)
+        Friend relation = friendRepository.findBySenderAndReceiver(user, unblockUser);
+
+        // 차단 기록이 없거나 상태가 BLOCKED가 아닌 경우 예외 처리
+        if (relation == null || relation.getStatus() != FriendStatus.BLOCKED) {
+            throw new BaseException(ErrorCode.FRIEND_REQUEST_NOT_FOUND);
+        }
+
+        // DB에서 삭제하여 관계 초기화
+        friendRepository.delete(relation);
+    }
+
+    /**
      * 내 친구 목록 (ACCEPTED)
      *
      * @param userId    조회 요청한 유저 식별자
