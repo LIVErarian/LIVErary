@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Room 도메인의 비즈니스 로직을 처리하는 서비스 클래스입니다.
@@ -563,4 +564,23 @@ public class RoomService {
             log.info("Auto-closed finished room: {}", room.getRoomId());
         }
     }
+
+    /**
+     * 사용자가 참여 신청한 방의 목록을 조회합니다.
+     *
+     * @param userId 사용자의 고유 식별자 (UUID)
+     * @return 참여 신청한 방의 목록
+     */
+    @Transactional(readOnly = true)
+    public List<MyReservationResponse> getMyReservation(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        List<RoomReservation> reservations = roomReservationRepository.findAllByUser(user);
+
+        return reservations.stream()
+                .map(reservation -> MyReservationResponse.from(reservation.getRoom()))
+                .collect(Collectors.toList());
+    }
+
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,4 +52,8 @@ public interface RoomReservationRepository extends JpaRepository<RoomReservation
 
     // 특정 방의 모든 예약 내역 삭제
     void deleteAllByRoom(Room room);
+
+    // 내 예약 목록 조회
+    @Query("SELECT rr FROM RoomReservation rr JOIN FETCH rr.room r WHERE r.endAt > CURRENT_TIMESTAMP AND rr.user = :user ORDER BY r.startAt DESC")
+    List<RoomReservation> findAllByUser(@Param("user") User user);
 }
