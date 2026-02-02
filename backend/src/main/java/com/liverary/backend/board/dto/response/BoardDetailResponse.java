@@ -3,6 +3,7 @@ package com.liverary.backend.board.dto.response;
 import com.liverary.backend.board.domain.Board;
 import com.liverary.backend.board.domain.Status;
 import com.liverary.backend.board.domain.Type;
+import com.liverary.backend.room.domain.Room;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -22,16 +23,26 @@ public class BoardDetailResponse {
     private String content;
     private Type type;
     private Status status;
-    private String imageUrl;
     private LocalDateTime createdAt;
 
-    // PROMOTION 게시판이 아닐 경우 값이 없을 수 있음
-    private UUID targetRoomId;
-    private String categoryName;
-    private String bookTitle;
-    private String bookAuthor;
-    private String bookCoverUrl;
+    private RoomDetailInfo roomDetail;
 
+    // PROMOTION 게시판이 아닐 경우 값이 없을 수 있음
+    @Getter
+    @Builder
+    public static class RoomDetailInfo {
+        private UUID roomId;
+        private String title;
+        private String category;
+        private Integer currentMembers;
+        private Integer maxMembers;
+        private LocalDateTime startTime;
+        private LocalDateTime endTime;
+
+        private String bookTitle;
+        private String bookAuthor;
+        private String bookCoverUrl;
+    }
 
     /**
      * Board 엔티티를 BoardDetailResponse DTO로 변환
@@ -39,21 +50,40 @@ public class BoardDetailResponse {
      * @param board 변환할 Board 엔티티
      * @return 변환된 상세 응답 DTO
      */
-    public static BoardDetailResponse from(Board board) {
-        return BoardDetailResponse.builder()
+    public static BoardDetailResponse from(Board board, Room room, Integer currentCount) {
+
+        var builder = BoardDetailResponse.builder()
                 .boardId(board.getBoardId())
                 .nickname(board.getUser().getNickname())
                 .title(board.getTitle())
                 .content(board.getContent())
                 .type(board.getType())
                 .status(board.getStatus())
-                .imageUrl(board.getImageUrl())
-                .createdAt(board.getCreatedAt())
-                .targetRoomId(board.getTargetRoomId())
-                .categoryName(board.getCategoryName())
-                .bookTitle(board.getBookTitle())
-                .bookAuthor(board.getBookAuthor())
-                .bookCoverUrl(board.getBookCoverUrl())
-                .build();
+                .createdAt(board.getCreatedAt());
+
+        if (board.getType() == Type.PROMOTION) {
+
+            var roomBuilder = RoomDetailInfo.builder();
+
+            if (room != null) {
+                roomBuilder.roomId(room.getRoomId())
+                        .title(room.getTitle())
+                        .category(board.getCategoryName())
+                        .currentMembers(currentCount)
+                        .maxMembers(room.getMaxUser())
+                        .startTime(room.getStartAt())
+                        .endTime(room.getEndAt());
+            }
+
+            if (board.getBookTitle() != null) {
+                roomBuilder.bookTitle(board.getBookTitle())
+                        .bookAuthor(board.getBookAuthor())
+                        .bookCoverUrl(board.getBookCoverUrl());
+            }
+
+            builder.roomDetail(roomBuilder.build());
+        }
+
+        return builder.build();
     }
 }
