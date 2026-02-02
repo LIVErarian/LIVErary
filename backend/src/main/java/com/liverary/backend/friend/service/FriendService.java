@@ -5,6 +5,7 @@ import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.friend.domain.Friend;
 import com.liverary.backend.friend.domain.FriendStatus;
 import com.liverary.backend.friend.dto.response.FriendResponse;
+import com.liverary.backend.friend.dto.response.UserSearchResponse;
 import com.liverary.backend.friend.repository.FriendRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
@@ -49,7 +50,7 @@ public class FriendService {
 
         // 상대방이 나를 차단했는지 확인
         if (friendRepository.existsBySenderAndReceiverAndStatus(receiver, sender, FriendStatus.BLOCKED)) {
-            throw new BaseException(ErrorCode.USER_BLOCKED);
+            return;
         }
 
         // 이미 친구 요청이 존재하거나 친구 상태인지 확인
@@ -235,6 +236,37 @@ public class FriendService {
         // 차단 목록 리턴
         return friendRepository.findAllBySenderAndStatusOrderByUpdatedAtDesc(user, FriendStatus.BLOCKED, pageable)
                 .map(friend -> FriendResponse.of(friend, friend.getReceiver()));
+    }
+
+    /**
+     * 다른 사용자 검색
+     *
+     * @param userId    검색 요청한 유저 식별자
+     * @param email     검색할 유저 이메일
+     * @return  DTO로 변환된 검색한 유저 정보
+     */
+    @Transactional(readOnly = true)
+    public UserSearchResponse searchUserByEmail(UUID userId, String email) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 이메일로 다른 사용자 존재 조회
+        User otherUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 관계 정보 조회
+        Friend relation = friendRepository.findRelation(user, otherUser).orElse(null);
+
+        // 나를 차단했거나 내가 차단한 경우 -> 검색 결과 없음 처리
+        if (relation != null && relation.getStatus() == FriendStatus.BLOCKED) {
+            throw new BaseException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 관계 상태 결정
+        String status = (relation != null) ? relation.getRelationStatus(userId) : "NONE";
+
+        return UserSearchResponse.of(otherUser, status);
     }
 
 }

@@ -8,6 +8,7 @@ import com.liverary.backend.user.dto.request.UserPreferenceCreateRequest;
 import com.liverary.backend.user.dto.request.UserPreferenceUpdateRequest;
 import com.liverary.backend.user.dto.request.UserUpdateRequest;
 import com.liverary.backend.user.dto.response.BookSummary;
+import com.liverary.backend.user.dto.response.OtherProfileResponse;
 import com.liverary.backend.user.dto.response.ProfileResponse;
 import com.liverary.backend.user.dto.response.UserPreferenceResponse;
 import com.liverary.backend.user.service.UserService;
@@ -147,6 +148,25 @@ public class UserController {
         UUID userId = getUserId(user);
 
         UserPreferenceResponse response = userService.getUserPreferences(userId);
+
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 타인 프로필 조회
+     *
+     * @param user 인증된 사용자 정보
+     * @param otherId 조회할 사용자 UUID
+     * @return 타인 프로필 정보를 담은 응답 객체
+     */
+    @GetMapping("/{otherId}/profile")
+    public BaseResponse<OtherProfileResponse> getOtherProfile(
+            @AuthenticationPrincipal UserDetails user,
+            @PathVariable UUID otherId) {
+
+        UUID userId = getUserId(user);
+
+        OtherProfileResponse response = userService.getOtherProfile(userId, otherId);
 
         return BaseResponse.success(response);
     }

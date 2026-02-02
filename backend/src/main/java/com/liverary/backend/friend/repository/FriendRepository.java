@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -16,8 +17,14 @@ import java.util.UUID;
  */
 public interface FriendRepository extends JpaRepository<Friend, UUID> {
 
-    // 존재하는 친구 관계 객체 조회
+    // 존재하는 친구 관계 객체 조회 (단방향)
     Friend findBySenderAndReceiver(User sender, User receiver);
+
+    // 존재하는 친구 관계 객체 조회 (양방향)
+    @Query("SELECT f FROM Friend f WHERE " +
+            "(f.sender = :userA AND f.receiver = :userB) OR " +
+            "(f.sender = :userB AND f.receiver = :userA)")
+    Optional<Friend> findRelation(@Param("userA") User userA, @Param("userB") User userB);
 
     // 해당 상태의 관계가 존재하는지 확인
     boolean existsBySenderAndReceiverAndStatus(User sender, User receiver, FriendStatus status);

@@ -79,4 +79,38 @@ public class Friend {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /**
+     * 관계 상태 설정
+     *
+     * @param userId 조회 요청 사용자
+     * @return  관계 상태
+     */
+    public String getRelationStatus(UUID userId) {
+        // 관계 없음
+        if (this.status == null) {
+            return "NONE";
+        }
+
+        boolean isSender = this.sender.getUserId().equals(userId);
+
+        // 수락된 상태인 경우
+        if (this.status == FriendStatus.ACCEPTED) {
+            return "FRIEND";
+        }
+
+        // 대기 중인 상태인 경우
+        if (this.status == FriendStatus.PENDING) {
+            return isSender ? "PENDING_SENT" : "PENDING_RECEIVED";
+        }
+
+        // 차단된 상태인 경우
+        if (this.status == FriendStatus.BLOCKED) {
+            // 내가 차단한 경우에만 차단 상태 전달, 상대가 나를 차단했으면 NONE으로 은폐
+            return isSender ? "BLOCKED_BY_ME" : "NONE";
+        }
+
+        // 아무 관계 없음
+        return "NONE";
+    }
+
 }
