@@ -54,7 +54,7 @@ public class SecurityConfig {
                                 "/api/auth/**",
 
                                 // WebSocket 핸드셰이크 허용
-                                "/ws",
+                                "/wss",
 
                                 // Swagger 관련 api 허용
                                 "/v3/api-docs/**",
