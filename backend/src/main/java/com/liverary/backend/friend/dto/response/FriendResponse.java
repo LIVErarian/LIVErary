@@ -6,6 +6,8 @@ import com.liverary.backend.user.domain.User;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.UUID;
+
 /**
  * 친구 관계 정보와 상대방의 프로필 데이터를 담는 응답 객체
  */
@@ -13,7 +15,7 @@ import lombok.Getter;
 @Builder
 public class FriendResponse {
 
-    private java.util.UUID friendId;
+    private UUID friendId;
     private String email;
     private String nickname;
     private FriendStatus status;
