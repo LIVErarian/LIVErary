@@ -1,16 +1,19 @@
 package com.liverary.backend.user.service;
 
-import com.liverary.backend.book.repository.BookRepository;
 import com.liverary.backend.bookHistory.domain.BookStatus;
 import com.liverary.backend.bookHistory.repository.BookHistoryRepository;
 import com.liverary.backend.category.domain.Category;
 import com.liverary.backend.category.repository.CategoryRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.friend.domain.Friend;
+import com.liverary.backend.friend.domain.FriendStatus;
+import com.liverary.backend.friend.repository.FriendRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.domain.UserPreference;
 import com.liverary.backend.user.dto.request.UserUpdateRequest;
 import com.liverary.backend.user.dto.response.BookSummary;
+import com.liverary.backend.user.dto.response.OtherProfileResponse;
 import com.liverary.backend.user.dto.response.ProfileResponse;
 import com.liverary.backend.user.dto.response.UserPreferenceResponse;
 import com.liverary.backend.user.repository.UserPreferenceRepository;
@@ -36,6 +39,7 @@ public class UserService {
     private final UserPreferenceRepository userPreferenceRepository;
     private final BookHistoryRepository bookHistoryRepository;
     private final CategoryRepository categoryRepository;
+    private final FriendRepository friendRepository;
 
     /**
      * 사용자의 프로필 정보와 상태별 도서 활동 내역 조회
@@ -220,6 +224,76 @@ public class UserService {
         List<UserPreference> preferences = userPreferenceRepository.findByUser(user);
 
         return UserPreferenceResponse.from(preferences);
+    }
+
+    /**
+     * 타인 프로필 정보 조회
+     *
+     * @param userId    사용자 UUID
+     * @param otherId   프로필 조회할 타인 UUID
+     * @return 타인 프로필 정보가 담긴 응답 객체
+     */
+    public OtherProfileResponse getOtherProfile(UUID userId, UUID otherId) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 타인 조회
+        User otherUser = userRepository.findById(otherId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 도서 통계 계산
+        long wish = bookHistoryRepository.countByUserAndStatus(otherUser, BookStatus.WISH);
+        long reading = bookHistoryRepository.countByUserAndStatus(otherUser, BookStatus.READING);
+        long completed = bookHistoryRepository.countByUserAndStatus(otherUser, BookStatus.COMPLETED);
+
+        // 본인 캐릭터를 클릭한 경우
+        if (userId.equals(otherId)) {
+            return OtherProfileResponse.of(otherUser, wish, reading, completed, "MYSELF");
+        }
+
+        // 양방향 관계 조회
+        Friend relation = friendRepository.findRelation(user, otherUser).orElse(null);
+        
+        // 관계 상태 결정
+        String status = determineRelationStatus(relation, userId);
+
+        return OtherProfileResponse.of(otherUser, wish, reading, completed, status);
+    }
+
+    /**
+     * 관계 상태 설정
+     *
+     * @param relation  관계 객체
+     * @param userId    사용자 UUID
+     * @return  관계 상태
+     */
+    private String determineRelationStatus(Friend relation, UUID userId) {
+        // 관계 없음
+        if (relation == null) {
+            return "NONE";
+        }
+
+        FriendStatus status = relation.getStatus();
+        boolean isMeSender = relation.getSender().getUserId().equals(userId);
+
+        // 수락된 친구 관계
+        if (status == FriendStatus.ACCEPTED) {
+            return "FRIEND";
+        }
+
+        // [대기 중] vs [수락/거절]
+        if (status == FriendStatus.PENDING) {
+            return isMeSender ? "PENDING_SENT" : "PENDING_RECEIVED";
+        }
+
+        if (status == FriendStatus.BLOCKED) {
+            // 내가 차단한 경우에만 차단 상태 전달, 상대가 나를 차단했으면 NONE으로 은폐
+            return isMeSender ? "BLOCKED_BY_ME" : "NONE";
+        }
+
+        // 아무 관계 없음
+        return "NONE";
     }
 
 }
