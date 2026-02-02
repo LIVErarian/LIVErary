@@ -61,7 +61,7 @@ export const useCreateBoard = () => {
 
       // 작성된 글의 상세 모달로 즉시 전환
       if (data?.boardId) {
-        openModal('board_detail', { boardId: data.boardId });
+        openModal('boardDetail', { boardId: data.boardId });
       }
     },
     onError: (error) => {
@@ -93,7 +93,7 @@ export const useUpdateBoard = () => {
       const targetId = data?.boardId || variables.boardId;
       
       // 수정된 글의 상세 모달로 전환
-      openModal('board_detail', { boardId: targetId });
+      openModal('boardDetail', { boardId: targetId });
     },
     onError: (error) => {
       console.error('게시글 수정 실패:', error.response?.data?.message || error.message);
@@ -117,7 +117,7 @@ export const useDeleteBoard = () => {
       queryClient.invalidateQueries({ queryKey: BOARD_KEYS.all });
 
       // 목록 모달로 전환
-      openModal('board_list');
+      openModal('boardList');
     },
     onError: (error) => {
       console.error('게시글 삭제 실패:', error.response?.data?.message || error.message);
