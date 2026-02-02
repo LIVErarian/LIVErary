@@ -110,19 +110,37 @@ export class GameApp {
     this._worldHeight = mapConfig.height ?? this.DEFAULT_HEIGHT;
     this._currentFloorId = mapConfig.floorId;
 
-    const { subscribeMove, isConnected, sendEnter } = useSocketStore.getState();
+    // 플레이어 위치 및 방향 초기화
+    if (this._player) {
+      if (floor === 'myRoom') {
+        this._player.x = this._worldWidth / 2;
+        this._player.y = this._worldHeight / 2;
+      } else if (floor === 'bookConcert') {
+        this._player.x = this._worldWidth / 2;
+        this._player.y = this._worldHeight;
+      } else {
+        this._player.x = this._worldWidth * 0.38;
+        this._player.y = this._worldHeight * 0.25;
+      }
+      this._lookingDirection = 'DOWN';
+      this._player.setAnimation('DOWN', false);
+    }
+
+    const { subscribeMove, unsubscribeMove, isConnected, sendEnter } =
+      useSocketStore.getState();
 
     // 기존 데이터 정리 및 구독 해제
+    unsubscribeMove();
     this.clearOtherPlayers();
 
     // 내 방이 아니고 연결되어 있을 때만 구독
     if (floor !== 'myRoom' && isConnected) {
-      // [직렬화] 구독 시작 로그를 실제 로직 호출 직전에 남깁니다.
+      // 구독 시작 로그를 실제 로직 호출 직전에 남기기
       console.log(
         `[GameApp] ${floor}(${this._currentFloorId}) 구독 프로세스 시작`,
       );
 
-      // [직렬화] await를 사용하여 내부의 unsubscribe -> delay -> subscribe 순서를 보장합니다.
+      // await를 사용하여 순서 보장
       await subscribeMove(this._currentFloorId, (moves) => {
         this.updateOtherPlayers(moves);
       });
@@ -169,6 +187,7 @@ export class GameApp {
       this._viewport.moveCenter(this._worldWidth / 2, this._worldHeight / 2);
     } else {
       if (this._player) {
+        this._viewport.moveCenter(this._player.x, this._player.y);
         this._viewport.follow(this._player);
       } else {
         this._viewport.moveCenter(this._worldWidth / 2, this._worldHeight / 2);
@@ -297,6 +316,19 @@ export class GameApp {
   public updateOtherPlayers(moves: MoveBroadcast[]) {
     if (!moves) return;
 
+    // 활성 유저 ID 목록
+    const activeUserIds = new Set(moves.map((m) => m.userId));
+
+    this._otherPlayers.forEach((player, userId) => {
+      // 현재 화면에 있는 유저 중 명단에 존재하지 않으면 제거
+      if (!activeUserIds.has(userId)) {
+        this._viewport.removeChild(player);
+        player.destroy();
+        this._otherPlayers.delete(userId);
+        console.log('유저 퇴장 확인 및 제거:', userId);
+      }
+    });
+
     moves.forEach((data) => {
       if (data.userId === this._myId) return;
 
@@ -305,8 +337,7 @@ export class GameApp {
       // 없으면 생성
       if (!otherPlayer) {
         const sheetTexture = Assets.get('playerSheet');
-        // 닉네임이 없으면 userId로 표시
-        otherPlayer = new Player(data.x, data.y, data.userId, sheetTexture);
+        otherPlayer = new Player(data.x, data.y, data.nickname, sheetTexture);
         this._viewport.addChild(otherPlayer);
         this._otherPlayers.set(data.userId, otherPlayer);
       }
