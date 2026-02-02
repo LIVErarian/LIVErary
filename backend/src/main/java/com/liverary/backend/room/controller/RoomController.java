@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -221,5 +222,22 @@ public class RoomController {
         roomService.cancelReservation(userId, roomId);
 
         return BaseResponse.success();
+    }
+
+    /**
+     * 내가 예약(참여 신청)한 방 목록을 조회합니다.
+     * 홍보 게시글 작성 시 방 선택 드롭다운에 사용됩니다.
+     *
+     * @param user Spring Security를 통해 인증된 사용자 정보
+     * @return 방 목록을 포함한 공통 응답 객체
+     */
+    @GetMapping("/reservation/my")
+    public BaseResponse<List<MyReservationResponse>> getMyReservations(
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        UUID userId = getUserId(user);
+        List<MyReservationResponse> response = roomService.getMyReservation(userId);
+
+        return BaseResponse.success(response);
     }
 }
