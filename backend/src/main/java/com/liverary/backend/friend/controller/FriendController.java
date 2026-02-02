@@ -3,6 +3,7 @@ package com.liverary.backend.friend.controller;
 import com.liverary.backend.common.dto.BaseResponse;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.friend.dto.request.BlockRequest;
 import com.liverary.backend.friend.dto.request.FriendRequest;
 import com.liverary.backend.friend.dto.response.FriendResponse;
 import com.liverary.backend.friend.service.FriendService;
@@ -99,16 +100,35 @@ public class FriendController {
      *
      * @param user      인증된 사용자 정보
      * @param request   차단할 사용자 정보를 담은 요청 객체
-     * @return 성공 응답
+     * @return
      */
     @PostMapping("/block")
     public BaseResponse<Void> blockUser(
             @AuthenticationPrincipal UserDetails user,
-            @Valid @RequestBody FriendRequest request) {
+            @Valid @RequestBody BlockRequest request) {
 
         UUID userId = getUserId(user);
 
-        friendService.blockUser(userId, request.getReceiverEmail());
+        friendService.blockUser(userId, request.getEmail());
+
+        return BaseResponse.success();
+    }
+
+    /**
+     * 사용자 차단 해제
+     *
+     * @param user      인증된 사용자 정보
+     * @param request   차단해제 사용자 정보를 담은 요청 객체
+     * @return  성공 응답
+     */
+    @PostMapping("/unblock")
+    public BaseResponse<Void> unblockUser(
+            @AuthenticationPrincipal UserDetails user,
+            @Valid @RequestBody BlockRequest request) {
+
+        UUID userId = getUserId(user);
+
+        friendService.unblockUser(userId, request.getEmail());
 
         return BaseResponse.success();
     }
