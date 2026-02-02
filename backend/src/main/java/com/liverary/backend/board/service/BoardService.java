@@ -13,6 +13,9 @@ import com.liverary.backend.board.repository.BoardRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.review.repository.ReviewRepository;
+import com.liverary.backend.room.domain.Room;
+import com.liverary.backend.room.repository.RoomRepository;
+import com.liverary.backend.room.repository.RoomReservationRepository;
 import com.liverary.backend.user.domain.Role;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
@@ -35,6 +38,8 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+    private final RoomReservationRepository roomReservationRepository;
+    private final RoomRepository roomRepository;
 
     /**
      * 게시글 생성 로직 수행
@@ -45,25 +50,33 @@ public class BoardService {
      */
     @Transactional
     public BoardCreateResponse createBoard(UUID userId, BoardCreateRequest request) {
+        // 작성자 조회 (공통)
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
-        // 방 정보 입력 여부 확인 (홍보 게시판)
+        // 변수 초기화 (홍보 게시판)
+        Room room = null;
+
+        // 홍보 게시판
         if (request.getType() == Type.PROMOTION) {
+            // 방 정보 체크
             if (request.getRoomId() == null) {
                 throw new BaseException(ErrorCode.ROOM_INFO_REQUIRED);
             }
+
+            room = roomRepository.findById(request.getRoomId())
+                    .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
         }
 
-        // 공지 게시판 관리자 권한 확인
-        if (request.getType() == Type.NOTICE) {
+        // 공지 게시판
+        else if (request.getType() == Type.NOTICE) {
+            // 관리자 권한 체크
             if(user.getRole() != Role.ADMIN) {
                 throw new BaseException(ErrorCode.INSUFFICIENT_PRIVILEGES);
             }
         }
 
-        Board board = request.toEntity(user);
-
+        Board board = request.toEntity(user, room);
         Board savedBoard = boardRepository.save(board);
 
         return BoardCreateResponse.from(savedBoard);
@@ -81,7 +94,20 @@ public class BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new BaseException(ErrorCode.BOARD_NOT_FOUND));
 
-        return BoardDetailResponse.from(board);
+        // 변수 초기화 (홍보 게시판)
+        Room room = null;
+        int currentCount = 0;
+
+        // 홍보 게시판
+        if (board.getType() == Type.PROMOTION) {
+
+            room = roomRepository.findById(board.getTargetRoomId())
+                    .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+            currentCount = (int) roomReservationRepository.countByRoom(room);
+        }
+
+        return BoardDetailResponse.from(board, room, currentCount);
     }
 
     /**
