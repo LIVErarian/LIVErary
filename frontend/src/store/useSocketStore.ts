@@ -39,7 +39,7 @@ interface SocketState {
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 // 최신 토큰으로 헤더 만들기
-const getHeaders = (): StompHeaders => {
+export const getHeaders = (): StompHeaders => {
   const token = useAuthStore.getState().accessToken;
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
@@ -75,8 +75,8 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       brokerURL: SOCKET_URL,
       connectHeaders: headers,
       reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
 
       onConnect: () => {
         console.log('[Store] 소켓이 연결되었습니다.');

@@ -1,4 +1,8 @@
+import { useState } from 'react';
+
 import { PixelButton } from '@/components/common/PixelButton';
+import { RemoteAudio } from '@/hooks/webrtc/RemoteAudio'; // 경로 확인 필요
+import { useWebRTC } from '@/hooks/webrtc/useWebRTC';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
@@ -18,11 +22,25 @@ const FLOOR_TITLES: Record<string, string> = {
 
 export const GameSidebar = () => {
   const { currentFloor, setCurrentFloor } = useGameStore();
-
   const user = useAuthStore((state) => state.user);
   const openModal = useModalStore((state) => state.openModal);
 
+  const [isMicOn, setIsMicOn] = useState(false);
+
+  // TODO: api 연결하면 roomId로 수정 필요
+  const { toggleMic, remoteStreams } = useWebRTC(
+    'd36ad386-add1-4dcd-b2d1-3447c4d47a77',
+    user?.userId || '',
+  );
+
   const title = FLOOR_TITLES[currentFloor] || currentFloor;
+
+  // 마이크 버튼 클릭 롲기
+  const handleMicClick = () => {
+    const nextState = !isMicOn;
+    setIsMicOn(nextState);
+    toggleMic(nextState);
+  };
 
   // 이동 확인 모달
   const handleMoveClick = (targetFloor: FloorType, floorTitle: string) => {
@@ -140,6 +158,13 @@ export const GameSidebar = () => {
 
   return (
     <div className={styles.sidebarMenu}>
+      {/* 오디오 태그 */}
+      <div id="remote-streams-hidden-layer">
+        {[...remoteStreams.entries()].map(([userId, stream]) => (
+          <RemoteAudio key={userId} userId={userId} stream={stream} />
+        ))}
+      </div>
+
       <h3 style={{ color: 'white' }}>{title}</h3>
 
       {currentFloor === 'myRoom' ? renderMyRoomMenu() : renderLibraryMenu()}
@@ -155,25 +180,21 @@ export const GameSidebar = () => {
           <span className={styles.playerName}>{user?.nickname}</span>
         </button>
 
-        {/* 미디어 컨트롤 */}
         <div className={styles.mediaRow}>
           <PixelButton
-            variant="beige"
+            variant={isMicOn ? 'primary' : 'beige'}
             shape="circle"
             size="sm"
-            onClick={() => alert('마이크 토글')}
+            onClick={handleMicClick}
           >
-            🎤
+            {isMicOn ? '🔊' : '🔇'}
           </PixelButton>
         </div>
 
-        {/* 로그아웃 */}
         <PixelButton
           variant="danger"
           fullWidth
-          onClick={() => {
-            openModal('logout');
-          }}
+          onClick={() => openModal('logout')}
         >
           로그아웃
         </PixelButton>
