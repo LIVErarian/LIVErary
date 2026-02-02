@@ -4,10 +4,13 @@ import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.friend.domain.Friend;
 import com.liverary.backend.friend.domain.FriendStatus;
+import com.liverary.backend.friend.dto.response.FriendResponse;
 import com.liverary.backend.friend.repository.FriendRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,6 +111,12 @@ public class FriendService {
         friendRepository.delete(friend);
     }
 
+    /**
+     * 사용자 차단 -> 차단 당한 사용자는 차단을 한 사용자에게 친구 신청 못함
+     *
+     * @param userId    차단하는 유저
+     * @param blockUserEmail    차단 당하는 유저 이메일
+     */
     @Transactional
     public void blockUser(UUID userId, String blockUserEmail) {
 
@@ -144,6 +153,60 @@ public class FriendService {
 
             friendRepository.save(newBlock);
         }
+    }
+
+    /**
+     * 내 친구 목록 (ACCEPTED)
+     *
+     * @param userId    조회 요청한 유저 식별자
+     * @param pageable  페이징 설정
+     * @return  DTO로 변환된 내 친구 목록 페이지
+     */
+    public Page<FriendResponse> getAcceptedFriends(UUID userId, Pageable pageable) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 친구 목록 리턴
+        return friendRepository.findAllFriends(user, FriendStatus.ACCEPTED, pageable)
+                .map(friend -> {
+                    User friendUser = friend.getSender().getUserId().equals(userId) ? friend.getReceiver() : friend.getSender();
+                    return FriendResponse.of(friend, friendUser);
+                });
+    }
+
+    /**
+     * 받은 요청 목록 (PENDING)
+     *
+     * @param userId    조회 요청한 유저 식별자
+     * @param pageable  페이징 설정
+     * @return  DTO로 변환된 받은 요청 목록 페이지
+     */
+    public Page<FriendResponse> getPendingRequests(UUID userId, Pageable pageable) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 요청 목록 리턴
+        return friendRepository.findAllByReceiverAndStatusOrderByCreatedAtDesc(user, FriendStatus.PENDING, pageable)
+                .map(friend -> FriendResponse.of(friend, friend.getSender()));
+    }
+
+    /**
+     * 차단 목록 (BLOCKED)
+     *
+     * @param userId 조회 요청한 유저 식별자
+     * @param pageable 페이징 설정
+     * @return  DTO로 변환된 차단 목록 페이지
+     */
+    public Page<FriendResponse> getBlockedFriends(UUID userId, Pageable pageable) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 차단 목록 리턴
+        return friendRepository.findAllBySenderAndStatusOrderByUpdatedAtDesc(user, FriendStatus.BLOCKED, pageable)
+                .map(friend -> FriendResponse.of(friend, friend.getReceiver()));
     }
 
 }
