@@ -38,6 +38,7 @@ public class BoardDetailResponse {
         private Integer maxMembers;
         private LocalDateTime startTime;
         private LocalDateTime endTime;
+        private boolean isJoined;
 
         private String bookTitle;
         private String bookAuthor;
@@ -50,7 +51,7 @@ public class BoardDetailResponse {
      * @param board 변환할 Board 엔티티
      * @return 변환된 상세 응답 DTO
      */
-    public static BoardDetailResponse from(Board board, Room room, Integer currentCount) {
+    public static BoardDetailResponse from(Board board, Room room, Integer currentCount, boolean isJoined) {
 
         var builder = BoardDetailResponse.builder()
                 .boardId(board.getBoardId())
@@ -61,24 +62,25 @@ public class BoardDetailResponse {
                 .status(board.getStatus())
                 .createdAt(board.getCreatedAt());
 
-        if (board.getType() == Type.PROMOTION) {
+        if (board.getType() == Type.PROMOTION && room != null) {
 
-            var roomBuilder = RoomDetailInfo.builder();
+            var roomBuilder = RoomDetailInfo.builder()
+                    .roomId(room.getRoomId())
+                    .title(room.getTitle())
+                    .currentMembers(currentCount)
+                    .maxMembers(room.getMaxUser())
+                    .startTime(room.getStartAt())
+                    .endTime(room.getEndAt())
+                    .isJoined(isJoined);
 
-            if (room != null) {
-                roomBuilder.roomId(room.getRoomId())
-                        .title(room.getTitle())
-                        .category(board.getCategoryName())
-                        .currentMembers(currentCount)
-                        .maxMembers(room.getMaxUser())
-                        .startTime(room.getStartAt())
-                        .endTime(room.getEndAt());
+            if (room.getCategory() != null) {
+                roomBuilder.category(room.getCategory().getName());
             }
 
-            if (board.getBookTitle() != null) {
-                roomBuilder.bookTitle(board.getBookTitle())
-                        .bookAuthor(board.getBookAuthor())
-                        .bookCoverUrl(board.getBookCoverUrl());
+            if (room.getBook() != null) {
+                roomBuilder.bookTitle(room.getBook().getTitle())
+                        .bookAuthor(room.getBook().getAuthor())
+                        .bookCoverUrl(room.getBook().getCoverUrl());
             }
 
             builder.roomDetail(roomBuilder.build());

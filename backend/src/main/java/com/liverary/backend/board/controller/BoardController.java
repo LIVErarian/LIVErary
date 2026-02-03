@@ -67,10 +67,12 @@ public class BoardController {
      * @return 게시글 상세 정보가 포함된 공통 응답 객체
      */
     @GetMapping("/{boardId}")
-    public BaseResponse<BoardDetailResponse> getBoardDetails(@PathVariable UUID boardId) {
+    public BaseResponse<BoardDetailResponse> getBoardDetails(@AuthenticationPrincipal UserDetails userDetails, @PathVariable UUID boardId) {
+
+        UUID userId = getUserId(userDetails);
 
         // 서비스 로직 수행
-        BoardDetailResponse response = boardService.getBoardDetail(boardId);
+        BoardDetailResponse response = boardService.getBoardDetail(boardId, userId);
 
         return BaseResponse.success(response);
     }
