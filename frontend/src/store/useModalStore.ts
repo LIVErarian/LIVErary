@@ -12,6 +12,8 @@ export type ModalType =
   | 'roomlist'
   | 'move'
   | 'rank'
+  | 'error'
+  | 'bookshelf'
   | 'friendList'
   | 'error'
   | null;

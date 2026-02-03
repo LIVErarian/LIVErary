@@ -77,6 +77,16 @@ export const GameSidebar = () => {
         📋
       </PixelButton>
 
+      {/* 나의 책장 */}
+      <PixelButton
+        variant="beige"
+        shape="square"
+        size="lg"
+        onClick={() => openModal('bookshelf')}
+      >
+        📙
+      </PixelButton>
+
       {/* 친구 목록 */}
       <PixelButton
         variant="beige"
@@ -160,6 +170,17 @@ export const GameSidebar = () => {
         title="게시판"
       >
         📋
+      </PixelButton>
+
+      {/* 나의 책장 */}
+      <PixelButton
+        variant="beige"
+        shape="square"
+        size="lg"
+        onClick={() => openModal('bookshelf')}
+        title="나의 책장"
+      >
+        📚
       </PixelButton>
 
       {/* 상황에 따른 버튼 */}

@@ -71,7 +71,7 @@ export const titleInput = style({
   width: '100%',
   height: '48px',
   padding: '0 12px',
-  fontSize: '1.2rem', 
+  fontSize: '1.2rem',
   fontWeight: 'bold',
   color: theme.colors.woodDeep,
   backgroundColor: 'transparent',
