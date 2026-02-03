@@ -1,4 +1,11 @@
-import { Application, Assets, Container, Graphics, Sprite, Ticker } from 'pixi.js';
+import {
+  Application,
+  Assets,
+  Container,
+  Graphics,
+  Sprite,
+  Ticker,
+} from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 
 import playerMSheetImg from '@/assets/characters/basic_male.png';
@@ -10,7 +17,12 @@ import { throttle } from '@/utils/throttle';
 import { MAP_DATA } from '../map/mapAssets';
 import { Player } from '../player/Player';
 
-import type { FloorType, MapButtonConfig, MapZoneAction, MapZoneConfig } from '@/types/map.types';
+import type {
+  FloorType,
+  MapButtonConfig,
+  MapZoneAction,
+  MapZoneConfig,
+} from '@/types/map.types';
 import type {
   Direction,
   MoveBroadcast,
@@ -33,7 +45,9 @@ export class GameApp {
   private _suppressZoneTriggers: Map<string, Set<'enter' | 'exit'>> = new Map();
   private _bgSprite: Sprite | null = null;
   private _mapButtonsContainer: Container | null = null;
-  private _mapZones: Array<MapZoneConfig & { absX: number; absY: number; absW: number; absH: number }> = [];
+  private _mapZones: Array<
+    MapZoneConfig & { absX: number; absY: number; absW: number; absH: number }
+  > = [];
   private _activeZoneIds: Set<string> = new Set();
   private _worldWidth: number = 960;
   private _worldHeight: number = 640;
@@ -267,7 +281,11 @@ export class GameApp {
   }
 
   private movePlayerToPosition(
-    position: 'zoneCenter' | 'screenCenter' | 'zoneFrontAbove' | 'zoneFrontBelow',
+    position:
+      | 'zoneCenter'
+      | 'screenCenter'
+      | 'zoneFrontAbove'
+      | 'zoneFrontBelow',
     zone?: MapZoneConfig,
     suppressNextTrigger?: 'enter' | 'exit',
   ) {
@@ -418,6 +436,17 @@ export class GameApp {
   private update(ticker: Ticker) {
     if (!this._player) return;
 
+    const isModalOpen = useModalStore.getState().currentModal !== null;
+    if (isModalOpen) {
+      if (this._isPrevMoving) {
+        this._player.setAnimation(this._lookingDirection, false);
+        this.sendMyPosition(false);
+        this._isPrevMoving = false;
+      }
+      this._isInteractPressed = false;
+      return;
+    }
+
     let dx = 0;
     let dy = 0;
 
@@ -509,7 +538,8 @@ export class GameApp {
             const suppressed = this._suppressZoneTriggers.get(zone.id);
             if (suppressed?.has('enter')) {
               suppressed.delete('enter');
-              if (suppressed.size === 0) this._suppressZoneTriggers.delete(zone.id);
+              if (suppressed.size === 0)
+                this._suppressZoneTriggers.delete(zone.id);
             } else {
               this.handleZoneAction(zone.enterAction ?? zone.action, zone);
             }
@@ -520,7 +550,8 @@ export class GameApp {
             const suppressed = this._suppressZoneTriggers.get(zone.id);
             if (suppressed?.has('exit')) {
               suppressed.delete('exit');
-              if (suppressed.size === 0) this._suppressZoneTriggers.delete(zone.id);
+              if (suppressed.size === 0)
+                this._suppressZoneTriggers.delete(zone.id);
             } else {
               this.handleZoneAction(zone.exitAction ?? zone.action, zone);
             }

@@ -32,13 +32,6 @@ export const useModalEffect = (isOpen: boolean, onClose: () => void) => {
       if (e.key === 'Escape') onClose();
     };
 
-    const blockMoveKeys = (e: KeyboardEvent) => {
-      if (moveKeys.has(e.key)) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-
     const resetMoveKeys = () => {
       moveKeys.forEach((key) => {
         window.dispatchEvent(new KeyboardEvent('keyup', { key }));
@@ -46,16 +39,12 @@ export const useModalEffect = (isOpen: boolean, onClose: () => void) => {
     };
 
     window.addEventListener('keydown', handleEsc);
-    window.addEventListener('keydown', blockMoveKeys, true);
-    window.addEventListener('keyup', blockMoveKeys, true);
     resetMoveKeys();
     // 모달 뒤 스크롤 방지
     document.body.style.overflow = 'hidden';
 
     return () => {
       window.removeEventListener('keydown', handleEsc);
-      window.removeEventListener('keydown', blockMoveKeys, true);
-      window.removeEventListener('keyup', blockMoveKeys, true);
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
