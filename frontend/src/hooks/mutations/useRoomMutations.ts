@@ -7,6 +7,8 @@ import { roomKeys } from '../queries/useRoomQueries';
 
 import type { CommonResponse } from '@/types/api.types';
 import type {
+  ApplyScheduledRoomRequest,
+  ApplyScheduledRoomResponseData,
   CreateRoomRequest,
   CreateRoomResponseData,
   DeleteApplyScheduledRequest,
@@ -117,7 +119,11 @@ export const useLeaveRoom = () => {
 export const useApplyScheduledRoom = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<
+    ApplyScheduledRoomResponseData,
+    AxiosError<CommonResponse<null>>,
+    ApplyScheduledRoomRequest
+  >({
     mutationFn: roomApi.applyScheduledRoom,
     onSuccess: () => {
       alert('방 참여 신청이 완료되었습니다!');
