@@ -32,6 +32,9 @@ export const GamePage = () => {
 
       console.log(`층 변경 시도: ${currentFloor}`);
       gameAppRef.current.changeMap(currentFloor);
+
+      // 층이 변경되면 lastFloorRef 업데이트
+      lastFloorRef.current = currentFloor;
     }
   }, [currentFloor, gameAppRef, isReady]);
 
