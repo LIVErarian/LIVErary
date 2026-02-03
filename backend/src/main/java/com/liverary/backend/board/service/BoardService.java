@@ -101,8 +101,7 @@ public class BoardService {
         // 홍보 게시판
         if (board.getType() == Type.PROMOTION) {
 
-            room = roomRepository.findById(board.getTargetRoomId())
-                    .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+            room = board.getRoom();
 
             currentCount = (int) roomReservationRepository.countByRoom(room);
         }
@@ -151,15 +150,20 @@ public class BoardService {
         // 작성자 본인 확인
         validateOwner(userId, board);
 
+        Room room = null;
+
         // 방 정보 유효성 검증
-        if(board.getType() == Type.PROMOTION && request.getRoomId() == null){
-            throw new BaseException(ErrorCode.ROOM_INFO_REQUIRED);
+        if(board.getType() == Type.PROMOTION) {
+            if(request.getRoomId() == null) {
+                throw new BaseException(ErrorCode.ROOM_INFO_REQUIRED);
+            }
+
+            room = roomRepository.findById(request.getRoomId())
+                    .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
         }
 
         // 업데이트 실행
-        board.update(request.getTitle(), request.getContent(), request.getImageUrl(),
-                request.getRoomId(), request.getCategoryName(), request.getBookTitle(),
-                request.getBookAuthor(), request.getBookCoverUrl());
+        board.update(request.getTitle(), request.getContent(), room);
 
         return BoardUpdateResponse.from(board);
     }

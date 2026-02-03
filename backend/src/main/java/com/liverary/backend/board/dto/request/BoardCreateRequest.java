@@ -46,25 +46,13 @@ public class BoardCreateRequest {
         Status initialStatus = (type == Type.INQUIRY)
                 ? Status.PENDING : Status.POSTED;
 
-        var builder = Board.builder()
+        return Board.builder()
                 .user(user)
                 .title(this.title)
                 .content(this.content)
                 .type(this.type)
-                .status(initialStatus);
-
-        // 방 정보(Room)가 있을 때 처리
-        if (room != null) {
-            builder.targetRoomId(room.getRoomId())
-                    .categoryName(room.getCategory().getName());
-
-            if (room.getBook() != null) {
-                builder.bookTitle(room.getBook().getTitle())
-                        .bookAuthor(room.getBook().getAuthor())
-                        .bookCoverUrl(room.getBook().getCoverUrl());
-            }
-        }
-
-        return builder.build();
+                .status(initialStatus)
+                .room(room)
+                .build();
     }
 }
