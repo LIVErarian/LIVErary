@@ -1,6 +1,5 @@
 package com.liverary.backend.notification.repository;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -11,13 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * SSE Emitter Repository
  * - 실시간 알림 전송을 위한 SseEmitter(연결 객체)와 이벤트 캐시를 관리하는 인메모리 저장소
  * - Emitter 관리: 사용자별 연결 객체를 저장하여 알림 발송 시 타겟을 식별함
- * - Event Cache 관리: 전송된 알림 데이터를 임시 저장하며, 연결 끊김 후 재접속 시 유실된 데이터를 재전송함
  */
 @Repository
-@RequiredArgsConstructor
 public class EmitterRepository {
 
-    // SSE 연결 객체 저장소 Key: userId_시간 (String) - Value: 실제 연결 객체 (SseEmitter)
+    // SSE 연결 객체 저장소 - 유저의 연결 정보 저장
+    // Key: userId_timestamp (String) - Value: 실제 연결 객체 (SseEmitter)
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
 
@@ -34,7 +32,7 @@ public class EmitterRepository {
 
 
     /**
-     * 특정 Emitter 삭제 (연결 종료 시)
+     * 특정 Emitter 삭제 (연결 종료 / 타임아웃 시)
      * @param emitterId 삭제할 Emitter 식별자
      */
     public void deleteById(String emitterId){
@@ -44,6 +42,7 @@ public class EmitterRepository {
 
     /**
      * 특정 유저와 연결된 모든 Emitter 조회
+     * - 한 유저가 여러 기기 /브라우저에 접속했을 수 있으므로 Map으로 반환
      * @param userId
      * @return
      */
@@ -55,6 +54,20 @@ public class EmitterRepository {
             }
         });
         return  result;
+    }
+
+
+    /**
+     * 특정 유저와 연결된 모든 Emitter 삭제
+     * - 로그아웃 시 해당 회원의 모든 단말기 연결을 끊음
+     * @param userId
+     */
+    public void deleteAllEmittersStartWithUserId(String userId){
+        emitters.forEach((key, emitter)->{
+            if (key.startsWith(userId)) {
+                emitters.remove(key);
+            }
+        });
     }
 
 }
