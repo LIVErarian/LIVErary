@@ -13,6 +13,7 @@ export type ModalType =
   | 'move'
   | 'rank'
   | 'error'
+  | 'bookshelf'
   | null;
 
 interface ModalProps {

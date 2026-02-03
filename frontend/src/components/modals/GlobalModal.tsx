@@ -1,6 +1,7 @@
 import { useLogout } from '@/hooks/queries/useAuth';
 import { useModalStore } from '@/store/useModalStore';
 import { PixelModal } from '../common/PixelModal';
+import { BookshelfModal } from './BookshelfModal';
 import { ConfirmModal } from './ConfirmModal';
 import { ElevatorModal } from './ElevatorModal';
 import { ErrorModal } from './ErrorModal';
@@ -63,7 +64,7 @@ export const GlobalModal = () => {
       {/* 게시판 모달 */}
       {/* TODO: board_list, board_detail, board_create, board_update로 세분화 */}
       <PixelModal
-        isOpen={currentModal === 'board_list'}
+        isOpen={currentModal === 'boardList'}
         onClose={closeModal}
         title="📋 게시판"
         width="500px"
@@ -113,6 +114,12 @@ export const GlobalModal = () => {
 
       {/* 프로필 모달 */}
       <ProfileModal isOpen={currentModal === 'profile'} onClose={closeModal} />
+
+      {/* 나의 서재 모달 */}
+      <BookshelfModal
+        isOpen={currentModal === 'bookshelf'}
+        onClose={closeModal}
+      />
     </>
   );
 };
