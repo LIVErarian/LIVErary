@@ -1,14 +1,16 @@
-import { Application, Assets, Sprite, Ticker } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Sprite, Ticker } from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 
 import playerMSheetImg from '@/assets/characters/basic_male.png';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useGameStore } from '@/store/useGameStore';
+import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
 import { throttle } from '@/utils/throttle';
 import { MAP_DATA } from '../map/mapAssets';
 import { Player } from '../player/Player';
 
-import type { FloorType } from '@/types/map.types';
+import type { FloorType, MapButtonConfig, MapZoneAction, MapZoneConfig } from '@/types/map.types';
 import type {
   Direction,
   MoveBroadcast,
@@ -27,7 +29,12 @@ export class GameApp {
   private _myId: string = '';
   private _isPrevMoving: boolean = false;
   private _isDestroyed: boolean = false;
+  private _isInteractPressed: boolean = false;
+  private _suppressZoneTriggers: Map<string, Set<'enter' | 'exit'>> = new Map();
   private _bgSprite: Sprite | null = null;
+  private _mapButtonsContainer: Container | null = null;
+  private _mapZones: Array<MapZoneConfig & { absX: number; absY: number; absW: number; absH: number }> = [];
+  private _activeZoneIds: Set<string> = new Set();
   private _worldWidth: number = 960;
   private _worldHeight: number = 640;
   private _currentFloorId: string = '';
@@ -180,6 +187,9 @@ export class GameApp {
     this._bgSprite.width = this._worldWidth;
     this._bgSprite.height = this._worldHeight;
 
+    this.updateMapButtons(mapConfig);
+    this.updateMapZones(mapConfig);
+
     // 중앙 정렬 로직
     const screenWidth = this._viewport.screenWidth;
     const screenHeight = this._viewport.screenHeight;
@@ -196,6 +206,180 @@ export class GameApp {
 
     // 맵 바뀌면 다른 유저 지우기
     this.clearOtherPlayers();
+  }
+
+  private updateMapButtons(mapConfig: { buttons?: MapButtonConfig[] }) {
+    if (this._mapButtonsContainer) {
+      this._viewport.removeChild(this._mapButtonsContainer);
+      this._mapButtonsContainer.destroy({ children: true });
+      this._mapButtonsContainer = null;
+    }
+
+    if (!mapConfig.buttons || mapConfig.buttons.length === 0) return;
+
+    const container = new Container();
+    mapConfig.buttons.forEach((buttonConfig) => {
+      const buttonWidth = buttonConfig.width * this._worldWidth;
+      const buttonHeight = buttonConfig.height * this._worldHeight;
+      const buttonX = buttonConfig.x * this._worldWidth;
+      const buttonY = buttonConfig.y * this._worldHeight;
+
+      const button = new Graphics();
+      button.rect(0, 0, buttonWidth, buttonHeight).fill({
+        color: 0x000000,
+        alpha: 0.001,
+      });
+
+      if (import.meta.env.DEV) {
+        button.rect(0, 0, buttonWidth, buttonHeight).stroke({
+          width: 2,
+          color: 0xffffff,
+          alpha: 0.6,
+        });
+      }
+
+      button.x = buttonX;
+      button.y = buttonY;
+      button.eventMode = 'static';
+      button.cursor = 'pointer';
+      button.on('pointertap', () => this.handleMapButtonClick(buttonConfig));
+
+      container.addChild(button);
+    });
+
+    this._mapButtonsContainer = container;
+    this._viewport.addChild(container);
+  }
+
+  private handleMapButtonClick(button: MapButtonConfig) {
+    console.log(`[GameApp] map button clicked: ${button.id}`);
+  }
+
+  private updateMapZones(mapConfig: { zones?: MapZoneConfig[] }) {
+    this._activeZoneIds.clear();
+    this._mapZones = (mapConfig.zones ?? []).map((zone) => ({
+      ...zone,
+      absX: zone.x * this._worldWidth,
+      absY: zone.y * this._worldHeight,
+      absW: zone.width * this._worldWidth,
+      absH: zone.height * this._worldHeight,
+    }));
+  }
+
+  private movePlayerToPosition(
+    position: 'zoneCenter' | 'screenCenter' | 'zoneFrontAbove' | 'zoneFrontBelow',
+    zone?: MapZoneConfig,
+    suppressNextTrigger?: 'enter' | 'exit',
+  ) {
+    if (!this._player) return;
+
+    if (position === 'screenCenter') {
+      this._player.x = this._worldWidth / 2;
+      this._player.y = this._worldHeight / 2;
+    } else if (zone) {
+      const zoneX = zone.absX ?? zone.x * this._worldWidth;
+      const zoneY = zone.absY ?? zone.y * this._worldHeight;
+      const zoneW = zone.absW ?? zone.width * this._worldWidth;
+      const zoneH = zone.absH ?? zone.height * this._worldHeight;
+      const centerX = zoneX + zoneW / 2;
+      const centerY = zoneY + zoneH / 2;
+      const offsetY = this._worldHeight * 0.05;
+
+      if (position === 'zoneCenter') {
+        this._player.x = centerX;
+        this._player.y = centerY;
+      } else if (position === 'zoneFrontBelow') {
+        this._player.x = centerX;
+        this._player.y = zoneY + zoneH + offsetY;
+      } else if (position === 'zoneFrontAbove') {
+        this._player.x = centerX;
+        this._player.y = zoneY - offsetY;
+      }
+    }
+
+    if (zone && suppressNextTrigger) {
+      const existing = this._suppressZoneTriggers.get(zone.id) ?? new Set();
+      existing.add(suppressNextTrigger);
+      this._suppressZoneTriggers.set(zone.id, existing);
+    }
+
+    this._viewport.moveCenter(this._player.x, this._player.y);
+    this.sendMyPosition(false);
+  }
+
+  private handleZoneAction(action?: MapZoneAction, zone?: MapZoneConfig) {
+    if (!action) return;
+
+    if (action.type === 'moveConfirm') {
+      useModalStore.getState().openModal('move', {
+        title: action.title,
+        message: action.message,
+        onConfirm: () => {
+          useGameStore.getState().setCurrentFloor(action.targetFloor);
+        },
+      });
+    }
+
+    if (action.type === 'confirm') {
+      useModalStore.getState().openModal('move', {
+        title: action.title,
+        message: action.message,
+      });
+    }
+
+    if (action.type === 'openModal') {
+      if (action.modalType === 'elevator') {
+        useModalStore.getState().openModal('elevator');
+      }
+    }
+
+    if (action.type === 'reposition') {
+      useModalStore.getState().openModal('move', {
+        title: action.title,
+        message: action.message,
+        onConfirm: () => {
+          if (action.position === 'center') {
+            this.movePlayerToPosition('screenCenter', zone);
+          }
+        },
+      });
+    }
+
+    if (action.type === 'confirmReposition') {
+      const suppressFor = (
+        position:
+          | 'zoneCenter'
+          | 'screenCenter'
+          | 'zoneFrontAbove'
+          | 'zoneFrontBelow',
+        context: 'confirm' | 'cancel',
+      ): 'enter' | 'exit' | undefined => {
+        if (position === 'zoneCenter') {
+          return context === 'cancel' ? 'enter' : undefined;
+        }
+        if (position === 'screenCenter') {
+          return 'exit';
+        }
+        return 'exit';
+      };
+
+      useModalStore.getState().openModal('move', {
+        title: action.title,
+        message: action.message,
+        onConfirm: () =>
+          this.movePlayerToPosition(
+            action.confirmPosition,
+            zone,
+            suppressFor(action.confirmPosition, 'confirm'),
+          ),
+        onCancel: () =>
+          this.movePlayerToPosition(
+            action.cancelPosition,
+            zone,
+            suppressFor(action.cancelPosition, 'cancel'),
+          ),
+      });
+    }
   }
 
   private createViewport() {
@@ -294,6 +478,66 @@ export class GameApp {
       this.sendMyPosition(false);
     }
     this._isPrevMoving = isMoving;
+
+    if (this._mapZones.length > 0) {
+      let interactableZone: MapZoneConfig | null = null;
+      for (const zone of this._mapZones) {
+        const inside =
+          this._player.x >= zone.absX &&
+          this._player.x <= zone.absX + zone.absW &&
+          this._player.y >= zone.absY &&
+          this._player.y <= zone.absY + zone.absH;
+
+        const triggers = Array.isArray(zone.trigger)
+          ? zone.trigger
+          : zone.trigger
+            ? [zone.trigger]
+            : ['enter'];
+
+        if (triggers.includes('interact')) {
+          if (inside && !interactableZone) {
+            interactableZone = zone;
+          }
+          continue;
+        }
+
+        const wasInside = this._activeZoneIds.has(zone.id);
+
+        if (inside && !wasInside) {
+          this._activeZoneIds.add(zone.id);
+          if (triggers.includes('enter')) {
+            const suppressed = this._suppressZoneTriggers.get(zone.id);
+            if (suppressed?.has('enter')) {
+              suppressed.delete('enter');
+              if (suppressed.size === 0) this._suppressZoneTriggers.delete(zone.id);
+            } else {
+              this.handleZoneAction(zone.enterAction ?? zone.action, zone);
+            }
+          }
+        } else if (!inside && wasInside) {
+          this._activeZoneIds.delete(zone.id);
+          if (triggers.includes('exit')) {
+            const suppressed = this._suppressZoneTriggers.get(zone.id);
+            if (suppressed?.has('exit')) {
+              suppressed.delete('exit');
+              if (suppressed.size === 0) this._suppressZoneTriggers.delete(zone.id);
+            } else {
+              this.handleZoneAction(zone.exitAction ?? zone.action, zone);
+            }
+          }
+        }
+      }
+
+      const isInteractPressed =
+        this._keys[' '] || this._keys['Space'] || this._keys['Spacebar'];
+
+      if (isInteractPressed && !this._isInteractPressed && interactableZone) {
+        this.handleZoneAction(interactableZone.action, interactableZone);
+      }
+
+      this._isInteractPressed = isInteractPressed;
+      this._suppressZoneTriggers.clear();
+    }
   }
 
   // 위치 전송 헬퍼
