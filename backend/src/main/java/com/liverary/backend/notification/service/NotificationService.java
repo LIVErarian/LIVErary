@@ -1,10 +1,14 @@
 package com.liverary.backend.notification.service;
 
+import com.liverary.backend.exception.BaseException;
+import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.notification.dto.response.NotificationResponse;
 import com.liverary.backend.notification.repository.EmitterRepository;
 import com.liverary.backend.notification.repository.NotificationRepository;
 import com.liverary.backend.notification.domain.Notification;
 import com.liverary.backend.notification.domain.NotificationType;
 import com.liverary.backend.user.domain.User;
+import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,8 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -22,6 +28,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final EmitterRepository emitterRepository;
+    private final UserRepository userRepository;
 
     // 타임 아웃 시간 설정
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
@@ -53,17 +60,17 @@ public class NotificationService {
 
     /**
      * 알림 생성 및 실시간 전송
-     * @param receiver
+     * @param user
      * @param type
      * @param content
      * @param url
      */
     @Transactional
-    public void send(User receiver, NotificationType type, String content, String url) {
+    public void send(User user, NotificationType type, String content, String url) {
         // 1. DB에 알림 저장 (로그 남기기용)
         Notification notification = notificationRepository.save(
                 Notification.builder()
-                .receiver(receiver)
+                .user(user)
                 .type(type)
                 .content(content)
                 .relatedUrl(url)
@@ -72,7 +79,7 @@ public class NotificationService {
         );
 
         // 2. 현재 로그인한 유저의 모든 연결(emitter)을 찾음
-        String userId = receiver.getUserId().toString();
+        String userId = user.getUserId().toString();
         Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByUserId(userId);
 
         // 3. 각 연결에 실시간 알림 전송
@@ -97,6 +104,39 @@ public class NotificationService {
             emitterRepository.deleteById(id);
             log.error("SSE connection error (emitterId={})", id, e);
         }
+    }
+
+    /**
+     * 알림 목록 조회
+     * @param userId 조회할 유저 ID
+     * @return 해당 유저의 알림 목록 List (최신순)
+     */
+    @Transactional(readOnly = true)
+    public List<NotificationResponse> getNotifications(UUID userId) {
+        // 1. User 엔티티 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // 2. 해당 유저의 알림 목록 조회 (최신순)
+        List<Notification> notifications = notificationRepository.findAllByUserOrderByCreatedAtDesc(user);
+
+        // 3. DTO로 변환하여 반환
+        return notifications.stream().map(NotificationResponse::from).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void markAsRead(UUID notificationId, UUID userId) {
+        // 1. 알림 조회
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(()-> new BaseException(ErrorCode.NOTIFICATION_NOT_FOUND));
+
+        // 2. 본인 알림인지 검증
+        if(!notification.getUser().getUserId().equals(userId)){
+            throw new BaseException(ErrorCode.FORBIDDEN);
+        }
+
+        // 3. 읽음 처리 (엔티티 메서드 호출)
+        notification.read();
     }
 
 

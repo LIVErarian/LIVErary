@@ -6,6 +6,8 @@ import com.liverary.backend.board.domain.Type;
 import com.liverary.backend.board.repository.BoardRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.notification.domain.NotificationType;
+import com.liverary.backend.notification.service.NotificationService;
 import com.liverary.backend.review.domain.Review;
 import com.liverary.backend.review.dto.request.ReviewCreateRequest;
 import com.liverary.backend.review.dto.request.ReviewUpdateRequest;
@@ -34,6 +36,8 @@ public class ReviewService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
 
+    private final NotificationService notificationService;
+
     /**
      * 댓글 생성 로직 수행
      *
@@ -60,6 +64,17 @@ public class ReviewService {
                 .build();
 
         Review savedReview = reviewRepository.save(review);
+
+        // 댓글 작성자가 게시판 작성자와 다른 경우에만 알림 발송
+        if(!user.getUserId().equals(board.getUser().getUserId())) {
+            notificationService.send(
+                    board.getUser(),
+                    NotificationType.BOARD_REPLY,
+                    "작성하신 글에 답글이 등록되었습니다.",
+                    "/boards/"+board.getBoardId() // 프론트 상의 후 url 수정
+            );
+        }
+
 
         return ReviewResponse.from(savedReview);
     }

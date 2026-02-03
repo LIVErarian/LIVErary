@@ -23,7 +23,7 @@ public class Notification {
     // 수신자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User receiver;
+    private User user;
 
     // 알림 유형
     @Enumerated(EnumType.STRING)
@@ -46,12 +46,13 @@ public class Notification {
     private LocalDateTime createdAt;
 
     @Builder
-    public Notification(User receiver, NotificationType type, String content, String relatedUrl, boolean isRead){
-        this.receiver = receiver;
+    public Notification(User user, NotificationType type, String content, String relatedUrl, boolean isRead){
+        this.user = user;
         this.type = type;
         this.content = content;
         this.relatedUrl = relatedUrl;
         this.isRead = isRead;
+        this.createdAt = LocalDateTime.now();
 
     }
 

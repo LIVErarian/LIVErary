@@ -56,4 +56,23 @@ public interface RoomReservationRepository extends JpaRepository<RoomReservation
     // 내 예약 목록 조회
     @Query("SELECT rr FROM RoomReservation rr JOIN FETCH rr.room r WHERE r.endAt > CURRENT_TIMESTAMP AND rr.user = :user ORDER BY r.startAt DESC")
     List<RoomReservation> findAllByUser(@Param("user") User user);
+
+    // 예약 리마인더 알림용: 시작 시간이 특정 시간 범위 내에 있는 예약 조회
+    @Query("SELECT rr FROM RoomReservation rr " +
+            "JOIN FETCH rr.user " +
+            "JOIN FETCH rr.room r " +
+            "WHERE r.startAt BETWEEN :start AND :end")
+    List<RoomReservation> findReservationsStartingBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
+    // 예약 리마인더 알림용: 종료 시간이 특정 시간 범위 내에 있는 예약 조회
+    @Query("SELECT rr FROM RoomReservation rr " +
+            "JOIN FETCH rr.user " +
+            "JOIN FETCH rr.room r " +
+            "WHERE r.endAt BETWEEN :start AND :end")
+    List<RoomReservation> findReservationsByEndingBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }
+
