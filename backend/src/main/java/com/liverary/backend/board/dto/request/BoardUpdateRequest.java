@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /**
  * 게시글 수정 요청 DTO
- * 제목, 내용, 이미지 URL만 변경 가능하도록 제한함
+ * 제목, 내용만 변경 가능하도록 제한함
  * PROMOTION 게시판의 경우 방 정보 수정 가능
  */
 @Getter
@@ -22,16 +22,5 @@ public class BoardUpdateRequest {
     @NotBlank(message = "내용을 입력해 주세요.")
     private String content;
 
-    private String imageUrl;
-
     private UUID roomId;
-
-    private String categoryName;
-
-    private String bookTitle;
-
-    private String bookAuthor;
-
-    private String bookCoverUrl;
-
 }
