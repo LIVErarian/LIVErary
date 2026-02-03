@@ -6,7 +6,6 @@ export const DUMMY_USER: UserProfile = {
   userId: '1234-5678-uuid',
   email: 'test@example.com',
   nickname: '테스트',
-  gender: 'FEMALE',
   role: 'USER',
   totalReadingTime: 0,
   bookCounts: {
