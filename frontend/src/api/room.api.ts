@@ -1,4 +1,3 @@
-// src/api/room.api.ts
 import { api } from './axios';
 
 import type {
@@ -38,7 +37,7 @@ export const roomApi = {
   getRoomList: async (
     req: GetRoomListRequest,
   ): Promise<GetRoomListResponse['data']> => {
-    const { data } = await api.get<GetRoomListResponse>('/api/room', {
+    const { data } = await api.get<GetRoomListResponse>('/room', {
       params: req,
     });
 
@@ -48,7 +47,7 @@ export const roomApi = {
   },
 
   /**
-   * [POST] 방 상세 정보 조회
+   * [GET] 방 상세 정보 조회
    * @param req
    * @returns
    */
@@ -56,7 +55,7 @@ export const roomApi = {
     req: GetRoomDetailRequest,
   ): Promise<GetRoomDetailResponseData> => {
     const { data } = await api.get<GetRoomDetailResponse>(
-      `/api/room/${req.roomId}`,
+      `/room/${req.roomId}`,
     );
 
     if (!data.data) throw new Error('방 상세 정보를 불러오지 못했습니다.');
@@ -72,7 +71,7 @@ export const roomApi = {
   createRoom: async (
     req: CreateRoomRequest,
   ): Promise<CreateRoomResponseData> => {
-    const { data } = await api.post<CreateRoomResponse>('/api/room', req);
+    const { data } = await api.post<CreateRoomResponse>('/room', req);
 
     if (!data.data) throw new Error('방 생성에 실패했습니다.');
 
@@ -86,12 +85,9 @@ export const roomApi = {
    */
   joinRoom: async (req: JoinRoomRequest): Promise<JoinRoomResponseData> => {
     const { roomId, code } = req;
-    const { data } = await api.post<JoinRoomResponse>(
-      `/api/room/${roomId}/join`,
-      {
-        code,
-      },
-    );
+    const { data } = await api.post<JoinRoomResponse>(`/room/${roomId}/join`, {
+      code,
+    });
 
     if (!data.data) throw new Error('방 입장에 실패했습니다.');
 
@@ -105,10 +101,9 @@ export const roomApi = {
    */
   leaveRoom: async (req: LeaveRoomRequest): Promise<string> => {
     const { data } = await api.post<LeaveRoomResponse>(
-      `/api/room/${req.roomId}/leave`,
+      `/room/${req.roomId}/leave`,
     );
-    // 응답 데이터가 없으면 빈 문자열 반환 (혹은 에러 처리)
-    return data.data || '';
+    return data.message;
   },
 
   /**
@@ -120,7 +115,7 @@ export const roomApi = {
     req: ApplyScheduledRoomRequest,
   ): Promise<ApplyScheduledRoomResponseData> => {
     const { data } = await api.post<ApplyScheduledRoomResponse>(
-      `/api/room/reservation/${req.roomId}/apply`,
+      `/room/reservation/${req.roomId}/apply`,
     );
 
     if (!data.data) throw new Error('예약 참여 신청에 실패했습니다.');
@@ -137,9 +132,9 @@ export const roomApi = {
     req: DeleteApplyScheduledRequest,
   ): Promise<string> => {
     const { data } = await api.delete<DeleteApplyScheduledResponse>(
-      `/api/room/reservation/${req.roomId}/apply`,
+      `/room/reservation/${req.roomId}/apply`,
     );
-    return data.data || '';
+    return data.message;
   },
 
   /**
@@ -152,7 +147,7 @@ export const roomApi = {
   ): Promise<PatchScheduledRoomResponseData> => {
     const { roomId, ...body } = req;
     const { data } = await api.patch<PatchScheduledRoomResponse>(
-      `/api/room/reservation/${roomId}`,
+      `/room/reservation/${roomId}`,
       body,
     );
 
@@ -170,9 +165,9 @@ export const roomApi = {
     req: DeleteScheduledRoomRequest,
   ): Promise<string> => {
     const { data } = await api.delete<DeleteScheduledRoomResponse>(
-      `/api/room/reservation/${req.roomId}`,
+      `/room/reservation/${req.roomId}`,
     );
-    return data.data || '';
+    return data.message;
   },
 
   /**
@@ -181,7 +176,7 @@ export const roomApi = {
    */
   getMyScheduledRooms: async (): Promise<GetScheduledRoomResponseData[]> => {
     const { data } = await api.get<GetScheduledRoomResponse>(
-      '/api/room/reservation/my',
+      '/room/reservation/my',
     );
 
     // 빈 배열이라도 올 수 있으니 null 체크만

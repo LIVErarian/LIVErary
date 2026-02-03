@@ -4,6 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { userApi } from '@/api/user.api';
 import { useAuthStore } from '@/store/useAuthStore';
 
+/**
+ * 유저 정보 받아오기
+ * @returns userId, email, nickname, role, totalReadingTime, bookCounts
+ */
 export const useGetMyProfile = () => {
   const setUser = useAuthStore((state) => state.setUser);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
