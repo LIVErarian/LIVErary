@@ -2,6 +2,7 @@ package com.liverary.backend.board.repository;
 
 import com.liverary.backend.board.domain.Board;
 import com.liverary.backend.board.domain.Type;
+import com.liverary.backend.room.domain.Room;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -21,4 +22,6 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
     @EntityGraph(attributePaths = "user")
     Page<Board> findByTypeAndTitleContainingIgnoreCaseOrderByCreatedAtDesc(Type type, String keyword, Pageable pageable);
 
+    // 특정 방과 연결된 게시글 삭제
+    void deleteByRoom(Room room);
 }
