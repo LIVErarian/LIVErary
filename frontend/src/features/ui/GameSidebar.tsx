@@ -87,7 +87,6 @@ export const GameSidebar = () => {
       >
         👥
       </PixelButton>
-
     </div>
   );
 
@@ -119,7 +118,7 @@ export const GameSidebar = () => {
         variant="beige"
         shape="square"
         size="lg"
-        onClick={() => openModal('roomlist')}
+        onClick={() => openModal('roomList')}
         title="방 목록"
       >
         💬

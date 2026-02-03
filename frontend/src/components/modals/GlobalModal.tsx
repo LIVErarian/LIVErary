@@ -43,6 +43,21 @@ export const GlobalModal = () => {
       {/* 내 방 / 로비 이동 모달 */}
       <ConfirmModal
         isOpen={currentModal === 'move'}
+        onClose={closeModal}
+        onConfirm={() => {
+          modalProps.onConfirm?.();
+          closeModal();
+        }}
+        title={modalProps.title || '알림'}
+        isDanger={false}
+        confirmText="이동하기"
+      >
+        <p>{modalProps.message}</p>
+      </ConfirmModal>
+
+      {/* 방 입장/퇴장 모달 */}
+      <ConfirmModal
+        isOpen={currentModal === 'entrance'}
         onClose={() => {
           modalProps.onCancel?.();
           closeModal();
@@ -74,7 +89,7 @@ export const GlobalModal = () => {
 
       {/* 방 목록 모달 */}
       <PixelModal
-        isOpen={currentModal === 'roomlist'}
+        isOpen={currentModal === 'roomList'}
         onClose={closeModal}
         title="🚪 방 목록"
         width="500px"

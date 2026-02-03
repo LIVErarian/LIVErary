@@ -9,17 +9,20 @@ export type ModalType =
   | 'boardCreate'
   | 'boardUpdate'
   | 'logout'
-  | 'roomlist'
+  | 'roomList'
   | 'move'
   | 'rank'
   | 'friendSearch'
   | 'error'
+  | 'createRoom'
+  | 'entrance'
   | null;
 
 interface ModalProps {
   title?: string;
   message?: string;
   onConfirm?: () => void;
+  onCancel?: () => void;
   boardId?: string;
 }
 

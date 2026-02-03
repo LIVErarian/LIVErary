@@ -339,7 +339,7 @@ export class GameApp {
     }
 
     if (action.type === 'confirm') {
-      useModalStore.getState().openModal('move', {
+      useModalStore.getState().openModal('entrance', {
         title: action.title,
         message: action.message,
       });
@@ -349,18 +349,6 @@ export class GameApp {
       if (action.modalType === 'elevator') {
         useModalStore.getState().openModal('elevator');
       }
-    }
-
-    if (action.type === 'reposition') {
-      useModalStore.getState().openModal('move', {
-        title: action.title,
-        message: action.message,
-        onConfirm: () => {
-          if (action.position === 'center') {
-            this.movePlayerToPosition('screenCenter', zone);
-          }
-        },
-      });
     }
 
     if (action.type === 'confirmReposition') {
@@ -381,7 +369,7 @@ export class GameApp {
         return 'exit';
       };
 
-      useModalStore.getState().openModal('move', {
+      useModalStore.getState().openModal('entrance', {
         title: action.title,
         message: action.message,
         onConfirm: () =>
