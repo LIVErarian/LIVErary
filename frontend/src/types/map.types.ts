@@ -66,10 +66,22 @@ export interface MapZoneConfig {
   y: number;
   width: number;
   height: number;
-  trigger?: 'enter' | 'exit' | 'interact' | Array<'enter' | 'exit' | 'interact'>;
+  trigger?:
+    | 'enter'
+    | 'exit'
+    | 'interact'
+    | Array<'enter' | 'exit' | 'interact'>;
   action?: MapZoneAction;
   enterAction?: MapZoneAction;
   exitAction?: MapZoneAction;
+}
+
+export interface MapCollisionConfig {
+  tileWidth: number;
+  tileHeight: number;
+  width: number;
+  height: number;
+  grid: number[];
 }
 
 export interface MapConfig {
@@ -78,6 +90,7 @@ export interface MapConfig {
   img: string;
   width?: number;
   height?: number;
+  collision?: MapCollisionConfig;
   buttons?: MapButtonConfig[];
   zones?: MapZoneConfig[];
 }

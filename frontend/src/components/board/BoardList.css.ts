@@ -1,4 +1,5 @@
 import { style } from '@vanilla-extract/css';
+
 import { theme } from '@/styles/theme.css';
 
 // 전체 컨테이너
@@ -29,7 +30,7 @@ export const searchGroup = style({
 
 // Input이 찌그러지지 않도록 영역 확보 (Reference의 checkInput 참고)
 export const searchInputWrapper = style({
-  width: '200px', 
+  width: '200px',
 });
 
 // 상단 헤더 (탭 버튼)
@@ -58,7 +59,6 @@ export const activeTab = style({
   color: theme.colors.white,
   opacity: 1,
 });
-
 
 // 게시판 리스트 영역 (테이블)
 export const tableContainer = style({
