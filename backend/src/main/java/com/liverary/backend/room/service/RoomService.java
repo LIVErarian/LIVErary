@@ -19,6 +19,7 @@ import com.liverary.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -584,4 +585,41 @@ public class RoomService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 사용자 맞춤 추천 방 목록을 조회합니다.
+     *
+     * <p>카테고리가 지정되면 해당 카테고리의 LIVE 방을,
+     * 지정되지 않으면 전체 LIVE 방을 최신 시작 시간순으로 조회합니다.</p>
+     *
+     * @param userId 사용자 고유 식별자(UUID)
+     * @param categoryId 추천 기준이 되는 카테고리 ID (선택)
+     * @param count 조회할 최대 개수
+     * @return 추천 방 목록
+     */
+    public List<RoomListResponse> getRecommendRooms(UUID userId, UUID categoryId, Integer count) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        List<Room> rooms = null;
+
+        if (categoryId != null) {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
+
+            rooms = roomRepository.findAllByCategoryAndStatusOrderByStartAtDesc(
+                    category,
+                    RoomStatus.LIVE,
+                    Pageable.ofSize(3)
+            );
+        } else {
+            rooms = roomRepository.findAllByStatusOrderByStartAtDesc(
+                    RoomStatus.LIVE,
+                    Pageable.ofSize(3)
+            );
+        }
+
+        return rooms.stream().map(
+                RoomListResponse::from
+        ).toList();
+    }
 }
