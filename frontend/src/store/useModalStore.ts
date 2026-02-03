@@ -12,6 +12,7 @@ export type ModalType =
   | 'roomlist'
   | 'move'
   | 'rank'
+  | 'friendSearch'
   | 'error'
   | null;
 
@@ -19,7 +20,6 @@ interface ModalProps {
   title?: string;
   message?: string;
   onConfirm?: () => void;
-  onCancel?: () => void;
   boardId?: string;
 }
 
