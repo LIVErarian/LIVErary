@@ -10,7 +10,7 @@ import { throttle } from '@/utils/throttle';
 import { MAP_DATA } from '../map/mapAssets';
 import { Player } from '../player/Player';
 
-import type { FloorType, MapButtonConfig, MapZoneConfig } from '@/types/map.types';
+import type { FloorType, MapButtonConfig, MapZoneAction, MapZoneConfig } from '@/types/map.types';
 import type {
   Direction,
   MoveBroadcast,

@@ -56,6 +56,10 @@ export type MapZoneAction =
     };
 
 export interface MapZoneConfig {
+  absH: number;
+  absW: number;
+  absY: number;
+  absX: number;
   id: string;
   label?: string;
   x: number;
