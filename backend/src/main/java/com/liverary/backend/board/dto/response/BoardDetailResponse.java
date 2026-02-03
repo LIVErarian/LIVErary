@@ -4,7 +4,6 @@ import com.liverary.backend.board.domain.Board;
 import com.liverary.backend.board.domain.Status;
 import com.liverary.backend.board.domain.Type;
 import com.liverary.backend.room.domain.Room;
-import jakarta.persistence.criteria.ListJoin;
 import lombok.Builder;
 import lombok.Getter;
 
