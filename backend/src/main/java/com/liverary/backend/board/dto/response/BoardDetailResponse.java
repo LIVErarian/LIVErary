@@ -4,6 +4,7 @@ import com.liverary.backend.board.domain.Board;
 import com.liverary.backend.board.domain.Status;
 import com.liverary.backend.board.domain.Type;
 import com.liverary.backend.room.domain.Room;
+import jakarta.persistence.criteria.ListJoin;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -38,6 +39,7 @@ public class BoardDetailResponse {
         private Integer maxMembers;
         private LocalDateTime startTime;
         private LocalDateTime endTime;
+        private boolean isJoined;
 
         private String bookTitle;
         private String bookAuthor;
@@ -50,7 +52,7 @@ public class BoardDetailResponse {
      * @param board 변환할 Board 엔티티
      * @return 변환된 상세 응답 DTO
      */
-    public static BoardDetailResponse from(Board board, Room room, Integer currentCount) {
+    public static BoardDetailResponse from(Board board, Room room, Integer currentCount, boolean isJoined) {
 
         var builder = BoardDetailResponse.builder()
                 .boardId(board.getBoardId())
@@ -69,7 +71,8 @@ public class BoardDetailResponse {
                     .currentMembers(currentCount)
                     .maxMembers(room.getMaxUser())
                     .startTime(room.getStartAt())
-                    .endTime(room.getEndAt());
+                    .endTime(room.getEndAt())
+                    .isJoined(isJoined);
 
             if (room.getCategory() != null) {
                 roomBuilder.category(room.getCategory().getName());

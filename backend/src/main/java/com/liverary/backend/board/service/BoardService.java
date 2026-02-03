@@ -71,7 +71,7 @@ public class BoardService {
         // 공지 게시판
         else if (request.getType() == Type.NOTICE) {
             // 관리자 권한 체크
-            if(user.getRole() != Role.ADMIN) {
+            if (user.getRole() != Role.ADMIN) {
                 throw new BaseException(ErrorCode.INSUFFICIENT_PRIVILEGES);
             }
         }
@@ -90,13 +90,18 @@ public class BoardService {
      * @throws BaseException 게시글을 찾을 수 없는 경우 발생 (RESOURCE_NOT_FOUND)
      */
     @Transactional(readOnly = true)
-    public BoardDetailResponse getBoardDetail(UUID boardId) {
+    public BoardDetailResponse getBoardDetail(UUID boardId, UUID userId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new BaseException(ErrorCode.BOARD_NOT_FOUND));
+
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
         // 변수 초기화 (홍보 게시판)
         Room room = null;
         int currentCount = 0;
+        boolean isJoined = false;
 
         // 홍보 게시판
         if (board.getType() == Type.PROMOTION) {
@@ -108,9 +113,11 @@ public class BoardService {
             }
 
             currentCount = (int) roomReservationRepository.countByRoom(room);
+
+            isJoined = roomReservationRepository.existsByRoomAndUser(room, user);
         }
 
-        return BoardDetailResponse.from(board, room, currentCount);
+        return BoardDetailResponse.from(board, room, currentCount, isJoined);
     }
 
     /**
@@ -157,8 +164,8 @@ public class BoardService {
         Room room = null;
 
         // 방 정보 유효성 검증
-        if(board.getType() == Type.PROMOTION) {
-            if(request.getRoomId() == null) {
+        if (board.getType() == Type.PROMOTION) {
+            if (request.getRoomId() == null) {
                 throw new BaseException(ErrorCode.ROOM_INFO_REQUIRED);
             }
 

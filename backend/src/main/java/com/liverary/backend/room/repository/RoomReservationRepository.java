@@ -74,5 +74,8 @@ public interface RoomReservationRepository extends JpaRepository<RoomReservation
     List<RoomReservation> findReservationsByEndingBetween(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    // 특정 유저가 특정 방에 예약되어 있는지 확인
+    boolean existsByUserAndRoom(User user, Room room);
 }
 
