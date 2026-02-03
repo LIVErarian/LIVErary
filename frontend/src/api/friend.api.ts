@@ -2,10 +2,10 @@ import { api } from './axios';
 
 import type {
     FriendRequest,
+    FriendRequestResponse,
     UserSearchRequest,
     UserSearchResponse,
 } from '@/types/friend.types';
-import type { CommonResponse } from '@/types/api.types';
 
 export const friendApi = {
     /**
@@ -13,8 +13,8 @@ export const friendApi = {
      * @param req 검색할 유저 이메일 (UserSearchRequest)
      * @returns 유저 정보 (userId, email, nickname, relationStatus)
      */
-    searchUser: async (req: UserSearchRequest): Promise<UserSearchResponse> => {
-        const { data } = await api.get<CommonResponse<UserSearchResponse>>('/friend/search', {
+    searchUser: async (req: UserSearchRequest): Promise<UserSearchResponse['data']> => {
+        const { data } = await api.get<UserSearchResponse>('/friend/search', {
             params: req,
         });
 
@@ -29,7 +29,8 @@ export const friendApi = {
      * 친구 요청 전송
      * @param req 받는 사람 이메일
      */
-    requestFriend: async (req: FriendRequest): Promise<void> => {
-        await api.post<CommonResponse<null>>('/friend/request', req);
+    requestFriend: async (req: FriendRequest): Promise<FriendRequestResponse['data']> => {
+        const { data } = await api.post<FriendRequestResponse>('/friend/request', req);
+        return data.data;
     },
 };

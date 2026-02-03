@@ -5,6 +5,9 @@ import { useRequestFriend, useSearchUser } from '@/hooks/queries/useFriend';
 
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelModal } from '@/components/common/PixelModal';
+import { PixelInput } from '@/components/common/PixelInput';
+
+import * as styles from './FriendSearchModal.css';
 
 export const FriendSearchModal = () => {
     const [email, setEmail] = useState('');
@@ -36,28 +39,21 @@ export const FriendSearchModal = () => {
             title="친구 검색"
             width="450px"
         >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <input
+            <div className={styles.container}>
+                <div className={styles.searchContainer}>
+                    <PixelInput
                         type="email"
                         placeholder="이메일 검색"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        style={{
-                            flex: 1,
-                            padding: '8px',
-                            fontSize: '1rem',
-                            border: '2px solid #8B4513',
-                            borderRadius: '4px',
-                            fontFamily: 'inherit',
-                        }}
+                        className={styles.searchInput}
                     />
                     <PixelButton
                         variant="primary"
                         onClick={handleSearch}
                         disabled={isSearching || !email.trim()}
-                        style={{ minWidth: '60px' }}
+                        className={styles.searchButton}
                     >
                         {isSearching ? '...' : '검색'}
                     </PixelButton>
@@ -65,25 +61,14 @@ export const FriendSearchModal = () => {
 
                 {/* 검색 결과 영역 */}
                 {searchResult && (
-                    <div
-                        style={{
-                            padding: '12px',
-                            border: '2px dashed #8B4513',
-                            borderRadius: '4px',
-                            backgroundColor: '#f8f4eec0',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '8px',
-                            alignItems: 'center'
-                        }}
-                    >
-                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{searchResult.nickname}</div>
-                        <div style={{ fontSize: '0.9rem', color: '#666' }}>{searchResult.email}</div>
+                    <div className={styles.resultContainer}>
+                        <div className={styles.nickname}>{searchResult.nickname}</div>
+                        <div className={styles.email}>{searchResult.email}</div>
 
-                        <div style={{ marginTop: '8px' }}>
+                        <div className={styles.actionContainer}>
                             {searchResult.relationStatus === 'NONE' && (
                                 <PixelButton
-                                    variant="success"
+                                    variant="primary"
                                     onClick={handleRequest}
                                     disabled={isRequesting}
                                 >
@@ -91,19 +76,19 @@ export const FriendSearchModal = () => {
                                 </PixelButton>
                             )}
                             {searchResult.relationStatus === 'FRIEND' && (
-                                <span style={{ color: 'green', fontWeight: 'bold' }}>이미 친구입니다</span>
+                                <span className={styles.statusFriend}>이미 친구입니다</span>
                             )}
                             {searchResult.relationStatus === 'PENDING_SENT' && (
-                                <span style={{ color: '#d97706', fontWeight: 'bold' }}>요청 보냄</span>
+                                <span className={styles.statusPending}>요청 보냄</span>
                             )}
                             {searchResult.relationStatus === 'PENDING_RECEIVED' && (
-                                <span style={{ color: '#d97706', fontWeight: 'bold' }}>요청 받음 (친구 목록 확인)</span>
+                                <span className={styles.statusPending}>요청 받음 (친구 목록 확인)</span>
                             )}
                             {searchResult.relationStatus === 'MYSELF' && (
-                                <span style={{ color: '#8B4513', fontWeight: 'bold' }}>나 자신입니다</span>
+                                <span className={styles.statusSelf}>나 자신입니다</span>
                             )}
                             {searchResult.relationStatus === 'BLOCKED_BY_ME' && (
-                                <span style={{ color: 'red', fontWeight: 'bold' }}>차단됨</span>
+                                <span className={styles.statusBlocked}>차단됨</span>
                             )}
                         </div>
                     </div>

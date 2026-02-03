@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import { friendApi } from '@/api/friend.api';
@@ -8,7 +8,6 @@ import type { CommonResponse } from '@/types/api.types';
 import type {
     FriendRequest,
     UserSearchRequest,
-    UserSearchResponse,
 } from '@/types/friend.types';
 
 // Query Keys
@@ -19,16 +18,15 @@ export const FRIEND_KEYS = {
     blocked: () => [...FRIEND_KEYS.all, 'blocked'] as const,
 };
 
+/**
+ * 유저 검색 Hook
+ */
 export const useSearchUser = () => {
     const { openModal } = useModalStore();
 
-    return useMutation<
-        UserSearchResponse,
-        AxiosError<CommonResponse<null>>,
-        UserSearchRequest
-    >({
+    return useMutation({
         mutationFn: (req: UserSearchRequest) => friendApi.searchUser(req),
-        onError: (error) => {
+        onError: (error: AxiosError<CommonResponse<null>>) => {
             console.error('유저 검색 실패:', error);
             openModal('error', {
                 message:
@@ -38,16 +36,18 @@ export const useSearchUser = () => {
     });
 };
 
+/**
+ * 친구 요청 Hook
+ */
 export const useRequestFriend = () => {
-    const queryClient = useQueryClient();
     const { openModal } = useModalStore();
 
-    return useMutation<void, AxiosError<CommonResponse<null>>, FriendRequest>({
+    return useMutation({
         mutationFn: (req: FriendRequest) => friendApi.requestFriend(req),
         onSuccess: () => {
             alert('친구 요청을 보냈습니다.');
         },
-        onError: (error) => {
+        onError: (error: AxiosError<CommonResponse<null>>) => {
             console.error('친구 요청 전송 실패:', error);
             openModal('error', {
                 message:
