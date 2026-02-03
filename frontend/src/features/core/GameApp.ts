@@ -20,6 +20,7 @@ import { Player } from '../player/Player';
 import type {
   FloorType,
   MapButtonConfig,
+  MapCollisionConfig,
   MapZoneAction,
   MapZoneConfig,
 } from '@/types/map.types';
@@ -49,6 +50,11 @@ export class GameApp {
     MapZoneConfig & { absX: number; absY: number; absW: number; absH: number }
   > = [];
   private _activeZoneIds: Set<string> = new Set();
+  private _collisionGrid: number[] | null = null;
+  private _collisionCols: number = 0;
+  private _collisionRows: number = 0;
+  private _collisionTileWidth: number = 0;
+  private _collisionTileHeight: number = 0;
   private _worldWidth: number = 960;
   private _worldHeight: number = 640;
   private _currentFloorId: string = '';
@@ -209,6 +215,7 @@ export class GameApp {
 
     this.updateMapButtons(mapConfig);
     this.updateMapZones(mapConfig);
+    this.updateCollision(mapConfig);
 
     // 중앙 정렬 로직
     const screenWidth = this._viewport.screenWidth;
@@ -284,6 +291,64 @@ export class GameApp {
       absW: zone.width * this._worldWidth,
       absH: zone.height * this._worldHeight,
     }));
+  }
+
+  private updateCollision(mapConfig: { collision?: MapCollisionConfig }) {
+    const collision = mapConfig.collision;
+    if (!collision) {
+      this._collisionGrid = null;
+      this._collisionCols = 0;
+      this._collisionRows = 0;
+      this._collisionTileWidth = 0;
+      this._collisionTileHeight = 0;
+      return;
+    }
+
+    this._collisionGrid = collision.grid;
+    this._collisionCols = collision.width;
+    this._collisionRows = collision.height;
+    this._collisionTileWidth = collision.tileWidth;
+    this._collisionTileHeight = collision.tileHeight;
+  }
+
+  private isWallTile(tileX: number, tileY: number) {
+    if (!this._collisionGrid) return false;
+    if (
+      tileX < 0 ||
+      tileY < 0 ||
+      tileX >= this._collisionCols ||
+      tileY >= this._collisionRows
+    ) {
+      return true;
+    }
+
+    const index = tileY * this._collisionCols + tileX;
+    return this._collisionGrid[index] === 1;
+  }
+
+  private isColliding(nextX: number, nextY: number) {
+    if (!this._collisionGrid) return false;
+
+    const hitboxWidth = this._player.playerWidth * 0.4;
+    const hitboxHeight = this._player.playerHeight * 0.35;
+    const halfW = hitboxWidth / 2;
+    const left = nextX - halfW;
+    const right = nextX + halfW;
+    const top = nextY - hitboxHeight;
+    const bottom = nextY;
+
+    const tileLeft = Math.floor(left / this._collisionTileWidth);
+    const tileRight = Math.floor(right / this._collisionTileWidth);
+    const tileTop = Math.floor(top / this._collisionTileHeight);
+    const tileBottom = Math.floor(bottom / this._collisionTileHeight);
+
+    for (let ty = tileTop; ty <= tileBottom; ty += 1) {
+      for (let tx = tileLeft; tx <= tileRight; tx += 1) {
+        if (this.isWallTile(tx, ty)) return true;
+      }
+    }
+
+    return false;
   }
 
   private movePlayerToPosition(
@@ -488,8 +553,24 @@ export class GameApp {
         dy /= length;
       }
       const moveSpeed = this.getMoveSpeedForFloorId(this._currentFloorId);
-      this._player.x += dx * moveSpeed * ticker.deltaTime;
-      this._player.y += dy * moveSpeed * ticker.deltaTime;
+      const stepX = dx * moveSpeed * ticker.deltaTime;
+      const stepY = dy * moveSpeed * ticker.deltaTime;
+      const nextX = this._player.x + stepX;
+      const nextY = this._player.y + stepY;
+
+      if (this._collisionGrid) {
+        const candidateX = this.isColliding(nextX, this._player.y)
+          ? this._player.x
+          : nextX;
+        const candidateY = this.isColliding(candidateX, nextY)
+          ? this._player.y
+          : nextY;
+        this._player.x = candidateX;
+        this._player.y = candidateY;
+      } else {
+        this._player.x = nextX;
+        this._player.y = nextY;
+      }
 
       const marginX = this._player.playerWidth / 2;
       const marginY = this._player.playerHeight;
