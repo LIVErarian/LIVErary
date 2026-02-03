@@ -20,13 +20,11 @@ export class Player extends Container {
 
   // Readonly 상수
   private readonly FRAME_SIZE = 64;
-  private readonly SCALE_FACTOR = 2;
+  private readonly DEFAULT_SCALE_FACTOR = 2;
   // 실제 사이즈
   private readonly ACTUAL_WIDTH = 15;
   private readonly ACTUAL_HEIGHT = 24;
-  // 시각적 보조 (2배 크기) - graphics 설정을 위함! 추후엔 지워도 됨
-  private readonly VISUAL_WIDTH = this.ACTUAL_WIDTH * this.SCALE_FACTOR;
-  private readonly VISUAL_HEIGHT = this.ACTUAL_HEIGHT * this.SCALE_FACTOR;
+  private _scaleFactor = this.DEFAULT_SCALE_FACTOR;
 
   constructor(x: number, y: number, nickname: string, sheetTexture: Texture) {
     super();
@@ -44,7 +42,7 @@ export class Player extends Container {
 
     // 애니메이션 속도 지정
     this._character.animationSpeed = 0.15;
-    this._character.scale.set(this.SCALE_FACTOR);
+    this._character.scale.set(this._scaleFactor);
     this._character.anchor.set(0.5, 0.7); // 발바닥 기준
 
     this._character.x = 0;
@@ -66,7 +64,7 @@ export class Player extends Container {
 
     // 텍스트 위치 설정
     this._nicknameText.anchor.set(0.5, 1);
-    this._nicknameText.y = -this.VISUAL_HEIGHT - 5; // 머리 끝보다 5px 위
+    this.updateNicknamePosition();
 
     this.addChild(this._nicknameText);
     this._character.gotoAndStop(2);
@@ -134,10 +132,21 @@ export class Player extends Container {
 
   // Getter
   public get playerWidth() {
-    return this.VISUAL_WIDTH;
+    return this.ACTUAL_WIDTH * this._scaleFactor;
   }
 
   public get playerHeight() {
-    return this.VISUAL_HEIGHT;
+    return this.ACTUAL_HEIGHT * this._scaleFactor;
+  }
+
+  public setScaleFactor(scaleFactor: number) {
+    if (scaleFactor <= 0 || this._scaleFactor === scaleFactor) return;
+    this._scaleFactor = scaleFactor;
+    this._character.scale.set(this._scaleFactor);
+    this.updateNicknamePosition();
+  }
+
+  private updateNicknamePosition() {
+    this._nicknameText.y = -(this.ACTUAL_HEIGHT * this._scaleFactor) - 5;
   }
 }
