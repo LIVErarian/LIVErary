@@ -29,17 +29,23 @@ export const BoardList = () => {
 
   return (
     <div className={styles.container}>
-      {/* 검색창 및 글쓰기 */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-        <PixelButton onClick={() => openModal('boardCreate')}>✏️ 글쓰기</PixelButton>
+      {/* 검색창 및 글쓰기 버튼 */}
+      <div className={styles.toolbar}>
+        
+        <div>
+          <PixelButton onClick={() => openModal('boardCreate')}>✏️ 글쓰기</PixelButton>
+        </div>
 
-        <div style={{ display: 'flex', gap: '4px', flex: 1, justifyContent: 'end' }}>
-          <PixelInput 
-            placeholder="검색어를 입력하세요"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          />
+        {/* 검색 그룹 */}
+        <div className={styles.searchGroup}>
+          <div className={styles.searchInputWrapper}>
+            <PixelInput 
+              placeholder="검색어를 입력하세요"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            />
+          </div>
           <PixelButton onClick={handleSearch}>🔍</PixelButton>
         </div>
         

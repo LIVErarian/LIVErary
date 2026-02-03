@@ -12,6 +12,26 @@ export const container = style({
   padding: '0.5rem 1.5rem',
 });
 
+export const toolbar = style({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-end',
+  marginBottom: '10px',
+  gap: '10px',
+});
+
+// 검색 그룹
+export const searchGroup = style({
+  display: 'flex',
+  gap: '4px',
+  alignItems: 'flex-end',
+});
+
+// Input이 찌그러지지 않도록 영역 확보 (Reference의 checkInput 참고)
+export const searchInputWrapper = style({
+  width: '200px', 
+});
+
 // 상단 헤더 (탭 버튼)
 export const header = style({
   display: 'flex',
