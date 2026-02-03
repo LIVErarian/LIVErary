@@ -4,16 +4,19 @@ import { PixelButton } from '@/components/common/PixelButton';
 import { PixelInput } from '@/components/common/PixelInput';
 import {
   useAcceptFriend,
+  useBlockedList,
+  useBlockUser,
   useFriendList,
   usePendingFriendList,
   useRejectFriend,
   useRequestFriend,
   useSearchUser,
+  useUnblockUser,
 } from '@/hooks/queries/useFriend';
 
 import * as styles from './FriendListModal.css';
 
-type TabType = 'FRIENDS' | 'REQUESTS';
+type TabType = 'FRIENDS' | 'REQUESTS' | 'BLOCKED';
 
 export const FriendListModal = () => {
   const [activeTab, setActiveTab] = useState<TabType>('FRIENDS');
@@ -26,9 +29,15 @@ export const FriendListModal = () => {
   );
   const { data: requestList, isLoading: isLoadingRequests } =
     usePendingFriendList(0, 50);
+  const { data: blockedList, isLoading: isLoadingBlocked } = useBlockedList(
+    0,
+    50,
+  );
 
   const { mutate: acceptFriend } = useAcceptFriend();
   const { mutate: rejectFriend } = useRejectFriend();
+  const { mutate: blockUser, isPending: isBlocking } = useBlockUser();
+  const { mutate: unblockUser, isPending: isUnblocking } = useUnblockUser();
 
   const {
     mutate: searchUser,
@@ -45,6 +54,18 @@ export const FriendListModal = () => {
   const handleReject = (friendId: string) => {
     if (confirm('정말 거절하시겠습니까?')) {
       rejectFriend(friendId);
+    }
+  };
+
+  const handleBlock = (email: string) => {
+    if (confirm('정말 차단하시겠습니까?')) {
+      blockUser(email);
+    }
+  };
+
+  const handleUnblock = (email: string) => {
+    if (confirm('차단을 해제하시겠습니까?')) {
+      unblockUser(email);
     }
   };
 
@@ -127,6 +148,12 @@ export const FriendListModal = () => {
             <span className={styles.badge}>({requestList.content.length})</span>
           )}
         </PixelButton>
+        <PixelButton
+          className={`${styles.tabButton} ${!isSearchMode && activeTab === 'BLOCKED' ? styles.activeTab : ''}`}
+          onClick={() => handleTabClick('BLOCKED')}
+        >
+          차단 목록
+        </PixelButton>
       </div>
 
       {/* 콘텐츠 영역 */}
@@ -141,16 +168,35 @@ export const FriendListModal = () => {
                 <div className={styles.email}>{searchResult.email}</div>
                 <div className={styles.actionButtons}>
                   {searchResult.relationStatus === 'NONE' && (
-                    <PixelButton
-                      variant="primary"
-                      onClick={handleRequest}
-                      disabled={isRequesting}
-                    >
-                      친구 요청
-                    </PixelButton>
+                    <>
+                      <PixelButton
+                        variant="primary"
+                        onClick={handleRequest}
+                        disabled={isRequesting}
+                      >
+                        친구 요청
+                      </PixelButton>
+                      <PixelButton
+                        variant="danger"
+                        onClick={() => handleBlock(searchResult.email)}
+                        disabled={isBlocking}
+                      >
+                        차단
+                      </PixelButton>
+                    </>
                   )}
                   {searchResult.relationStatus === 'FRIEND' && (
-                    <span className={styles.statusTag}>이미 친구</span>
+                    <>
+                      <span className={styles.statusTag}>이미 친구</span>
+                      <PixelButton
+                        size="sm"
+                        variant="danger"
+                        onClick={() => handleBlock(searchResult.email)}
+                        disabled={isBlocking}
+                      >
+                        차단
+                      </PixelButton>
+                    </>
                   )}
                   {searchResult.relationStatus === 'PENDING_SENT' && (
                     <span className={styles.statusTag}>요청 보냄</span>
@@ -162,7 +208,13 @@ export const FriendListModal = () => {
                     <span className={styles.statusTag}>나 자신</span>
                   )}
                   {searchResult.relationStatus === 'BLOCKED_BY_ME' && (
-                    <span className={styles.statusTag}>차단됨</span>
+                    <PixelButton
+                      variant="beige"
+                      onClick={() => handleUnblock(searchResult.email)}
+                      disabled={isUnblocking}
+                    >
+                      차단 해제
+                    </PixelButton>
                   )}
                 </div>
               </div>
@@ -186,7 +238,16 @@ export const FriendListModal = () => {
                   <div key={friend.friendId} className={styles.listItem}>
                     <div className={styles.nickname}>{friend.nickname}</div>
                     <div className={styles.email}>{friend.email}</div>
-                    <div className={styles.actionButtons} />
+                    <div className={styles.actionButtons}>
+                      <PixelButton
+                        size="sm"
+                        variant="danger"
+                        onClick={() => handleBlock(friend.email)}
+                        disabled={isBlocking}
+                      >
+                        차단
+                      </PixelButton>
+                    </div>
                   </div>
                 ))}
               </>
@@ -218,6 +279,35 @@ export const FriendListModal = () => {
                         onClick={() => handleReject(request.friendId)}
                       >
                         거절
+                      </PixelButton>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {activeTab === 'BLOCKED' && (
+              <>
+                {isLoadingBlocked && (
+                  <div className={styles.loading}>로딩 중...</div>
+                )}
+                {!isLoadingBlocked && blockedList?.content.length === 0 && (
+                  <div className={styles.emptyState}>
+                    차단한 사용자가 없습니다.
+                  </div>
+                )}
+                {blockedList?.content.map((blocked) => (
+                  <div key={blocked.friendId} className={styles.listItem}>
+                    <div className={styles.nickname}>{blocked.nickname}</div>
+                    <div className={styles.email}>{blocked.email}</div>
+                    <div className={styles.actionButtons}>
+                      <PixelButton
+                        size="sm"
+                        variant="beige"
+                        onClick={() => handleUnblock(blocked.email)}
+                        disabled={isUnblocking}
+                      >
+                        차단 해제
                       </PixelButton>
                     </div>
                   </div>

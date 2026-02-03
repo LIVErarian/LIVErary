@@ -18,6 +18,8 @@ export const FRIEND_KEYS = {
     [...FRIEND_KEYS.all, 'accepted', { page, size }] as const,
   requests: (page: number, size: number) =>
     [...FRIEND_KEYS.all, 'requests', { page, size }] as const,
+  blocked: (page: number, size: number) =>
+    [...FRIEND_KEYS.all, 'blocked', { page, size }] as const,
 };
 
 export const useSearchUser = () => {
@@ -69,6 +71,14 @@ export const usePendingFriendList = (page = 0, size = 10) => {
   });
 };
 
+export const useBlockedList = (page = 0, size = 10) => {
+  return useQuery({
+    queryKey: FRIEND_KEYS.blocked(page, size),
+    queryFn: () => friendApi.getBlockedList(page, size),
+    placeholderData: keepPreviousData,
+  });
+};
+
 export const useAcceptFriend = () => {
   const queryClient = useQueryClient();
   const { openError } = useModalStore();
@@ -100,6 +110,44 @@ export const useRejectFriend = () => {
       console.error('친구 거절 실패:', error);
       openError({
         message: error.response?.data?.message || '친구 거절에 실패했습니다.',
+      });
+    },
+  });
+};
+
+export const useBlockUser = () => {
+  const queryClient = useQueryClient();
+  const { openError } = useModalStore();
+
+  return useMutation({
+    mutationFn: (email: string) => friendApi.blockUser(email),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FRIEND_KEYS.all });
+      alert('사용자를 차단했습니다.');
+    },
+    onError: (error: AxiosError<CommonResponse<null>>) => {
+      console.error('사용자 차단 실패:', error);
+      openError({
+        message: error.response?.data?.message || '사용자 차단에 실패했습니다.',
+      });
+    },
+  });
+};
+
+export const useUnblockUser = () => {
+  const queryClient = useQueryClient();
+  const { openError } = useModalStore();
+
+  return useMutation({
+    mutationFn: (email: string) => friendApi.unblockUser(email),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FRIEND_KEYS.all });
+      alert('차단을 해제했습니다.');
+    },
+    onError: (error: AxiosError<CommonResponse<null>>) => {
+      console.error('차단 해제 실패:', error);
+      openError({
+        message: error.response?.data?.message || '차단 해제에 실패했습니다.',
       });
     },
   });

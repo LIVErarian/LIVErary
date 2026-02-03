@@ -74,3 +74,8 @@ export interface FriendRequest {
   //요청을 받을 유저 이메일
   receiverEmail: string;
 }
+
+// 차단/해제 요청 Body
+export interface BlockRequest {
+  email: string;
+}
