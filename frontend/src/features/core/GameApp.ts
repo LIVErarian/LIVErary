@@ -57,6 +57,9 @@ export class GameApp {
   private readonly MOVE_SPEED = 4;
   private readonly DEFAULT_WIDTH = 1440;
   private readonly DEFAULT_HEIGHT = 810;
+  private readonly DEFAULT_PLAYER_SCALE = 2;
+  private readonly MY_ROOM_PLAYER_SCALE = 5;
+  private readonly MY_ROOM_SPEED_MULTIPLIER = 2;
 
   constructor() {
     this._app = new Application();
@@ -133,6 +136,9 @@ export class GameApp {
 
     // 플레이어 위치 및 방향 초기화
     if (this._player) {
+      this._player.setScaleFactor(
+        this.getPlayerScaleForFloorId(this._currentFloorId),
+      );
       if (floor === 'myRoom') {
         this._player.x = this._worldWidth / 2;
         this._player.y = this._worldHeight / 2;
@@ -429,6 +435,9 @@ export class GameApp {
 
     const displayName = nickname || 'Me';
     this._player = new Player(startX, startY, displayName, sheetTexture);
+    this._player.setScaleFactor(
+      this.getPlayerScaleForFloorId(this._currentFloorId),
+    );
     this._viewport.addChild(this._player);
     this._viewport.follow(this._player);
   }
@@ -478,8 +487,9 @@ export class GameApp {
         dx /= length;
         dy /= length;
       }
-      this._player.x += dx * this.MOVE_SPEED * ticker.deltaTime;
-      this._player.y += dy * this.MOVE_SPEED * ticker.deltaTime;
+      const moveSpeed = this.getMoveSpeedForFloorId(this._currentFloorId);
+      this._player.x += dx * moveSpeed * ticker.deltaTime;
+      this._player.y += dy * moveSpeed * ticker.deltaTime;
 
       const marginX = this._player.playerWidth / 2;
       const marginY = this._player.playerHeight;
@@ -640,5 +650,17 @@ export class GameApp {
       this._app.ticker.remove(this.update, this);
       this._app.destroy({ removeView: true }, { children: true });
     }
+  }
+
+  private getPlayerScaleForFloorId(floorId: string) {
+    return floorId === MAP_DATA.myRoom.floorId
+      ? this.MY_ROOM_PLAYER_SCALE
+      : this.DEFAULT_PLAYER_SCALE;
+  }
+
+  private getMoveSpeedForFloorId(floorId: string) {
+    return floorId === MAP_DATA.myRoom.floorId
+      ? this.MOVE_SPEED * this.MY_ROOM_SPEED_MULTIPLIER
+      : this.MOVE_SPEED;
   }
 }
