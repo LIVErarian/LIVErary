@@ -11,6 +11,7 @@ import com.liverary.backend.auth.repository.RefreshTokenRepository;
 import com.liverary.backend.auth.util.GmailUtil;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.notification.repository.EmitterRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class AuthService implements UserDetailsService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final EmitterRepository emitterRepository;
 
     // 이메일 전송에 사용
     private final GmailUtil gmailUtil;
@@ -66,18 +68,21 @@ public class AuthService implements UserDetailsService {
      * @param refreshTokenRepository 리프레시 토큰 관리를 위한 리포지토리
      * @param passwordEncoder 비밀번호 암호화 처리를 위한 인코더 (순환 참조 방지를 위해 지연 주입)
      * @param jwtProvider JWT 토큰 생성 및 검증을 위한 프로바이더 (순환 참조 방지를 위해 지연 주입)
+     * @param emitterRepository SSE 연결 관리를 위한 리포지토리
      */
     public AuthService(
             UserRepository userRepository,
             RefreshTokenRepository refreshTokenRepository,
             @Lazy PasswordEncoder passwordEncoder,
             @Lazy JwtProvider jwtProvider,
+            EmitterRepository emitterRepository,
             GmailUtil gmailUtil,
             StringRedisTemplate redisTemplate) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtProvider = jwtProvider;
+        this.emitterRepository = emitterRepository;
         this.gmailUtil = gmailUtil;
         this.redisTemplate = redisTemplate;
     }
@@ -262,7 +267,7 @@ public class AuthService implements UserDetailsService {
     }
 
     /**
-     * 사용자의 리프레시 토큰을 삭제하여 로그아웃 처리
+     * 사용자의 리프레시 토큰을 삭제하여 로그아웃 처리 & SSE 연결 정리
      *
      * @param userId 사용자의 식별자 (UUID)
      */
@@ -270,6 +275,9 @@ public class AuthService implements UserDetailsService {
     public void logout(UUID userId) {
         // 해당 유저의 리프레시 토큰이 존재하면 삭제
         refreshTokenRepository.deleteById(userId);
+        
+        // 해당 유저의 모든 SSE 연결 정리 (메모리 누수 방지)
+        emitterRepository.deleteAllEmittersStartWithUserId(userId.toString());
     }
 
     /**
