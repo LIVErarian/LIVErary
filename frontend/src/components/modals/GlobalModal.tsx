@@ -4,6 +4,7 @@ import { PixelModal } from '../common/PixelModal';
 import { ConfirmModal } from './ConfirmModal';
 import { ElevatorModal } from './ElevatorModal';
 import { ErrorModal } from './ErrorModal';
+import { FriendSearchModal } from './FriendSearchModal';
 import { ProfileModal } from './ProfileModal';
 
 import * as styles from './GlobalModal.css';
@@ -110,6 +111,9 @@ export const GlobalModal = () => {
 
       {/* 프로필 모달 */}
       <ProfileModal isOpen={currentModal === 'profile'} onClose={closeModal} />
+
+      {/* 친구 검색 모달 */}
+      {currentModal === 'friendSearch' && <FriendSearchModal />}
     </>
   );
 };
