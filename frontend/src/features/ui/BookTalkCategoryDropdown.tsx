@@ -38,6 +38,9 @@ export const BookTalkCategoryDropdown = () => {
         className={styles.select}
         value={selectedId}
         onChange={(event) => setSelectedId(event.target.value)}
+        onKeyDown={(event) => {
+          event.preventDefault();
+        }}
       >
         <option value={ALL_OPTION.id}>{ALL_OPTION.label}</option>
         {isLoading && (
