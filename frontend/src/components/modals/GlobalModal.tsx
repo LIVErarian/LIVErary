@@ -9,7 +9,7 @@ import { BookshelfModal } from './BookshelfModal';
 import { ConfirmModal } from './ConfirmModal';
 import { ElevatorModal } from './ElevatorModal';
 import { ErrorModal } from './ErrorModal';
-import { FriendSearchModal } from './FriendSearchModal';
+import { FriendListModal } from './FriendListModal';
 import { ProfileModal } from './ProfileModal';
 
 import * as styles from './GlobalModal.css';
@@ -150,14 +150,21 @@ export const GlobalModal = () => {
       {/* 프로필 모달 */}
       <ProfileModal isOpen={currentModal === 'profile'} onClose={closeModal} />
 
+      {/* 친구 목록 모달 */}
+      <PixelModal
+        isOpen={currentModal === 'friendList'}
+        onClose={closeModal}
+        title="친구 목록"
+        width="500px"
+      >
+        <FriendListModal />
+      </PixelModal>
+
       {/* 나의 서재 모달 */}
       <BookshelfModal
         isOpen={currentModal === 'bookshelf'}
         onClose={closeModal}
       />
-
-      {/* 친구 검색 모달 */}
-      {currentModal === 'friendSearch' && <FriendSearchModal />}
     </>
   );
 };
