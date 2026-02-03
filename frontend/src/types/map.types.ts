@@ -56,17 +56,21 @@ export type MapZoneAction =
     };
 
 export interface MapZoneConfig {
-  absH: number;
-  absW: number;
-  absY: number;
-  absX: number;
+  absH?: number;
+  absW?: number;
+  absY?: number;
+  absX?: number;
   id: string;
   label?: string;
   x: number;
   y: number;
   width: number;
   height: number;
-  trigger?: 'enter' | 'exit' | 'interact' | Array<'enter' | 'exit' | 'interact'>;
+  trigger?:
+    | 'enter'
+    | 'exit'
+    | 'interact'
+    | Array<'enter' | 'exit' | 'interact'>;
   action?: MapZoneAction;
   enterAction?: MapZoneAction;
   exitAction?: MapZoneAction;

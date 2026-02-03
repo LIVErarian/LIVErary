@@ -1,19 +1,24 @@
 import { useLogout } from '@/hooks/queries/useAuth';
 import { useModalStore } from '@/store/useModalStore';
+import { BoardCreate } from '../board/BoardCreate';
+import { BoardDetail } from '../board/BoardDetail';
+import { BoardList } from '../board/BoardList';
+import { BoardUpdate } from '../board/BoardUpdate';
 import { PixelModal } from '../common/PixelModal';
 import { BookshelfModal } from './BookshelfModal';
 import { ConfirmModal } from './ConfirmModal';
 import { ElevatorModal } from './ElevatorModal';
 import { ErrorModal } from './ErrorModal';
+import { FriendSearchModal } from './FriendSearchModal';
 import { ProfileModal } from './ProfileModal';
 
 import * as styles from './GlobalModal.css';
 
-const BoardContent = () => (
-  <div className={styles.contentWrapper}>
-    <p>게시판 기능을 준비 중입니다.</p>
-  </div>
-);
+// const BoardContent = () => (
+//   <div className={styles.contentWrapper}>
+//     <p>게시판 기능을 준비 중입니다.</p>
+//   </div>
+// );
 
 const RoomContent = () => (
   <div className={styles.contentWrapper}>
@@ -44,11 +49,9 @@ export const GlobalModal = () => {
       <ConfirmModal
         isOpen={currentModal === 'move'}
         onClose={() => {
-          modalProps.onCancel?.();
           closeModal();
         }}
         onConfirm={() => {
-          modalProps.onConfirm?.();
           closeModal();
         }}
         title={modalProps.title || '알림'}
@@ -62,14 +65,46 @@ export const GlobalModal = () => {
       {currentModal === 'elevator' && <ElevatorModal />}
 
       {/* 게시판 모달 */}
-      {/* TODO: board_list, board_detail, board_create, board_update로 세분화 */}
+      {/* 게시글 목록 모달 */}
       <PixelModal
         isOpen={currentModal === 'boardList'}
         onClose={closeModal}
-        title="📋 게시판"
-        width="500px"
+        title="게시판"
+        width="800px"
       >
-        <BoardContent />
+        <BoardList />
+      </PixelModal>
+
+      {/* 게시글 작성 모달 */}
+      <PixelModal
+        isOpen={currentModal === 'boardCreate'}
+        onClose={closeModal} // 작성 중 닫으면 데이터 날아감 (필요시 ConfirmModal 추가 가능)
+        title="게시글 작성"
+        width="800px"
+      >
+        <BoardCreate />
+      </PixelModal>
+
+      {/* 게시글 상세 모달 */}
+      <PixelModal
+        isOpen={currentModal === 'boardDetail'}
+        onClose={closeModal}
+        title="게시글"
+        width="800px"
+      >
+        {/* modalProps에서 boardId를 꺼내서 전달 */}
+        {modalProps.boardId && <BoardDetail boardId={modalProps.boardId} />}
+      </PixelModal>
+
+      {/* 게시글 수정 모달 */}
+      <PixelModal
+        isOpen={currentModal === 'boardUpdate'}
+        onClose={closeModal}
+        title="게시글 수정"
+        width="800px"
+      >
+        {/* modalProps에서 boardId를 꺼내서 전달 */}
+        {modalProps.boardId && <BoardUpdate boardId={modalProps.boardId} />}
       </PixelModal>
 
       {/* 방 목록 모달 */}
@@ -120,6 +155,9 @@ export const GlobalModal = () => {
         isOpen={currentModal === 'bookshelf'}
         onClose={closeModal}
       />
+
+      {/* 친구 검색 모달 */}
+      {currentModal === 'friendSearch' && <FriendSearchModal />}
     </>
   );
 };

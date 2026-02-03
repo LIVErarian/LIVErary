@@ -1,4 +1,11 @@
-import { Application, Assets, Container, Graphics, Sprite, Ticker } from 'pixi.js';
+import {
+  Application,
+  Assets,
+  Container,
+  Graphics,
+  Sprite,
+  Ticker,
+} from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 
 import playerMSheetImg from '@/assets/characters/basic_male.png';
@@ -10,7 +17,12 @@ import { throttle } from '@/utils/throttle';
 import { MAP_DATA } from '../map/mapAssets';
 import { Player } from '../player/Player';
 
-import type { FloorType, MapButtonConfig, MapZoneAction, MapZoneConfig } from '@/types/map.types';
+import type {
+  FloorType,
+  MapButtonConfig,
+  MapZoneAction,
+  MapZoneConfig,
+} from '@/types/map.types';
 import type {
   Direction,
   MoveBroadcast,
@@ -33,7 +45,9 @@ export class GameApp {
   private _suppressZoneTriggers: Map<string, Set<'enter' | 'exit'>> = new Map();
   private _bgSprite: Sprite | null = null;
   private _mapButtonsContainer: Container | null = null;
-  private _mapZones: Array<MapZoneConfig & { absX: number; absY: number; absW: number; absH: number }> = [];
+  private _mapZones: Array<
+    MapZoneConfig & { absX: number; absY: number; absW: number; absH: number }
+  > = [];
   private _activeZoneIds: Set<string> = new Set();
   private _worldWidth: number = 960;
   private _worldHeight: number = 640;
@@ -43,6 +57,9 @@ export class GameApp {
   private readonly MOVE_SPEED = 4;
   private readonly DEFAULT_WIDTH = 1440;
   private readonly DEFAULT_HEIGHT = 810;
+  private readonly DEFAULT_PLAYER_SCALE = 2;
+  private readonly MY_ROOM_PLAYER_SCALE = 5;
+  private readonly MY_ROOM_SPEED_MULTIPLIER = 2;
 
   constructor() {
     this._app = new Application();
@@ -119,6 +136,9 @@ export class GameApp {
 
     // 플레이어 위치 및 방향 초기화
     if (this._player) {
+      this._player.setScaleFactor(
+        this.getPlayerScaleForFloorId(this._currentFloorId),
+      );
       if (floor === 'myRoom') {
         this._player.x = this._worldWidth / 2;
         this._player.y = this._worldHeight / 2;
@@ -267,7 +287,11 @@ export class GameApp {
   }
 
   private movePlayerToPosition(
-    position: 'zoneCenter' | 'screenCenter' | 'zoneFrontAbove' | 'zoneFrontBelow',
+    position:
+      | 'zoneCenter'
+      | 'screenCenter'
+      | 'zoneFrontAbove'
+      | 'zoneFrontBelow',
     zone?: MapZoneConfig,
     suppressNextTrigger?: 'enter' | 'exit',
   ) {
@@ -411,12 +435,26 @@ export class GameApp {
 
     const displayName = nickname || 'Me';
     this._player = new Player(startX, startY, displayName, sheetTexture);
+    this._player.setScaleFactor(
+      this.getPlayerScaleForFloorId(this._currentFloorId),
+    );
     this._viewport.addChild(this._player);
     this._viewport.follow(this._player);
   }
 
   private update(ticker: Ticker) {
     if (!this._player) return;
+
+    const isModalOpen = useModalStore.getState().currentModal !== null;
+    if (isModalOpen) {
+      if (this._isPrevMoving) {
+        this._player.setAnimation(this._lookingDirection, false);
+        this.sendMyPosition(false);
+        this._isPrevMoving = false;
+      }
+      this._isInteractPressed = false;
+      return;
+    }
 
     let dx = 0;
     let dy = 0;
@@ -449,8 +487,9 @@ export class GameApp {
         dx /= length;
         dy /= length;
       }
-      this._player.x += dx * this.MOVE_SPEED * ticker.deltaTime;
-      this._player.y += dy * this.MOVE_SPEED * ticker.deltaTime;
+      const moveSpeed = this.getMoveSpeedForFloorId(this._currentFloorId);
+      this._player.x += dx * moveSpeed * ticker.deltaTime;
+      this._player.y += dy * moveSpeed * ticker.deltaTime;
 
       const marginX = this._player.playerWidth / 2;
       const marginY = this._player.playerHeight;
@@ -509,7 +548,8 @@ export class GameApp {
             const suppressed = this._suppressZoneTriggers.get(zone.id);
             if (suppressed?.has('enter')) {
               suppressed.delete('enter');
-              if (suppressed.size === 0) this._suppressZoneTriggers.delete(zone.id);
+              if (suppressed.size === 0)
+                this._suppressZoneTriggers.delete(zone.id);
             } else {
               this.handleZoneAction(zone.enterAction ?? zone.action, zone);
             }
@@ -520,7 +560,8 @@ export class GameApp {
             const suppressed = this._suppressZoneTriggers.get(zone.id);
             if (suppressed?.has('exit')) {
               suppressed.delete('exit');
-              if (suppressed.size === 0) this._suppressZoneTriggers.delete(zone.id);
+              if (suppressed.size === 0)
+                this._suppressZoneTriggers.delete(zone.id);
             } else {
               this.handleZoneAction(zone.exitAction ?? zone.action, zone);
             }
@@ -609,5 +650,17 @@ export class GameApp {
       this._app.ticker.remove(this.update, this);
       this._app.destroy({ removeView: true }, { children: true });
     }
+  }
+
+  private getPlayerScaleForFloorId(floorId: string) {
+    return floorId === MAP_DATA.myRoom.floorId
+      ? this.MY_ROOM_PLAYER_SCALE
+      : this.DEFAULT_PLAYER_SCALE;
+  }
+
+  private getMoveSpeedForFloorId(floorId: string) {
+    return floorId === MAP_DATA.myRoom.floorId
+      ? this.MOVE_SPEED * this.MY_ROOM_SPEED_MULTIPLIER
+      : this.MOVE_SPEED;
   }
 }
