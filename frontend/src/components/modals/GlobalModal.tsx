@@ -61,7 +61,7 @@ export const GlobalModal = () => {
       {/* 게시판 모달 */}
       {/* TODO: board_list, board_detail, board_create, board_update로 세분화 */}
       <PixelModal
-        isOpen={currentModal === 'board_list'}
+        isOpen={currentModal === 'boardList'}
         onClose={closeModal}
         title="📋 게시판"
         width="500px"
