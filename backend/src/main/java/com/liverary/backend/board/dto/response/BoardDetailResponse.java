@@ -77,7 +77,8 @@ public class BoardDetailResponse {
 
             if (room.getBook() != null) {
                 roomBuilder.bookTitle(room.getBook().getTitle())
-                        .bookAuthor(room.getBook().getAuthor());
+                        .bookAuthor(room.getBook().getAuthor())
+                        .bookCoverUrl(room.getBook().getCoverUrl());
             }
 
             builder.roomDetail(roomBuilder.build());

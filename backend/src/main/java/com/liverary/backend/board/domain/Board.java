@@ -62,7 +62,7 @@ public class Board {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_room_id")
+    @JoinColumn(name = "room_id")
     private Room room;
 
     /**

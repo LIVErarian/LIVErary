@@ -103,6 +103,10 @@ public class BoardService {
 
             room = board.getRoom();
 
+            if (room == null) {
+                throw new BaseException(ErrorCode.ROOM_NOT_FOUND);
+            }
+
             currentCount = (int) roomReservationRepository.countByRoom(room);
         }
 
