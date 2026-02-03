@@ -51,7 +51,6 @@ export class GameApp {
   private _activeZoneIds: Set<string> = new Set();
   private _worldWidth: number = 960;
   private _worldHeight: number = 640;
-  private _currentFloor: FloorType = 'myRoom';
   private _currentFloorId: string = '';
   private _sendMoveThrottled: (payload: MoveRequest) => void;
 
@@ -133,12 +132,13 @@ export class GameApp {
 
     this._worldWidth = mapConfig.width ?? this.DEFAULT_WIDTH;
     this._worldHeight = mapConfig.height ?? this.DEFAULT_HEIGHT;
-    this._currentFloor = floor;
     this._currentFloorId = mapConfig.floorId;
 
     // 플레이어 위치 및 방향 초기화
     if (this._player) {
-      this._player.setScaleFactor(this.getPlayerScaleForFloor(floor));
+      this._player.setScaleFactor(
+        this.getPlayerScaleForFloorId(this._currentFloorId),
+      );
       if (floor === 'myRoom') {
         this._player.x = this._worldWidth / 2;
         this._player.y = this._worldHeight / 2;
@@ -436,7 +436,7 @@ export class GameApp {
     const displayName = nickname || 'Me';
     this._player = new Player(startX, startY, displayName, sheetTexture);
     this._player.setScaleFactor(
-      this.getPlayerScaleForFloor(this._currentFloor),
+      this.getPlayerScaleForFloorId(this._currentFloorId),
     );
     this._viewport.addChild(this._player);
     this._viewport.follow(this._player);
@@ -487,7 +487,7 @@ export class GameApp {
         dx /= length;
         dy /= length;
       }
-      const moveSpeed = this.getMoveSpeedForFloor(this._currentFloor);
+      const moveSpeed = this.getMoveSpeedForFloorId(this._currentFloorId);
       this._player.x += dx * moveSpeed * ticker.deltaTime;
       this._player.y += dy * moveSpeed * ticker.deltaTime;
 
@@ -652,14 +652,14 @@ export class GameApp {
     }
   }
 
-  private getPlayerScaleForFloor(floor: FloorType) {
-    return floor === 'myRoom'
+  private getPlayerScaleForFloorId(floorId: string) {
+    return floorId === MAP_DATA.myRoom.floorId
       ? this.MY_ROOM_PLAYER_SCALE
       : this.DEFAULT_PLAYER_SCALE;
   }
 
-  private getMoveSpeedForFloor(floor: FloorType) {
-    return floor === 'myRoom'
+  private getMoveSpeedForFloorId(floorId: string) {
+    return floorId === MAP_DATA.myRoom.floorId
       ? this.MOVE_SPEED * this.MY_ROOM_SPEED_MULTIPLIER
       : this.MOVE_SPEED;
   }
