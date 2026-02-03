@@ -22,6 +22,11 @@ export const FRIEND_KEYS = {
     [...FRIEND_KEYS.all, 'blocked', { page, size }] as const,
 };
 
+/**
+ * 사용자 검색 Hook
+ * 이메일로 사용자를 검색하고 관계 상태를 확인
+ * @returns 검색 mutation
+ */
 export const useSearchUser = () => {
   const { openError } = useModalStore();
 
@@ -37,6 +42,11 @@ export const useSearchUser = () => {
   });
 };
 
+/**
+ * 친구 요청 전송 Hook
+ * 특정 사용자에게 친구 요청을 전송
+ * @returns 친구 요청 mutation
+ */
 export const useRequestFriend = () => {
   const { openError } = useModalStore();
 
@@ -55,6 +65,12 @@ export const useRequestFriend = () => {
   });
 };
 
+/**
+ * 친구 목록 조회 Hook (ACCEPTED 상태)
+ * @param page - 페이지 번호 (default: 0)
+ * @param size - 페이지 크기 (default: 10)
+ * @returns 친구 목록 query
+ */
 export const useFriendList = (page = 0, size = 10) => {
   return useQuery({
     queryKey: FRIEND_KEYS.accepted(page, size),
@@ -63,6 +79,12 @@ export const useFriendList = (page = 0, size = 10) => {
   });
 };
 
+/**
+ * 받은 친구 요청 목록 조회 Hook (PENDING 상태)
+ * @param page - 페이지 번호 (default: 0)
+ * @param size - 페이지 크기 (default: 10)
+ * @returns 친구 요청 목록 query
+ */
 export const usePendingFriendList = (page = 0, size = 10) => {
   return useQuery({
     queryKey: FRIEND_KEYS.requests(page, size),
@@ -71,6 +93,12 @@ export const usePendingFriendList = (page = 0, size = 10) => {
   });
 };
 
+/**
+ * 차단한 사용자 목록 조회 Hook (BLOCKED 상태)
+ * @param page - 페이지 번호 (default: 0)
+ * @param size - 페이지 크기 (default: 10)
+ * @returns 차단 목록 query
+ */
 export const useBlockedList = (page = 0, size = 10) => {
   return useQuery({
     queryKey: FRIEND_KEYS.blocked(page, size),
@@ -79,6 +107,11 @@ export const useBlockedList = (page = 0, size = 10) => {
   });
 };
 
+/**
+ * 친구 요청 수락 Hook
+ * 받은 친구 요청을 수락하고 친구 목록 갱신
+ * @returns 친구 수락 mutation
+ */
 export const useAcceptFriend = () => {
   const queryClient = useQueryClient();
   const { openError } = useModalStore();
@@ -97,6 +130,11 @@ export const useAcceptFriend = () => {
   });
 };
 
+/**
+ * 친구 요청 거절 Hook
+ * 받은 친구 요청을 거절하고 목록에서 제거
+ * @returns 친구 거절 mutation
+ */
 export const useRejectFriend = () => {
   const queryClient = useQueryClient();
   const { openError } = useModalStore();
@@ -115,6 +153,11 @@ export const useRejectFriend = () => {
   });
 };
 
+/**
+ * 사용자 차단 Hook
+ * 특정 사용자를 차단하고 모든 친구 목록 갱신
+ * @returns 사용자 차단 mutation
+ */
 export const useBlockUser = () => {
   const queryClient = useQueryClient();
   const { openError } = useModalStore();
@@ -134,6 +177,11 @@ export const useBlockUser = () => {
   });
 };
 
+/**
+ * 사용자 차단 해제 Hook
+ * 차단한 사용자를 해제하고 모든 친구 목록 갱신
+ * @returns 사용자 차단 해제 mutation
+ */
 export const useUnblockUser = () => {
   const queryClient = useQueryClient();
   const { openError } = useModalStore();

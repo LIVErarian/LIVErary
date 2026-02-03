@@ -47,51 +47,86 @@ export const FriendListModal = () => {
   } = useSearchUser();
   const { mutate: requestFriend, isPending: isRequesting } = useRequestFriend();
 
+  /**
+   * 친구 요청 수락
+   * @param friendId - 수락할 친구 요청 ID
+   */
   const handleAccept = (friendId: string) => {
     acceptFriend(friendId);
   };
 
+  /**
+   * 친구 요청 거절
+   * @param friendId - 거절할 친구 요청 ID
+   */
   const handleReject = (friendId: string) => {
     if (confirm('정말 거절하시겠습니까?')) {
       rejectFriend(friendId);
     }
   };
 
+  /**
+   * 사용자 차단
+   * @param email - 차단할 사용자 이메일
+   */
   const handleBlock = (email: string) => {
     if (confirm('정말 차단하시겠습니까?')) {
       blockUser(email);
     }
   };
 
+  /**
+   * 사용자 차단 해제
+   * @param email - 차단 해제할 사용자 이메일
+   */
   const handleUnblock = (email: string) => {
     if (confirm('차단을 해제하시겠습니까?')) {
       unblockUser(email);
     }
   };
 
+  /**
+   * 사용자 검색 실행
+   * 입력된 이메일로 사용자를 검색하고 검색 모드로 전환
+   */
   const handleSearch = () => {
     if (!searchEmail.trim()) return;
     setIsSearchMode(true);
     searchUser({ email: searchEmail });
   };
 
+  /**
+   * 검색된 사용자에게 친구 요청 전송
+   */
   const handleRequest = () => {
     if (!searchResult) return;
     requestFriend({ receiverEmail: searchResult.email });
   };
 
+  /**
+   * Enter 키 입력 시 검색 실행
+   * @param e - 키보드 이벤트
+   */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
   };
 
+  /**
+   * 검색 상태 초기화
+   * 검색어, 검색 모드, 검색 결과를 모두 초기화
+   */
   const handleClearSearch = () => {
     setSearchEmail('');
     setIsSearchMode(false);
     resetSearch();
   };
 
+  /**
+   * 탭 전환 처리
+   * @param tab - 전환할 탭 타입
+   */
   const handleTabClick = (tab: TabType) => {
     setIsSearchMode(false);
     setActiveTab(tab);
@@ -99,7 +134,11 @@ export const FriendListModal = () => {
     resetSearch();
   };
 
-  // 검색 버튼 렌더링
+  /**
+   * 검색 버튼 렌더링
+   * 검색 모드에 따라 '검색' 또는 '취소' 버튼 표시
+   * @returns 검색 또는 취소 버튼 컴포넌트
+   */
   const renderSearchButton = () => {
     if (isSearchMode) {
       return (
@@ -125,7 +164,11 @@ export const FriendListModal = () => {
     );
   };
 
-  // 검색 결과 액션 버튼 렌더링
+  /**
+   * 검색 결과의 액션 버튼 렌더링
+   * 관계 상태(NONE, FRIEND, PENDING 등)에 따라 적절한 버튼 표시
+   * @returns 관계 상태에 따른 액션 버튼 또는 상태 태그
+   */
   const renderSearchResultActions = () => {
     if (!searchResult) return null;
 
@@ -195,7 +238,11 @@ export const FriendListModal = () => {
     return null;
   };
 
-  // 검색 결과 렌더링
+  /**
+   * 검색 결과 영역 렌더링
+   * 검색 중, 결과 있음, 결과 없음 상태에 따라 적절한 UI 표시
+   * @returns 검색 결과 UI
+   */
   const renderSearchResult = () => {
     if (isSearching) {
       return <div className={styles.loading}>검색 중...</div>;
@@ -216,7 +263,10 @@ export const FriendListModal = () => {
     return <div className={styles.emptyState}>검색 결과가 없습니다</div>;
   };
 
-  // 친구 목록 렌더링
+  /**
+   * 친구 목록(ACCEPTED 상태) 렌더링
+   * @returns 친구 목록 아이템 또는 로딩/빈 상태 UI
+   */
   const renderFriendList = () => {
     if (isLoadingFriends) {
       return <div className={styles.loading}>로딩 중...</div>;
@@ -248,7 +298,10 @@ export const FriendListModal = () => {
     ));
   };
 
-  // 받은 요청 목록 렌더링
+  /**
+   * 받은 친구 요청 목록(PENDING 상태) 렌더링
+   * @returns 요청 목록 아이템 또는 로딩/빈 상태 UI
+   */
   const renderRequestList = () => {
     if (isLoadingRequests) {
       return <div className={styles.loading}>로딩 중...</div>;
@@ -282,7 +335,10 @@ export const FriendListModal = () => {
     ));
   };
 
-  // 차단 목록 렌더링
+  /**
+   * 차단한 사용자 목록(BLOCKED 상태) 렌더링
+   * @returns 차단 목록 아이템 또는 로딩/빈 상태 UI
+   */
   const renderBlockedList = () => {
     if (isLoadingBlocked) {
       return <div className={styles.loading}>로딩 중...</div>;
@@ -310,7 +366,11 @@ export const FriendListModal = () => {
     ));
   };
 
-  // 콘텐츠 영역 렌더링
+  /**
+   * 메인 콘텐츠 영역 렌더링
+   * 검색 모드 또는 활성 탭에 따라 적절한 콘텐츠 표시
+   * @returns 검색 결과, 친구 목록, 요청 목록, 차단 목록 중 하나
+   */
   const renderContent = () => {
     if (isSearchMode) {
       return renderSearchResult();
