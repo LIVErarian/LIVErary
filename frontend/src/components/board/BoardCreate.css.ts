@@ -67,6 +67,31 @@ export const select = style({
   },
 });
 
+export const titleInput = style({
+  width: '100%',
+  height: '48px',
+  padding: '0 12px',
+  fontSize: '1.2rem', 
+  fontWeight: 'bold',
+  color: theme.colors.woodDeep,
+  backgroundColor: 'transparent',
+  border: 'none',
+  borderBottom: `2px solid ${theme.colors.woodMedium}`,
+  borderRadius: '0',
+  outline: 'none',
+  fontFamily: 'inherit',
+  marginBottom: '10px',
+  transition: 'border-color 0.2s',
+
+  '::placeholder': {
+    fontWeight: 'normal',
+  },
+
+  ':focus': {
+    borderBottomColor: theme.colors.woodDeep,
+  },
+});
+
 // 본문 입력 (Textarea)
 export const contentArea = style({
   flex: 1,

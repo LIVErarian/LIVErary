@@ -47,10 +47,23 @@ export const content = style({
   overflowY: 'auto',
 });
 
+// 책 정보가 있을 때 (2단 레이아웃)
 export const roomInfoCard = style({
   display: 'grid',
-  gridTemplateColumns: '1fr 2fr',
+  gridTemplateColumns: '150px 1fr',
   gap: '1.5rem',
+  padding: '1.5rem',
+  backgroundColor: theme.colors.white,
+  border: `1px solid ${theme.colors.beigeLight}`,
+  borderRadius: '8px',
+  alignItems: 'start',
+});
+
+// 책 정보가 없을 때 (1단 레이아웃)
+export const roomInfoCardNoBook = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
   padding: '1.5rem',
   backgroundColor: theme.colors.white,
   border: `1px solid ${theme.colors.beigeLight}`,
@@ -62,19 +75,22 @@ export const bookCoverSection = style({
   flexDirection: 'column',
   alignItems: 'center',
   gap: '1rem',
+  width: '100%',
 });
 
 export const bookCover = style({
-  width: '150px',
+  width: '100%',
   height: 'auto',
-  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+  objectFit: 'cover',
+  boxShadow: '2px 4px 8px rgba(0, 0, 0, 0.15)',
   borderRadius: '4px',
+  border: `1px solid ${theme.colors.beigeDark}`,
 });
 
 export const roomDetailsSection = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.8rem',
+  height: '100%',
 });
 
 export const roomTitle = style({
@@ -86,6 +102,7 @@ export const roomTitle = style({
 export const roomMeta = style({
   display: 'flex',
   gap: '1rem',
+  fontSize: '0.9rem',
   color: theme.colors.beigeText,
   alignItems: 'center',
 });
@@ -101,7 +118,7 @@ export const tag = style({
 
 export const bookInfo = style({
   fontSize: '1rem',
-  lineHeight: '1.5',
+  lineHeight: '1.2',
 });
 
 export const footer = style({
