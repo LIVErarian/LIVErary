@@ -267,6 +267,11 @@ public class FriendService {
         User otherUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
+        // 본인 확인
+        if (user.getUserId().equals(otherUser.getUserId())) {
+            return UserSearchResponse.of(otherUser, "MYSELF");
+        }
+
         // 관계 정보 조회
         Friend relation = friendRepository.findRelation(user, otherUser).orElse(null);
 
