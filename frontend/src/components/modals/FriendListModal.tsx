@@ -99,6 +99,234 @@ export const FriendListModal = () => {
     resetSearch();
   };
 
+  // 검색 버튼 렌더링
+  const renderSearchButton = () => {
+    if (isSearchMode) {
+      return (
+        <PixelButton
+          variant="beige"
+          onClick={handleClearSearch}
+          className={styles.searchButton}
+        >
+          취소
+        </PixelButton>
+      );
+    }
+
+    return (
+      <PixelButton
+        variant="primary"
+        onClick={handleSearch}
+        disabled={isSearching || !searchEmail.trim()}
+        className={styles.searchButton}
+      >
+        {isSearching ? '...' : '검색'}
+      </PixelButton>
+    );
+  };
+
+  // 검색 결과 액션 버튼 렌더링
+  const renderSearchResultActions = () => {
+    if (!searchResult) return null;
+
+    const { relationStatus, email } = searchResult;
+
+    if (relationStatus === 'NONE') {
+      return (
+        <>
+          <PixelButton
+            variant="primary"
+            onClick={handleRequest}
+            disabled={isRequesting}
+          >
+            친구 요청
+          </PixelButton>
+          <PixelButton
+            variant="danger"
+            onClick={() => handleBlock(email)}
+            disabled={isBlocking}
+          >
+            차단
+          </PixelButton>
+        </>
+      );
+    }
+
+    if (relationStatus === 'FRIEND') {
+      return (
+        <>
+          <span className={styles.statusTag}>이미 친구</span>
+          <PixelButton
+            size="sm"
+            variant="danger"
+            onClick={() => handleBlock(email)}
+            disabled={isBlocking}
+          >
+            차단
+          </PixelButton>
+        </>
+      );
+    }
+
+    if (relationStatus === 'PENDING_SENT') {
+      return <span className={styles.statusTag}>요청 보냄</span>;
+    }
+
+    if (relationStatus === 'PENDING_RECEIVED') {
+      return <span className={styles.statusTag}>요청 받음</span>;
+    }
+
+    if (relationStatus === 'MYSELF') {
+      return <span className={styles.statusTag}>나 자신</span>;
+    }
+
+    if (relationStatus === 'BLOCKED_BY_ME') {
+      return (
+        <PixelButton
+          variant="beige"
+          onClick={() => handleUnblock(email)}
+          disabled={isUnblocking}
+        >
+          차단 해제
+        </PixelButton>
+      );
+    }
+
+    return null;
+  };
+
+  // 검색 결과 렌더링
+  const renderSearchResult = () => {
+    if (isSearching) {
+      return <div className={styles.loading}>검색 중...</div>;
+    }
+
+    if (searchResult) {
+      return (
+        <div className={styles.searchResultCard}>
+          <div className={styles.nickname}>{searchResult.nickname}</div>
+          <div className={styles.email}>{searchResult.email}</div>
+          <div className={styles.actionButtons}>
+            {renderSearchResultActions()}
+          </div>
+        </div>
+      );
+    }
+
+    return <div className={styles.emptyState}>검색 결과가 없습니다</div>;
+  };
+
+  // 친구 목록 렌더링
+  const renderFriendList = () => {
+    if (isLoadingFriends) {
+      return <div className={styles.loading}>로딩 중...</div>;
+    }
+
+    if (friendList?.content.length === 0) {
+      return (
+        <div className={styles.emptyState}>
+          아직 친구가 없어요. 검색해서 친구를 추가해보세요!
+        </div>
+      );
+    }
+
+    return friendList?.content.map((friend) => (
+      <div key={friend.friendId} className={styles.listItem}>
+        <div className={styles.nickname}>{friend.nickname}</div>
+        <div className={styles.email}>{friend.email}</div>
+        <div className={styles.actionButtons}>
+          <PixelButton
+            size="sm"
+            variant="danger"
+            onClick={() => handleBlock(friend.email)}
+            disabled={isBlocking}
+          >
+            차단
+          </PixelButton>
+        </div>
+      </div>
+    ));
+  };
+
+  // 받은 요청 목록 렌더링
+  const renderRequestList = () => {
+    if (isLoadingRequests) {
+      return <div className={styles.loading}>로딩 중...</div>;
+    }
+
+    if (requestList?.content.length === 0) {
+      return <div className={styles.emptyState}>받은 요청이 없습니다.</div>;
+    }
+
+    return requestList?.content.map((request) => (
+      <div key={request.friendId} className={styles.listItem}>
+        <div className={styles.nickname}>{request.nickname}</div>
+        <div className={styles.email}>{request.email}</div>
+        <div className={styles.actionButtons}>
+          <PixelButton
+            size="sm"
+            variant="primary"
+            onClick={() => handleAccept(request.friendId)}
+          >
+            수락
+          </PixelButton>
+          <PixelButton
+            size="sm"
+            variant="danger"
+            onClick={() => handleReject(request.friendId)}
+          >
+            거절
+          </PixelButton>
+        </div>
+      </div>
+    ));
+  };
+
+  // 차단 목록 렌더링
+  const renderBlockedList = () => {
+    if (isLoadingBlocked) {
+      return <div className={styles.loading}>로딩 중...</div>;
+    }
+
+    if (blockedList?.content.length === 0) {
+      return <div className={styles.emptyState}>차단한 사용자가 없습니다.</div>;
+    }
+
+    return blockedList?.content.map((blocked) => (
+      <div key={blocked.friendId} className={styles.listItem}>
+        <div className={styles.nickname}>{blocked.nickname}</div>
+        <div className={styles.email}>{blocked.email}</div>
+        <div className={styles.actionButtons}>
+          <PixelButton
+            size="sm"
+            variant="beige"
+            onClick={() => handleUnblock(blocked.email)}
+            disabled={isUnblocking}
+          >
+            차단 해제
+          </PixelButton>
+        </div>
+      </div>
+    ));
+  };
+
+  // 콘텐츠 영역 렌더링
+  const renderContent = () => {
+    if (isSearchMode) {
+      return renderSearchResult();
+    }
+
+    if (activeTab === 'FRIENDS') {
+      return renderFriendList();
+    }
+
+    if (activeTab === 'REQUESTS') {
+      return renderRequestList();
+    }
+
+    return renderBlockedList();
+  };
+
   return (
     <div className={styles.container}>
       {/* 검색창 */}
@@ -111,24 +339,7 @@ export const FriendListModal = () => {
           onKeyDown={handleKeyDown}
           className={styles.searchInput}
         />
-        {isSearchMode ? (
-          <PixelButton
-            variant="beige"
-            onClick={handleClearSearch}
-            className={styles.searchButton}
-          >
-            취소
-          </PixelButton>
-        ) : (
-          <PixelButton
-            variant="primary"
-            onClick={handleSearch}
-            disabled={isSearching || !searchEmail.trim()}
-            className={styles.searchButton}
-          >
-            {isSearching ? '...' : '검색'}
-          </PixelButton>
-        )}
+        {renderSearchButton()}
       </div>
 
       {/* 탭 */}
@@ -157,166 +368,7 @@ export const FriendListModal = () => {
       </div>
 
       {/* 콘텐츠 영역 */}
-      <div className={styles.listContainer}>
-        {isSearchMode ? (
-          <>
-            {isSearching ? (
-              <div className={styles.loading}>검색 중...</div>
-            ) : searchResult ? (
-              <div className={styles.searchResultCard}>
-                <div className={styles.nickname}>{searchResult.nickname}</div>
-                <div className={styles.email}>{searchResult.email}</div>
-                <div className={styles.actionButtons}>
-                  {searchResult.relationStatus === 'NONE' && (
-                    <>
-                      <PixelButton
-                        variant="primary"
-                        onClick={handleRequest}
-                        disabled={isRequesting}
-                      >
-                        친구 요청
-                      </PixelButton>
-                      <PixelButton
-                        variant="danger"
-                        onClick={() => handleBlock(searchResult.email)}
-                        disabled={isBlocking}
-                      >
-                        차단
-                      </PixelButton>
-                    </>
-                  )}
-                  {searchResult.relationStatus === 'FRIEND' && (
-                    <>
-                      <span className={styles.statusTag}>이미 친구</span>
-                      <PixelButton
-                        size="sm"
-                        variant="danger"
-                        onClick={() => handleBlock(searchResult.email)}
-                        disabled={isBlocking}
-                      >
-                        차단
-                      </PixelButton>
-                    </>
-                  )}
-                  {searchResult.relationStatus === 'PENDING_SENT' && (
-                    <span className={styles.statusTag}>요청 보냄</span>
-                  )}
-                  {searchResult.relationStatus === 'PENDING_RECEIVED' && (
-                    <span className={styles.statusTag}>요청 받음</span>
-                  )}
-                  {searchResult.relationStatus === 'MYSELF' && (
-                    <span className={styles.statusTag}>나 자신</span>
-                  )}
-                  {searchResult.relationStatus === 'BLOCKED_BY_ME' && (
-                    <PixelButton
-                      variant="beige"
-                      onClick={() => handleUnblock(searchResult.email)}
-                      disabled={isUnblocking}
-                    >
-                      차단 해제
-                    </PixelButton>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className={styles.emptyState}>검색 결과가 없습니다</div>
-            )}
-          </>
-        ) : (
-          <>
-            {activeTab === 'FRIENDS' && (
-              <>
-                {isLoadingFriends && (
-                  <div className={styles.loading}>로딩 중...</div>
-                )}
-                {!isLoadingFriends && friendList?.content.length === 0 && (
-                  <div className={styles.emptyState}>
-                    아직 친구가 없어요. 검색해서 친구를 추가해보세요!
-                  </div>
-                )}
-                {friendList?.content.map((friend) => (
-                  <div key={friend.friendId} className={styles.listItem}>
-                    <div className={styles.nickname}>{friend.nickname}</div>
-                    <div className={styles.email}>{friend.email}</div>
-                    <div className={styles.actionButtons}>
-                      <PixelButton
-                        size="sm"
-                        variant="danger"
-                        onClick={() => handleBlock(friend.email)}
-                        disabled={isBlocking}
-                      >
-                        차단
-                      </PixelButton>
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
-
-            {activeTab === 'REQUESTS' && (
-              <>
-                {isLoadingRequests && (
-                  <div className={styles.loading}>로딩 중...</div>
-                )}
-                {!isLoadingRequests && requestList?.content.length === 0 && (
-                  <div className={styles.emptyState}>받은 요청이 없습니다.</div>
-                )}
-                {requestList?.content.map((request) => (
-                  <div key={request.friendId} className={styles.listItem}>
-                    <div className={styles.nickname}>{request.nickname}</div>
-                    <div className={styles.email}>{request.email}</div>
-                    <div className={styles.actionButtons}>
-                      <PixelButton
-                        size="sm"
-                        variant="primary"
-                        onClick={() => handleAccept(request.friendId)}
-                      >
-                        수락
-                      </PixelButton>
-                      <PixelButton
-                        size="sm"
-                        variant="danger"
-                        onClick={() => handleReject(request.friendId)}
-                      >
-                        거절
-                      </PixelButton>
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
-
-            {activeTab === 'BLOCKED' && (
-              <>
-                {isLoadingBlocked && (
-                  <div className={styles.loading}>로딩 중...</div>
-                )}
-                {!isLoadingBlocked && blockedList?.content.length === 0 && (
-                  <div className={styles.emptyState}>
-                    차단한 사용자가 없습니다.
-                  </div>
-                )}
-                {blockedList?.content.map((blocked) => (
-                  <div key={blocked.friendId} className={styles.listItem}>
-                    <div className={styles.nickname}>{blocked.nickname}</div>
-                    <div className={styles.email}>{blocked.email}</div>
-                    <div className={styles.actionButtons}>
-                      <PixelButton
-                        size="sm"
-                        variant="beige"
-                        onClick={() => handleUnblock(blocked.email)}
-                        disabled={isUnblocking}
-                      >
-                        차단 해제
-                      </PixelButton>
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
-          </>
-        )}
-      </div>
+      <div className={styles.listContainer}>{renderContent()}</div>
     </div>
   );
 };
