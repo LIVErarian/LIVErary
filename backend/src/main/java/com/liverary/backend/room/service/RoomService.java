@@ -1,7 +1,7 @@
 package com.liverary.backend.room.service;
 
+import com.liverary.backend.board.repository.BoardRepository;
 import com.liverary.backend.book.domain.Book;
-import com.liverary.backend.book.repository.BookRepository;
 import com.liverary.backend.book.service.BookService;
 import com.liverary.backend.category.domain.Category;
 import com.liverary.backend.category.repository.CategoryRepository;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 public class RoomService {
 
     private final RoomRepository roomRepository;
-    private final BookRepository bookRepository;
+    private final BoardRepository boardRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final RoomHistoryRepository roomHistoryRepository;
@@ -240,7 +240,8 @@ public class RoomService {
             throw new BaseException(ErrorCode.TOO_LATE_TO_CANCEL_ROOM);
         }
 
-        // 연관된 예약 내역 전체 삭제
+        // 연관된 데이터 삭제 순서: 게시글 -> 예약 내역 -> 방
+        boardRepository.deleteByRoom(room);
         roomReservationRepository.deleteAllByRoom(room);
         roomRepository.delete(room);
     }
