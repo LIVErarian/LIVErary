@@ -43,7 +43,10 @@ export const GlobalModal = () => {
       {/* 내 방 / 로비 이동 모달 */}
       <ConfirmModal
         isOpen={currentModal === 'move'}
-        onClose={closeModal}
+        onClose={() => {
+          modalProps.onCancel?.();
+          closeModal();
+        }}
         onConfirm={() => {
           modalProps.onConfirm?.();
           closeModal();
