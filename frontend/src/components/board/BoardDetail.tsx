@@ -27,8 +27,14 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
   const [reservationCode, setReservationCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // localJoined: 유저의 수동 조작 상태 (null이면 서버 데이터 사용)
+  const [localJoined, setLocalJoined] = useState<boolean | null>(null);
+
   const room = post.roomDetail;
   if (!room) return null;
+
+  // 렌더링 시 사용할 최종 참여 상태 계산 (Local State 우선, 없으면 Server Data)
+  const isJoined = localJoined ?? room.joined ?? false;
 
   // 책 정보가 있는지 확인
   const hasBook = !!room.bookTitle && room.bookTitle.trim() !== '';
@@ -60,6 +66,7 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
         {
           onSuccess: (data) => {
             setReservationCode(data.code);
+            setLocalJoined(true);
             setError(null);
           },
           onError: (e: AxiosError<CommonResponse<null>>) => {
@@ -74,11 +81,17 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
 
   const handleCancel = () => {
     if (confirm('참여 신청을 취소하시겠습니까?')) {
-      cancelApply({ roomId: room.roomId });
+      cancelApply(
+        { roomId: room.roomId },
+        {
+          onSuccess: () => {
+            setLocalJoined(false);
+            setReservationCode(null);
+          },
+        },
+      );
     }
   };
-
-  const isJoined = room.isJoined ?? false;
 
   return (
     <>

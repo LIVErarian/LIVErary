@@ -65,7 +65,7 @@ export interface RoomDetailInfo {
   startTime: string;
   endTime: string;
 
-  isJoined: boolean;
+  joined: boolean;
 
   bookTitle?: string;
   bookAuthor?: string;
