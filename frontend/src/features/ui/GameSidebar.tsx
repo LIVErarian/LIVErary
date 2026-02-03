@@ -77,17 +77,16 @@ export const GameSidebar = () => {
         📋
       </PixelButton>
 
-      {/* 친구 검색 */}
+      {/* 친구 목록 */}
       <PixelButton
         variant="beige"
         shape="square"
         size="lg"
-        onClick={() => openModal('friendSearch')}
-        title="친구 검색"
+        onClick={() => openModal('friendList')}
+        title="친구 목록"
       >
         👥
       </PixelButton>
-
     </div>
   );
 
@@ -166,13 +165,13 @@ export const GameSidebar = () => {
       {/* 상황에 따른 버튼 */}
       {renderContextBtn()}
 
-      {/* 친구 검색 */}
+      {/* 친구 목록 */}
       <PixelButton
         variant="beige"
         shape="square"
         size="lg"
-        onClick={() => openModal('friendSearch')}
-        title="친구 검색"
+        onClick={() => openModal('friendList')}
+        title="친구 목록"
       >
         👥
       </PixelButton>
