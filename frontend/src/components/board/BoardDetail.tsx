@@ -246,8 +246,8 @@ export const BoardDetail = ({ boardId }: { boardId: string }) => {
       </header>
 
       <main className={styles.content}>
-        {post.type === 'PROMOTION' && <PromotionDetails post={post} />}
         <p>{post.content}</p>
+        {post.type === 'PROMOTION' && <PromotionDetails post={post} />}
       </main>
 
       <footer className={styles.footer}>
