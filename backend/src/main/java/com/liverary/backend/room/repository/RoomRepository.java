@@ -35,11 +35,20 @@ public interface RoomRepository extends JpaRepository<Room, UUID> {
     // [자동 시작 대상] 시작 시간까지 10분 이하로 남은 예약 방 조회
     List<Room> findAllByStatusAndStartAtLessThanEqual(RoomStatus status, LocalDateTime time);
 
-    // [노쇼 종료 대상] 시작 후 10분 경과했고, 인원이 0명인 라이브 방 조회
-    List<Room> findAllByStatusAndStartAtLessThanEqualAndCurrentCount(RoomStatus status, LocalDateTime time, int currentCount);
+    // [노쇼 종료 대상] LIVE 상태 + 시작 후 10분 경과 + 인원 0명 + (STABLE 타입 제외)
+    List<Room> findAllByStatusAndStartAtLessThanEqualAndCurrentCountAndRoomTypeNot(
+            RoomStatus status,
+            LocalDateTime time,
+            int currentCount,
+            RoomType roomType
+    );
 
-    // [자동 종료 대상] 종료 시간이 지난 라이브 방 조회
-    List<Room> findAllByStatusAndEndAtLessThanEqual(RoomStatus status, LocalDateTime time);
+    // [자동 종료 대상] LIVE 상태 + 종료 시간 경과 + (STABLE 타입 제외)
+    List<Room> findAllByStatusAndEndAtLessThanEqualAndRoomTypeNot(
+            RoomStatus status,
+            LocalDateTime time,
+            RoomType roomType
+    );
 
     // 카테고리별 LIVE 방을 최신 시작 시간순으로 조회 (추천용)
     List<Room> findAllByCategoryAndStatusOrderByStartAtDesc(
