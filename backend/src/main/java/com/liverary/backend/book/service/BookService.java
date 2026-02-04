@@ -76,35 +76,28 @@ public class BookService {
      * 도서 검색
      * DB 조회 -> Redis -> 알라딘 API 호출
      *
-     * @param
-     * @return
+     * @param keyword 검색 키워드
+     * @param pageable 페이지네이션
+     * @return Page<BookListResponse> 검색 결과
      */
     @Transactional
-    public Page<BookListResponse> searchBooks(String type, String keyword, Pageable pageable) {
+    public Page<BookListResponse> searchBooks(String keyword, Pageable pageable) {
 
-        // 1. DB 검색
-        Page<Book> dbBooks = Page.empty();
-        if ("title".equalsIgnoreCase(type)) {
-            dbBooks = bookRepository.findByTitleContaining(keyword, pageable);
-        } else if ("author".equalsIgnoreCase(type)) {
-            dbBooks = bookRepository.findByAuthorContaining(keyword, pageable);
-        }
-
-        if (!dbBooks.isEmpty()) {
-            return dbBooks.map(BookListResponse::from);
-        }
-
-        // 2. Redis 검색 (검색 결과 리스트 조회)
-        // Key format: SEARCH::[type]::[keyword]::[page]::[size}
-        String redisKey = SEARCH_KEY_PREFIX + type + "::" + keyword + "::" + pageable.getPageNumber() + "::" + pageable.getPageSize();
+        // 1. Redis 검색 (검색 결과 리스트 조회)
+        // Key format: SEARCH::Keyword::[keyword]::[page]::[size}
+        String redisKey = SEARCH_KEY_PREFIX + "Keyword::" + keyword + "::" + pageable.getPageNumber() + "::" + pageable.getPageSize();
         String cachedJson = redisTemplate.opsForValue().get(redisKey);
+        // 캐시가 있으면 바로 반환ㄴ
         if (cachedJson != null) {
             try {
+                // JSON 문자열을 List<BookDto>로 역질렬화
                 List<BookDto> cachedList = objectMapper.readValue(cachedJson, new TypeReference<List<BookDto>>() {
                 });
+                // BookDto -> BookListResponse 변환
                 List<BookListResponse> responses = cachedList.stream()
                         .map(BookListResponse::from)
                         .collect(Collectors.toList());
+                log.info("Redis 캐시 히트: {}", redisKey);
                 return new PageImpl<>(responses, pageable, responses.size());
             } catch (Exception e) {
                 log.error("Redis Deserialization Error", e);
@@ -112,17 +105,17 @@ public class BookService {
         }
 
 
-        // 3. API 검색
-        String aladinQueryType = "title".equalsIgnoreCase(type) ? "Title" : "Author";
+        // 2. 알라딘 API 호출 & 검색
+        String aladinQueryType = "Keyword";
         List<BookDto> apiBooks = aladinApiService.searchBooks(keyword, aladinQueryType, pageable.getPageNumber(), pageable.getPageSize());
-        // Redis 저장
+        // API 결과를 Redis에 캐싱
         if (!apiBooks.isEmpty()) {
 
             try {
                 // 1) 검색 결과 리스트 저장 (도서 검색 시 사용)
                 String jsonString = objectMapper.writeValueAsString(apiBooks);
-
                 redisTemplate.opsForValue().set(redisKey, jsonString, Duration.ofHours(24));
+                log.info("Redis 저장 완료: {}", redisKey);
 
                 // 2) 개별 도서 정보 저장 (도서 상세 조회 시 사용)
                 for (BookDto book : apiBooks) {
@@ -135,7 +128,7 @@ public class BookService {
             }
         }
 
-        // Page 객체로 변환
+        // 4. Page 객체로 변환
         List<BookListResponse> responses = apiBooks.stream()
                 .map(BookListResponse::from)
                 .collect(Collectors.toList());
