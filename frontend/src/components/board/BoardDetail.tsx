@@ -36,7 +36,7 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
   if (!room) return null;
 
   // 본인 글(방장) 여부 확인
-  const isHost = user?.nickname === post.nickname;
+  const isHost = user?.userId === room.hostId;
 
   // 렌더링 시 사용할 최종 참여 상태 계산 (Local State 우선, 없으면 Server Data)
   const isJoined = localJoined ?? room.joined ?? false;
