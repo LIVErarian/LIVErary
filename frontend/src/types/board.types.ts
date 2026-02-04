@@ -52,7 +52,7 @@ export interface BaseBoard {
 
 // 게시글 목록 아이템
 export interface BoardListItem extends BaseBoard {
-  category?: string;
+  categoryName?: string;
 }
 
 // 홍보 게시글에 포함될 방 상세 정보
