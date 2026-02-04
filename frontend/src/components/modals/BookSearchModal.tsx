@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import type { Book } from '@/types/book.types';
+
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelInput } from '@/components/common/PixelInput';
 import { PixelPagination } from '@/components/common/PixelPagination';
@@ -12,7 +14,12 @@ import * as styles from './BookSearchModal.css';
 const ITEMS_PER_PAGE = 6;
 const FETCH_SIZE = 20;
 
-export const BookSearchModal = () => {
+interface BookSearchModalProps {
+  onSelectBook?: (book: Book) => void;
+  // If provided, the modal acts as a selector
+}
+
+export const BookSearchModal = ({ onSelectBook }: BookSearchModalProps = {}) => {
     // 검색어 입력 상태
     const [searchQuery, setSearchQuery] = useState('');
     // 실제 검색 키워드
@@ -102,10 +109,14 @@ export const BookSearchModal = () => {
     };
 
     /**
-     * 책 클릭 핸들러 (상세 모달 열기)
+     * 책 클릭 핸들러 (상세 모달 열기 또는 선택)
      */
-    const handleBookClick = (isbn: string) => {
-        setSelectedIsbn(isbn);
+    const handleBookClick = (book: Book) => {
+        if (onSelectBook) {
+            onSelectBook(book);
+        } else {
+            setSelectedIsbn(book.isbn);
+        }
     };
 
     const currentBooks = getCurrentPageBooks();
@@ -160,7 +171,7 @@ export const BookSearchModal = () => {
                         book={book}
                         showWishButton={true}
                         onToggleWish={handleToggleWish}
-                        onClick={() => handleBookClick(book.isbn)}
+                        onClick={() => handleBookClick(book)}
                     />
                 ))}
             </div>
@@ -201,6 +212,7 @@ export const BookSearchModal = () => {
                     className={styles.searchButton}
                     variant="primary"
                     onClick={handleSearch}
+                    disabled={!searchQuery.trim()}
                 >
                     검색
                 </PixelButton>
