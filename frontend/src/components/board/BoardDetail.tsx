@@ -32,18 +32,13 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
   // localJoined: 유저의 수동 조작 상태 (null이면 서버 데이터 사용)
   const [localJoined, setLocalJoined] = useState<boolean | null>(null);
 
+  // localCurrentMembers: 서버값을 기반으로 로컬에서 즉시 증감 처리
+  // 초기값은 서버에서 받은 값(post.roomDetail)으로 설정하고, 이후는 join/cancel로만 변경
+  const [localCurrentMembers, setLocalCurrentMembers] = useState<number | null>(
+    () => post.roomDetail?.currentMembers ?? null,
+  );
+
   const room = post.roomDetail;
-  if (!room) return null;
-
-  // 본인 글(방장) 여부 확인
-  const isHost = user?.userId === room.hostId;
-
-  // 렌더링 시 사용할 최종 참여 상태 계산 (Local State 우선, 없으면 Server Data)
-  const isJoined = localJoined ?? room.joined ?? false;
-
-  // 책 정보가 있는지 확인
-  const hasBook = !!room.bookTitle && room.bookTitle.trim() !== '';
-
   // 방 정보가 없을 경우 (삭제된 방 등) 처리
   if (!room) {
     return (
@@ -64,6 +59,15 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
     );
   }
 
+  // 본인 글(방장) 여부 확인
+  const isHost = user?.userId === room.hostId;
+
+  // 렌더링 시 사용할 최종 참여 상태 계산 (Local State 우선, 없으면 Server Data)
+  const isJoined = localJoined ?? room.joined ?? false;
+
+  // 책 정보가 있는지 확인
+  const hasBook = !!room.bookTitle && room.bookTitle.trim() !== '';
+
   const handleJoin = () => {
     if (confirm(`'${room.title}' 방에 참여 신청하시겠습니까?`)) {
       applyRoom(
@@ -72,6 +76,7 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
           onSuccess: (data) => {
             setReservationCode(data.code);
             setLocalJoined(true);
+            setLocalCurrentMembers((prev) => (prev ?? room.currentMembers) + 1);
             setError(null);
           },
           onError: (e: AxiosError<CommonResponse<null>>) => {
@@ -92,6 +97,9 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
           onSuccess: () => {
             setLocalJoined(false);
             setReservationCode(null);
+            setLocalCurrentMembers((prev) =>
+              Math.max((prev ?? room.currentMembers) - 1, 0),
+            );
           },
         },
       );
@@ -122,7 +130,8 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
           <div className={styles.roomMeta}>
             <span className={styles.tag}>{room.category}</span>
             <span>
-              👤 {room.currentMembers} / {room.maxMembers}명
+              👤 {localCurrentMembers ?? room.currentMembers} /{' '}
+              {room.maxMembers}명
             </span>
           </div>
 
