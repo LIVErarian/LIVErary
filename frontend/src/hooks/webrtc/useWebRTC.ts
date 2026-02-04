@@ -184,7 +184,6 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
 
     // Ref 값 복사
     const currentSubscriberPCs = subscriberPCs.current;
-    const currentPublisherPC = publisherPC.current;
 
     // 안전장치
     let isMounted = true;
@@ -316,8 +315,13 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
       isMounted = false;
       joinReady.current = false;
 
-      if (currentPublisherPC) {
-        publisherPC.current?.close();
+      /**
+       * effect 시작 시점에는 publisherPC가 null이어도,
+       * 비동기 시그널링 이후 publisher가 생성될 수 있다.
+       * cleanup 시점의 최신 ref를 기준으로 항상 정리해야 누수가 없다.
+       */
+      if (publisherPC.current) {
+        publisherPC.current.close();
         publisherPC.current = null;
       }
 
@@ -326,7 +330,21 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
       });
       currentSubscriberPCs.clear();
 
-      setupPromise.then((sub) => sub?.unsubscribe());
+      setupPromise
+        .then((sub) => sub?.unsubscribe())
+        .catch((error) => {
+          console.warn('시그널링 구독 해제 중 경고:', error);
+        });
+
+      /**
+       * 방 이탈 시 마이크 트랙까지 정리해서 돌발 상황(빠른 재입장/연속 실패)에서
+       * 장치 점유가 남지 않도록 한다.
+       */
+      if (localStream.current) {
+        localStream.current.getTracks().forEach((track) => track.stop());
+        localStream.current = null;
+      }
+
       setRemoteStreams(new Map());
     };
   }, [

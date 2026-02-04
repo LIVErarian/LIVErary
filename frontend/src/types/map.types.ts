@@ -29,7 +29,7 @@ export type MapZoneAction =
     }
   | {
       type: 'openModal';
-      modalType: 'elevator';
+      modalType: 'elevator' | 'boardList' | 'bookshelf' | 'bookSearch';
       title?: string;
       message?: string;
     }
