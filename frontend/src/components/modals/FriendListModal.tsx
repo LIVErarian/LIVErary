@@ -13,13 +13,19 @@ import {
   useSearchUser,
   useUnblockUser,
 } from '@/hooks/queries/useFriend';
+import { useModalStore } from '@/store/useModalStore'; // Import added
 
 import * as styles from './FriendListModal.css';
 
 type TabType = 'FRIENDS' | 'REQUESTS' | 'BLOCKED';
 
 export const FriendListModal = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('FRIENDS');
+  const { modalProps } = useModalStore(); // Get props
+
+  // Use initialTab if available, otherwise default to 'FRIENDS'
+  const [activeTab, setActiveTab] = useState<TabType>(
+    modalProps.initialTab || 'FRIENDS',
+  );
   const [searchEmail, setSearchEmail] = useState('');
   const [isSearchMode, setIsSearchMode] = useState(false);
 

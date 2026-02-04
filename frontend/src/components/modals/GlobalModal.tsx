@@ -13,6 +13,7 @@ import { CreateRoomModal } from './CreateRoomModal';
 import { ElevatorModal } from './ElevatorModal';
 import { ErrorModal } from './ErrorModal';
 import { FriendListModal } from './FriendListModal';
+import { NotificationModal } from './NotificationModal';
 import { PreferencesModal } from './PreferencesModal';
 import { ProfileModal } from './ProfileModal';
 
@@ -245,6 +246,9 @@ export const GlobalModal = () => {
       >
         <BookSearchModal />
       </PixelModal>
+
+      {/* 알림 모달 */}
+      {currentModal === 'notification' && <NotificationModal />}
     </>
   );
 };
