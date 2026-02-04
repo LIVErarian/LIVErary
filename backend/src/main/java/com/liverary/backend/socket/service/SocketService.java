@@ -3,16 +3,24 @@ package com.liverary.backend.socket.service;
 import com.google.gson.JsonObject;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.room.domain.HistoryStatus;
+import com.liverary.backend.room.repository.RoomHistoryRepository;
+import com.liverary.backend.room.service.RoomService;
 import com.liverary.backend.socket.util.SignalingMessageFactory;
 import com.liverary.backend.socket.util.UserSession;
+import com.liverary.backend.socket.util.UserSessionRegistry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.kurento.client.KurentoClient;
 import org.kurento.client.MediaPipeline;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,6 +32,7 @@ import java.util.concurrent.ConcurrentMap;
  * WebRTC 방 세션 생명주기(입장/퇴장, 시그널링 전달)를 관리한다.
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class SocketService implements Closeable {
 
@@ -35,6 +44,12 @@ public class SocketService implements Closeable {
     private final KurentoClient kurentoClient;
     // STOMP 메시징 템플릿
     private final SimpMessagingTemplate messagingTemplate;
+    // 사용자 세션 레지스트리
+    private final UserSessionRegistry registry;
+    // 방 퇴장 처리 서비스
+    private final RoomService roomService;
+    // 방 참여 이력 조회
+    private final RoomHistoryRepository roomHistoryRepository;
 
     /**
      * 방에 입장하고 세션을 생성한 뒤 기존 참여자에게 알린다.
@@ -67,11 +82,13 @@ public class SocketService implements Closeable {
             return participant;
         } catch (Exception e) {
             if (participant != null) {
-                try {
-                    participant.close();
-                } catch (IOException ignored) {
-                    // join 실패 후 정리 단계의 예외는 무시
-                }
+                leave(participant);
+            }
+
+            if (roomParticipants.isEmpty()) {
+                rooms.remove(roomId, roomParticipants);
+                MediaPipeline pipeline = roomPipelines.remove(roomId);
+                safeReleasePipeline(pipeline, roomId);
             }
 
             throw e;
@@ -108,11 +125,55 @@ public class SocketService implements Closeable {
      * @param user 퇴장 사용자 세션
      */
     public void leave(UserSession user) {
+        if (user == null) {
+            return;
+        }
+
         this.removeParticipant(user.getRoomId(), user.getUserId());
         try {
             user.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.warn("failed to close user session. userId={}, roomId={}", user.getUserId(), user.getRoomId(), e);
+        }
+    }
+
+    /**
+     * 사용자 ID로 세션을 조회/제거한 뒤 퇴장 처리한다.
+     *
+     * @param userId 사용자 ID
+     */
+    public void leaveByUserId(UUID userId) {
+        // 중복 leave/disconnect를 허용하기 위해 세션이 없으면 조용히 종료한다.
+        UserSession user = registry.removeByUserIdIfPresent(userId);
+        if (user == null) {
+            return;
+        }
+        try {
+            leave(user);
+        } catch (RuntimeException e) {
+            log.warn("leave processing failed. userId={}", userId, e);
+        }
+    }
+
+    /**
+     * WebSocket 연결 종료 이벤트를 처리해 퇴장 로직을 수행한다.
+     *
+     * @param event 세션 종료 이벤트
+     */
+    @EventListener
+    public void handleSessionDisconnect(SessionDisconnectEvent event) {
+        Principal principal = event.getUser();
+        if (principal == null) {
+            return;
+        }
+
+        try {
+            UUID userId = UUID.fromString(principal.getName());
+            leaveByUserId(userId);
+            // 소켓 disconnect가 발생하면 DB 기준 JOINED 상태도 강제로 정리한다.
+            forceLeaveJoinedRooms(userId);
+        } catch (IllegalArgumentException ignored) {
+            // Principal name이 UUID 형식이 아니면 소켓 세션 정리 대상이 아니다.
         }
     }
 
@@ -136,13 +197,12 @@ public class SocketService implements Closeable {
         // 퇴장 알림 전송
         JsonObject leftMsg = SignalingMessageFactory.participantLeft(participantName);
         List<UUID> failed = broadcastSafely(roomParticipants.values(), leftMsg);
+        failed.forEach(this::leaveByUserId);
 
         if (roomParticipants.isEmpty()) {
             rooms.remove(roomId, roomParticipants);
             MediaPipeline pipeline = roomPipelines.remove(roomId);
-            if (pipeline != null) {
-                pipeline.release();
-            }
+            safeReleasePipeline(pipeline, roomId);
         }
 
     }
@@ -154,7 +214,12 @@ public class SocketService implements Closeable {
         List<UUID> failed = new ArrayList<>();
 
         for (UserSession participant : roomParticipants) {
-            participant.sendMessage(message);
+            try {
+                participant.sendMessage(message);
+            } catch (RuntimeException e) {
+                failed.add(participant.getUserId());
+                log.debug("broadcast failed. userId={}", participant.getUserId(), e);
+            }
         }
 
         return failed;
@@ -187,8 +252,40 @@ public class SocketService implements Closeable {
 
         rooms.clear();
         for (final MediaPipeline pipeline : roomPipelines.values()) {
-            pipeline.release();
+            safeReleasePipeline(pipeline, null);
         }
         roomPipelines.clear();
+    }
+
+    private void safeReleasePipeline(MediaPipeline pipeline, UUID roomId) {
+        if (pipeline == null) {
+            return;
+        }
+
+        try {
+            pipeline.release();
+        } catch (RuntimeException e) {
+            log.warn("pipeline release failed. roomId={}", roomId, e);
+        }
+    }
+
+    private void forceLeaveJoinedRooms(UUID userId) {
+        // 중복 JOINED 이력/경합 상황을 고려해 roomId를 고유값으로 정리한다.
+        List<UUID> joinedRoomIds = roomHistoryRepository.findRoomIdsByUserIdAndStatus(userId, HistoryStatus.JOINED)
+                .stream()
+                .distinct()
+                .toList();
+
+        for (UUID roomId : joinedRoomIds) {
+            try {
+                roomService.leaveRoom(roomId, userId);
+            } catch (BaseException e) {
+                if (e.getErrorCode() != ErrorCode.ROOM_HISTORY_NOT_FOUND) {
+                    log.warn("force room leave failed. userId={}, roomId={}", userId, roomId, e);
+                }
+            } catch (RuntimeException e) {
+                log.warn("force room leave failed. userId={}, roomId={}", userId, roomId, e);
+            }
+        }
     }
 }

@@ -41,6 +41,7 @@ public enum ErrorCode {
     EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "A011", "이메일 인증이 완료되지 않았습니다."),
 
     INVALID_UUID_FORMAT(HttpStatus.BAD_REQUEST, "A012", "유효한 UUID 형식이 아닙니다" ),
+    SOCKET_ROOM_MISMATCH(HttpStatus.BAD_REQUEST, "WS001", "동일한 방의 사용자만 연결할 수 있습니다."),
 
     CANNOT_FRIEND_SELF(HttpStatus.BAD_REQUEST, "F001", "자기 자신에게 친구 요청을 보낼 수 없습니다."),
     USER_BLOCKED(HttpStatus.BAD_REQUEST, "F007", "차단된 사용자입니다."),
@@ -83,6 +84,7 @@ public enum ErrorCode {
 
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 방을 찾을 수 없습니다."),
     ROOM_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "R006", "참여 기록을 찾을 수 없습니다."),
+    SOCKET_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "WS002", "소켓 세션을 찾을 수 없습니다."),
 
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "RV001", "댓글을 찾을 수 없습니다."),
 

@@ -136,13 +136,7 @@ public class MoveService {
         }
 
         userFloor.remove(userId);
-        Set<UUID> users = floorUsers.get(floorId);
-        if (users != null) {
-            users.remove(userId);
-            if (users.isEmpty()) {
-                floorUsers.remove(floorId, users);
-            }
-        }
+        removeUserFromFloorSet(userId, floorId);
         userPositions.remove(userId);
     }
 
@@ -152,12 +146,20 @@ public class MoveService {
      * @param userId 사용자 ID
      */
     public void removeUser(UUID userId) {
-        UUID floorId = userFloor.get(userId);
+        UUID floorId = userFloor.remove(userId);
         if (floorId != null) {
-            removeFromFloor(userId, floorId);
-        } else {
-            userPositions.remove(userId);
+            removeUserFromFloorSet(userId, floorId);
         }
+
+        // userFloor/floorUsers가 어긋난 비정상 케이스까지 스윕 정리한다.
+        floorUsers.forEach((id, users) -> {
+            users.remove(userId);
+            if (users.isEmpty()) {
+                floorUsers.remove(id, users);
+            }
+        });
+
+        userPositions.remove(userId);
         userNicknames.remove(userId);
     }
 
@@ -193,7 +195,23 @@ public class MoveService {
         }
 
         // 연결 종료 시 모든 floor 상태 정리
-        removeUser(UUID.fromString(principal.getName()));
+        try {
+            removeUser(UUID.fromString(principal.getName()));
+        } catch (IllegalArgumentException ignored) {
+            // Principal name이 UUID 형식이 아니면 move 상태 정리 대상이 아니다.
+        }
+    }
+
+    private void removeUserFromFloorSet(UUID userId, UUID floorId) {
+        Set<UUID> users = floorUsers.get(floorId);
+        if (users == null) {
+            return;
+        }
+
+        users.remove(userId);
+        if (users.isEmpty()) {
+            floorUsers.remove(floorId, users);
+        }
     }
 
     private String resolveNickname(UUID userId) {

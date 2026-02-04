@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,5 +40,14 @@ public interface RoomHistoryRepository extends JpaRepository<RoomHistory, UUID> 
             @Param("newStatus") HistoryStatus newStatus,
             @Param("leftAt") LocalDateTime leftAt,
             @Param("currentStatus") HistoryStatus currentStatus
+    );
+
+    /**
+     * 특정 유저가 JOINED 상태로 참여 중인 방 ID 목록을 조회합니다.
+     */
+    @Query("SELECT rh.room.roomId FROM RoomHistory rh WHERE rh.user.userId = :userId AND rh.status = :status")
+    List<UUID> findRoomIdsByUserIdAndStatus(
+            @Param("userId") UUID userId,
+            @Param("status") HistoryStatus status
     );
 }

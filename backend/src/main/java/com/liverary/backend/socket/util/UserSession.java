@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -23,6 +24,7 @@ import com.google.gson.JsonObject;
  * Kurento 기반 WebRTC 통화를 위한 사용자 세션을 관리한다.
  */
 @Getter
+@Slf4j
 public class UserSession implements Closeable {
 
     // 사용자에게 신호 메시지를 전달할 대상 경로
@@ -40,6 +42,7 @@ public class UserSession implements Closeable {
     private final WebRtcEndpoint outgoingMedia;
     private final ConcurrentMap<UUID, WebRtcEndpoint> incomingMedia = new ConcurrentHashMap<>();
     private final ConcurrentMap<UUID, Queue<IceCandidate>> queuedCandidates = new ConcurrentHashMap<>();
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     /**
      * 사용자 세션을 생성하고 송신용 WebRTC 엔드포인트를 구성한다.
@@ -87,7 +90,8 @@ public class UserSession implements Closeable {
     public void receiveDataFrom(UserSession sender, String sdpOffer) {
 
         // 송신자별 수신 엔드포인트를 가져와 SDP 응답 생성
-        final String ipSdpAnswer = this.getEndpointForUser(sender).processOffer(sdpOffer);
+        final WebRtcEndpoint endpoint = this.getEndpointForUser(sender);
+        final String ipSdpAnswer = endpoint.processOffer(sdpOffer);
 
         JsonObject message = SignalingMessageFactory.receiveDataAnswer(
                 sender.getUserId(),
@@ -95,7 +99,7 @@ public class UserSession implements Closeable {
         );
 
         this.sendMessage(message);
-        this.getEndpointForUser(sender).gatherCandidates();
+        endpoint.gatherCandidates();
     }
 
     /**
@@ -109,30 +113,29 @@ public class UserSession implements Closeable {
             return outgoingMedia;
         }
 
-        WebRtcEndpoint incoming = incomingMedia.get(sender.getUserId());
-        if (incoming == null) {
-            incoming = new WebRtcEndpoint.Builder(pipeline).build();
-
-            // 수신 엔드포인트의 ICE 후보를 상대에게 전달
-            incoming.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
-
+        WebRtcEndpoint incoming = incomingMedia.computeIfAbsent(sender.getUserId(), key -> {
+            WebRtcEndpoint endpoint = new WebRtcEndpoint.Builder(pipeline).build();
+            endpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
                 @Override
                 public void onEvent(IceCandidateFoundEvent event) {
-                    JsonObject msg =
-                            SignalingMessageFactory.iceCandidate(sender.getUserId(), event.getCandidate());
+                    JsonObject msg = SignalingMessageFactory.iceCandidate(sender.getUserId(), event.getCandidate());
                     sendToUser(msg);
                 }
             });
+            return endpoint;
+        });
 
-            incomingMedia.put(sender.getUserId(), incoming);
+        try {
+            // 송신자와 수신 엔드포인트를 연결
+            sender.getOutgoingWebRtcPeer().connect(incoming);
+            // 지연된 ICE 후보를 모두 반영
+            drainQueuedCandidates(sender.getUserId(), incoming);
+            return incoming;
+        } catch (RuntimeException e) {
+            // connect/process 중간 실패 시 부분 생성된 수신 endpoint를 즉시 정리한다.
+            cancelDataFrom(sender.getUserId());
+            throw e;
         }
-
-        // 송신자와 수신 엔드포인트를 연결
-        sender.getOutgoingWebRtcPeer().connect(incoming);
-        // 지연된 ICE 후보를 모두 반영
-        drainQueuedCandidates(sender.getUserId(), incoming);
-
-        return incoming;
     }
 
     /**
@@ -148,7 +151,7 @@ public class UserSession implements Closeable {
             return;
         }
 
-        incoming.release();
+        safeRelease(incoming);
     }
 
     /**
@@ -158,13 +161,15 @@ public class UserSession implements Closeable {
      */
     @Override
     public void close() throws IOException {
-        for (final UUID remoteParticipantId : incomingMedia.keySet()) {
-            final WebRtcEndpoint ep = this.incomingMedia.get(remoteParticipantId);
-
-            ep.release();
+        // 여러 경로(leave/disconnect/shutdown)에서 중복 호출돼도 한 번만 정리한다.
+        if (!closed.compareAndSet(false, true)) {
+            return;
         }
 
-        outgoingMedia.release();
+        incomingMedia.values().forEach(this::safeRelease);
+        incomingMedia.clear();
+        queuedCandidates.clear();
+        safeRelease(outgoingMedia);
     }
 
     /**
@@ -182,7 +187,11 @@ public class UserSession implements Closeable {
      * @param message 전송할 메시지
      */
     private void sendToUser(JsonObject message) {
-        messagingTemplate.convertAndSendToUser(userId.toString(), USER_DESTINATION, message.toString());
+        try {
+            messagingTemplate.convertAndSendToUser(userId.toString(), USER_DESTINATION, message.toString());
+        } catch (RuntimeException e) {
+            log.debug("signaling send failed. userId={}", userId, e);
+        }
     }
 
     /**
@@ -220,6 +229,15 @@ public class UserSession implements Closeable {
         IceCandidate candidate;
         while ((candidate = queue.poll()) != null) {
             endpoint.addIceCandidate(candidate);
+        }
+    }
+
+    private void safeRelease(WebRtcEndpoint endpoint) {
+        try {
+            endpoint.release();
+        } catch (RuntimeException e) {
+            // release 실패는 다음 정리 흐름을 막지 않도록 로그만 남긴다.
+            log.debug("endpoint release failed. userId={}, roomId={}", userId, roomId, e);
         }
     }
 }
