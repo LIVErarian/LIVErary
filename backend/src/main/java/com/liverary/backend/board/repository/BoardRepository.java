@@ -15,11 +15,11 @@ import java.util.UUID;
  */
 public interface BoardRepository extends JpaRepository<Board, UUID> {
     // 게시글 카테고리별 목록 조회 (전체 목록)
-    @EntityGraph(attributePaths = "user")
+    @EntityGraph(attributePaths = {"user", "room", "room.category"})
     Page<Board> findByTypeOrderByCreatedAtDesc(Type type, Pageable pageable);
 
     // 게시글 카테고리별 keyword 포함 목록 조회(대소문자 구분 없음)
-    @EntityGraph(attributePaths = "user")
+    @EntityGraph(attributePaths = {"user", "room", "room.category"})
     Page<Board> findByTypeAndTitleContainingIgnoreCaseOrderByCreatedAtDesc(Type type, String keyword, Pageable pageable);
 
     // 특정 방과 연결된 게시글 삭제
