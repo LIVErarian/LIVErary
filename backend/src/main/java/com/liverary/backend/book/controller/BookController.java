@@ -55,20 +55,21 @@ public class BookController {
 
     /**
      * 도서 검색 API
-     *  - GET /book/search?type={searchType}&keyword={keyword}
-     * @param type 검색 유형 (title, author)
+     *  - GET /book/search?keyword={keyword}
      * @param keyword 검색 키워드
+     * @param page 페이지 번호 (기본값 0)
+     * @param size (기본값 20)
      * @return
      */
     @GetMapping("/search")
     public BaseResponse<Page<BookListResponse>> searchBooks(
-            @RequestParam String type,
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
+        // 페이지네이션 설정
         Pageable pageable = PageRequest.of(page,size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<BookListResponse> books = bookService.searchBooks(type, keyword, pageable);
+        Page<BookListResponse> books = bookService.searchBooks(keyword, pageable);
         return BaseResponse.success(books);
     }
 }

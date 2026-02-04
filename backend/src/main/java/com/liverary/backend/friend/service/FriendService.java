@@ -146,26 +146,27 @@ public class FriendService {
             throw new BaseException(ErrorCode.CANNOT_BLOCK_SELF);
         }
 
-        // user -> blockUser 관계 있는지 조회
-        Friend relation = friendRepository.findBySenderAndReceiver(user, blockUser);
+        // 방향 상관없이 관계 조회
+        Friend relation = friendRepository.findRelation(user, blockUser).orElse(null);
 
-        // user -> blockUser 관계가 없다면 blockUser -> user 관계 있는지 조회
-        if (relation == null) {
-            relation = friendRepository.findBySenderAndReceiver(blockUser, user);
-        }
-
-        // 관계가 존재한다면 상태를 차단으로 변경
+        // 관계가 존재한다면 관계 삭제
         if (relation != null) {
-            relation.block(user, blockUser);
-        } else {
-            Friend newBlock = Friend.builder()
-                    .sender(user)
-                    .receiver(blockUser)
-                    .status(FriendStatus.BLOCKED)
-                    .build();
-
-            friendRepository.save(newBlock);
+            // 이미 내가 차단한 상태라면 지우지 않아도 됨
+            if (relation.getSender().getUserId().equals(userId) && relation.getStatus() == FriendStatus.BLOCKED) {
+                return;
+            }
+            friendRepository.delete(relation);
+            friendRepository.flush(); // 즉시 삭제 반영
         }
+
+        // 차단 관계 생성
+        Friend block = Friend.builder()
+                .sender(user)
+                .receiver(blockUser)
+                .status(FriendStatus.BLOCKED)
+                .build();
+
+        friendRepository.save(block);
     }
 
     /**
