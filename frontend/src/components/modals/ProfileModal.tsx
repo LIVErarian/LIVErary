@@ -7,7 +7,11 @@ import {
   useRequestFriend,
   useUnblockUser,
 } from '@/hooks/queries/useFriend';
-import { useGetMyProfile, useOtherProfile } from '@/hooks/queries/useUser';
+import {
+  useGetMyProfile,
+  useOtherProfile,
+  useUpdateProfile,
+} from '@/hooks/queries/useUser';
 import { BaseModal } from '../common/BaseModal';
 import { PixelButton } from '../common/PixelButton';
 
@@ -50,6 +54,8 @@ export const ProfileModal = ({
   const [tempNickname, setTempNickname] = useState(nickname);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const { mutate: updateProfile } = useUpdateProfile();
+
   const startEdit = () => {
     setTempNickname(nickname);
     setIsEditing(true);
@@ -66,9 +72,18 @@ export const ProfileModal = ({
       return;
     }
 
-    setNickname(tempNickname);
-    setIsEditing(false);
-    // TODO: nickname 변경 api 호출 필요
+    updateProfile(
+      { nickname: tempNickname },
+      {
+        onSuccess: () => {
+          setNickname(tempNickname);
+          setIsEditing(false);
+        },
+        onError: () => {
+          setErrorMessage('닉네임 변경에 실패했습니다.');
+        },
+      },
+    );
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
