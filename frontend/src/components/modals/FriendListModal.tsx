@@ -81,12 +81,6 @@ export const FriendListModal = () => {
    * @param friendId - 친구 요청 ID (선택적, 수락/거절용)
    */
   const handleViewProfile = (userId: string, friendId?: string) => {
-    console.log(
-      '🔍 Opening profile for userId:',
-      userId,
-      'friendId:',
-      friendId,
-    );
     openModal('userProfile', { userId, friendId });
   };
 

@@ -37,18 +37,6 @@ export const ProfileModal = ({
   const isOtherProfile = !!userId;
   const profile = isOtherProfile ? otherProfile : myProfile;
 
-  // 디버깅 - 명확하게 표시
-  if (isOpen) {
-    console.log('='.repeat(50));
-    console.log('📋 ProfileModal 열림!');
-    console.log('userId:', userId);
-    console.log('isOtherProfile:', isOtherProfile);
-    console.log('myProfile:', myProfile);
-    console.log('otherProfile:', otherProfile);
-    console.log('최종 profile:', profile);
-    console.log('='.repeat(50));
-  }
-
   // 친구 관련 mutation
   const { mutate: requestFriend } = useRequestFriend();
   const { mutate: acceptFriend } = useAcceptFriend();
