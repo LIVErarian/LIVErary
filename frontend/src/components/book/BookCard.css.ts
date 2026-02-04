@@ -20,6 +20,11 @@ export const bookCard = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
+  width: '100%',
+  maxWidth: '200px',
+  margin: '0 auto',
+  height: '360px',
+  boxSizing: 'border-box',
 
   // 애니메이션
   transition: 'transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out',
@@ -41,7 +46,8 @@ export const bookCard = style({
  */
 export const coverWrapper = style({
   width: '100%',
-  aspectRatio: '3 / 4', // 가로:세로 3:4 고정 비율
+  height: '240px',
+  flexShrink: 0, // 크기 줄어들지 않도록
   backgroundColor: theme.colors.beigeLight,
   border: `2px solid ${theme.colors.beigeDark}`,
   borderRadius: '4px',
@@ -57,7 +63,8 @@ export const coverWrapper = style({
 export const coverImage = style({
   width: '100%',
   height: '100%',
-  objectFit: 'cover', // 비율 유지 & 영역 채우기
+  objectFit: 'cover', // 비율 유지 & 영역 채우기 (큰 이미지는 잘림)
+  objectPosition: 'center', // 중앙에서 잘라내기
   display: 'block',
 });
 
@@ -81,7 +88,8 @@ export const bookInfo = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '4px',
-  flex: 1, // 남은 공간 차지
+  minHeight: '80px', // 최소 높이 고정 (제목 2줄 + 저자 + 출판사)
+  overflow: 'hidden', // 넘치는 콘텐츠 숨김
 });
 
 /**
@@ -100,7 +108,7 @@ export const bookTitle = style({
   WebkitBoxOrient: 'vertical',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  wordBreak: 'keep-all',
+  wordBreak: 'break-all', // 긴 단어 줄바꿈
 });
 
 /**

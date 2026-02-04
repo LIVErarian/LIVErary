@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import clsx from 'clsx'; // className 조합 유틸리티
 
+import type { Book } from '@/types/book.types';
 import type { ReadBook, WishedBook } from '@/types/bookshelf.types';
 
 import * as styles from './BookCard.css';
@@ -17,11 +18,11 @@ import * as styles from './BookCard.css';
 
 /**
  * BookCard 컴포넌트 Props
- * - book: WishedBook 또는 ReadBook (Union Type)
+ * - book: WishedBook, ReadBook 또는 Book (검색 결과용)
  * - onRemoveWish: 찜 취소 콜백 (찜한 책에서만 사용)
  */
 interface BookCardProps {
-  book: WishedBook | ReadBook; // 두 타입 중 하나
+  book: WishedBook | ReadBook | Book;
   onRemoveWish?: (id: string) => void; // Optional: 찜한 책에서만 필요
 }
 
@@ -33,8 +34,17 @@ interface BookCardProps {
  * ReadBook 타입인지 확인하는 타입 가드
  * readStatus 속성이 있으면 ReadBook으로 판단
  */
-const isReadBook = (book: WishedBook | ReadBook): book is ReadBook => {
+const isReadBook = (book: WishedBook | ReadBook | Book): book is ReadBook => {
   return 'readStatus' in book;
+};
+
+/**
+ * WishedBook 타입인지 확인하는 타입 가드
+ */
+const isWishedBook = (
+  book: WishedBook | ReadBook | Book,
+): book is WishedBook => {
+  return 'wishId' in book && !('readStatus' in book);
 };
 
 // ============================================
@@ -64,7 +74,7 @@ export const BookCard = ({ book, onRemoveWish }: BookCardProps) => {
   const handleHeartClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // 카드 클릭 이벤트 전파 방지
 
-    if (onRemoveWish && !isReadBook(book)) {
+    if (onRemoveWish && isWishedBook(book)) {
       // WishedBook인 경우 wishId 전달
       onRemoveWish(book.wishId);
     }
@@ -92,7 +102,7 @@ export const BookCard = ({ book, onRemoveWish }: BookCardProps) => {
         ) : (
           // 정상 이미지 표시
           <img
-            src={book.coverImage}
+            src={'coverImage' in book ? book.coverImage : book.coverUrl}
             alt={book.title}
             className={styles.coverImage}
             onError={handleImageError}
@@ -101,7 +111,7 @@ export const BookCard = ({ book, onRemoveWish }: BookCardProps) => {
         )}
 
         {/* 찜 하트 버튼 (찜한 책에서만 표시 - 이미지 하단에 겹침) */}
-        {onRemoveWish && !isReadBook(book) && (
+        {onRemoveWish && isWishedBook(book) && (
           <button
             className={styles.heartButton}
             onClick={handleHeartClick}
@@ -142,10 +152,12 @@ export const BookCard = ({ book, onRemoveWish }: BookCardProps) => {
           {book.author}
         </div>
 
-        {/* 출판사 */}
-        <div className={styles.bookMeta} title={book.publisher}>
-          {book.publisher}
-        </div>
+        {/* 출판사 (Book 타입에는 없을 수 있음) */}
+        {'publisher' in book && (
+          <div className={styles.bookMeta} title={book.publisher}>
+            {book.publisher}
+          </div>
+        )}
       </div>
     </div>
   );
