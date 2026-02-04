@@ -21,6 +21,7 @@ export type ModalType =
   | 'error'
   | 'createRoom'
   | 'entrance'
+  | 'bookDetail'
   | null;
 
 interface ModalProps {
@@ -29,6 +30,8 @@ interface ModalProps {
   onConfirm?: () => void;
   onCancel?: () => void;
   boardId?: string;
+  isbn?: string;
+  from?: ModalType; // 모달이 어디서 열렸는지
 }
 
 interface ErrorState {
