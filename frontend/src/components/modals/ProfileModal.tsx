@@ -1,7 +1,9 @@
 import { useState } from 'react';
 
 import {
+  useAcceptFriend,
   useBlockUser,
+  useRejectFriend,
   useRequestFriend,
   useUnblockUser,
 } from '@/hooks/queries/useFriend';
@@ -18,12 +20,14 @@ interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId?: string; // 타인 프로필 조회용 (없으면 내 프로필)
+  friendId?: string; // 친구 요청 수락/거절용
 }
 
 export const ProfileModal = ({
   isOpen,
   onClose,
   userId,
+  friendId,
 }: ProfileModalProps) => {
   // 내 프로필 또는 타인 프로필 조회
   const { data: myProfile } = useGetMyProfile();
@@ -47,6 +51,8 @@ export const ProfileModal = ({
 
   // 친구 관련 mutation
   const { mutate: requestFriend } = useRequestFriend();
+  const { mutate: acceptFriend } = useAcceptFriend();
+  const { mutate: rejectFriend } = useRejectFriend();
   const { mutate: blockUser } = useBlockUser();
   const { mutate: unblockUser } = useUnblockUser();
 
@@ -95,17 +101,20 @@ export const ProfileModal = ({
    * 친구 수락 핸들러
    */
   const handleAcceptFriend = () => {
-    // friendId 필요 - 현재 구조에서는 직접 전달 필요
-    // TODO: friendId를 modalProps로 전달받도록 수정 필요
-    alert('친구 수락 기능은 친구 목록에서 사용해주세요.');
+    if (!friendId) return;
+    acceptFriend(friendId);
+    onClose();
   };
 
   /**
    * 친구 거절 핸들러
    */
   const handleRejectFriend = () => {
-    // friendId 필요
-    alert('친구 거절 기능은 친구 목록에서 사용해주세요.');
+    if (!friendId) return;
+    if (confirm('정말 거절하시겠습니까?')) {
+      rejectFriend(friendId);
+      onClose();
+    }
   };
 
   /**

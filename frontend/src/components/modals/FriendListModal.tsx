@@ -78,10 +78,16 @@ export const FriendListModal = () => {
   /**
    * 프로필 보기
    * @param userId - 조회할 사용자 ID
+   * @param friendId - 친구 요청 ID (선택적, 수락/거절용)
    */
-  const handleViewProfile = (userId: string) => {
-    console.log('🔍 Opening profile for userId:', userId);
-    openModal('userProfile', { userId });
+  const handleViewProfile = (userId: string, friendId?: string) => {
+    console.log(
+      '🔍 Opening profile for userId:',
+      userId,
+      'friendId:',
+      friendId,
+    );
+    openModal('userProfile', { userId, friendId });
   };
 
   /**
@@ -256,7 +262,7 @@ export const FriendListModal = () => {
           <PixelButton
             size="sm"
             variant="beige"
-            onClick={() => handleViewProfile(request.userId)}
+            onClick={() => handleViewProfile(request.userId, request.friendId)}
           >
             프로필 보기
           </PixelButton>

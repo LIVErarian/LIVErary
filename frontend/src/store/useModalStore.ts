@@ -29,6 +29,7 @@ interface ModalProps {
   onCancel?: () => void;
   boardId?: string;
   userId?: string; // 타인 프로필 조회용
+  friendId?: string; // 친구 요청 수락/거절용
 }
 
 interface ErrorState {

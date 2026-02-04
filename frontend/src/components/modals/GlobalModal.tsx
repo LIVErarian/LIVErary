@@ -217,6 +217,7 @@ export const GlobalModal = () => {
         isOpen={currentModal === 'userProfile'}
         onClose={closeModal}
         userId={modalProps.userId}
+        friendId={modalProps.friendId}
       />
 
       {/* 친구 목록 모달 */}
