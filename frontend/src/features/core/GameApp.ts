@@ -505,8 +505,20 @@ export class GameApp {
       const offsetY = this._worldHeight * 0.05;
 
       if (position === 'zoneCenter') {
-        this._player.x = centerX;
-        this._player.y = centerY;
+        /**
+         * 독서모임 4개 룸은 중앙 스폰 시 충돌 타일에 걸릴 수 있어
+         * 룸 내부 이동 가능한 지점으로 하드코딩 스폰한다.
+         */
+        const hardcodedEntryByZone: Record<string, { x: number; y: number }> = {
+          'room-1': { x: zoneX + zoneW * 0.5, y: zoneY + zoneH * 0.78 },
+          'room-2': { x: zoneX + zoneW * 0.5, y: zoneY + zoneH * 0.78 },
+          'room-3': { x: zoneX + zoneW * 0.5, y: zoneY + zoneH * 0.68 },
+          'room-4': { x: zoneX + zoneW * 0.5, y: zoneY + zoneH * 0.68 },
+        };
+
+        const hardcoded = hardcodedEntryByZone[zone.id];
+        this._player.x = hardcoded?.x ?? centerX;
+        this._player.y = hardcoded?.y ?? centerY;
       } else if (position === 'zoneFrontBelow') {
         this._player.x = centerX;
         this._player.y = zoneY + zoneH + offsetY;
@@ -582,6 +594,18 @@ export class GameApp {
           if (action.confirmPosition === 'zoneCenter') {
             console.log(`🚪 [${zone?.id}] 방 입장 로직 실행`);
 
+            /**
+             * 서버가 입장을 거절하거나(room full / 권한 없음 등),
+             * 타겟 roomId를 찾지 못한 경우에는 사용자를 즉시 zone 바깥으로 되돌린다.
+             */
+            const bounceOutFromZone = () => {
+              this.movePlayerToPosition(
+                action.cancelPosition,
+                zone,
+                suppressFor(action.cancelPosition, 'confirm'),
+              );
+            };
+
             try {
               let targetRoomId: string | null = null;
 
@@ -650,7 +674,7 @@ export class GameApp {
                 );
               } else {
                 alert('현재 입장 가능한 방이 없습니다.');
-                // 이동하지 않음 (입장 취소 효과)
+                bounceOutFromZone();
               }
             } catch (error: unknown) {
               console.error('방 입장 처리 중 오류:', error);
@@ -665,6 +689,7 @@ export class GameApp {
                 apiError?.response?.data?.message ??
                 '방에 입장하지 못했습니다.';
               alert(message);
+              bounceOutFromZone();
             }
           }
 
