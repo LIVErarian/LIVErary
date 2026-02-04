@@ -777,7 +777,20 @@ export class GameApp {
     const sheetTexture = Assets.get('playerSheet');
 
     const displayName = nickname || 'Me';
-    this._player = new Player(startX, startY, displayName, sheetTexture);
+
+    // 클릭 콜백: 내 프로필 열기
+    const handleMyClick = () => {
+      useModalStore.getState().openModal('profile');
+    };
+
+    this._player = new Player(
+      startX,
+      startY,
+      displayName,
+      sheetTexture,
+      this._myId,
+      handleMyClick,
+    );
     this._player.setScaleFactor(
       this.getPlayerScaleForFloorId(this._currentFloorId),
     );
@@ -985,7 +998,21 @@ export class GameApp {
       // 없으면 생성
       if (!otherPlayer) {
         const sheetTexture = Assets.get('playerSheet');
-        otherPlayer = new Player(data.x, data.y, data.nickname, sheetTexture);
+
+        // 클릭 콜백: 타인 프로필 열기
+        const handleOtherClick = (userId: string) => {
+          console.log('🖱️ Character clicked, userId:', userId);
+          useModalStore.getState().openUserProfile(userId);
+        };
+
+        otherPlayer = new Player(
+          data.x,
+          data.y,
+          data.nickname,
+          sheetTexture,
+          data.userId,
+          handleOtherClick,
+        );
         this._viewport.addChild(otherPlayer);
         this._otherPlayers.set(data.userId, otherPlayer);
       }

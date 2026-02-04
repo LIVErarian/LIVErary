@@ -67,10 +67,16 @@ const RankContent = () => (
 );
 
 export const GlobalModal = () => {
-  const { currentModal, modalProps, closeModal } = useModalStore();
+  const {
+    currentModal,
+    modalProps,
+    closeModal,
+    userProfile,
+    closeUserProfile,
+  } = useModalStore();
   const { mutate: logout } = useLogout();
 
-  if (!currentModal) return null;
+  if (!currentModal && !userProfile) return null;
 
   const handleLogout = () => {
     closeModal();
@@ -214,6 +220,14 @@ export const GlobalModal = () => {
       {/* 프로필 모달 */}
       <ProfileModal isOpen={currentModal === 'profile'} onClose={closeModal} />
 
+      {/* 타인 프로필 모달 */}
+      <ProfileModal
+        isOpen={currentModal === 'userProfile'}
+        onClose={closeModal}
+        userId={modalProps.userId}
+        friendId={modalProps.friendId}
+      />
+
       {/* 친구 목록 모달 */}
       <PixelModal
         isOpen={currentModal === 'friendList'}
@@ -246,6 +260,16 @@ export const GlobalModal = () => {
       >
         <BookSearchModal />
       </PixelModal>
+
+      {/* 오버레이: 타인 프로필 모달 (항상 최상단) */}
+      {userProfile && (
+        <ProfileModal
+          isOpen={true}
+          onClose={closeUserProfile}
+          userId={userProfile.userId}
+          friendId={userProfile.friendId}
+        />
+      )}
 
       {/* 알림 모달 */}
       {currentModal === 'notification' && <NotificationModal />}
