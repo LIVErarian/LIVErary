@@ -147,6 +147,7 @@ const bookConcertMapProps = getMapProps(bookConcertMap);
 export const MAP_DATA: Record<FloorType, MapConfig> = {
   lobby: {
     floorId: '11111111-1111-1111-1111-111111111111',
+    defaultRoomId: 'lobby-channel-uuid',
     name: '도서관 로비',
     img: lobbyImg,
     ...lobbyMapProps,
@@ -213,6 +214,7 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
   },
   readingFloor: {
     floorId: '22222222-2222-2222-2222-222222222222',
+    defaultRoomId: 'reading-floor-uuid',
     name: '독서실',
     img: readingFloorImg,
     ...readingMapProps,
@@ -249,12 +251,14 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
   },
   conferenceFloor: {
     floorId: '55555555-5555-5555-5555-555555555555',
+    defaultRoomId: 'conference-floor-uuid',
     name: '회의실',
     img: conferenceFloorImg,
     ...conferenceMapProps,
   },
   bookTalkFloor: {
     floorId: '33333333-3333-3333-3333-333333333333',
+    defaultRoomId: null,
     name: '독서 모임 공간',
     img: booktalkFloorImg,
     ...bookTalkMapProps,
@@ -383,6 +387,7 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
   },
   bookConcert: {
     floorId: '44444444-4444-4444-4444-444444444444',
+    defaultRoomId: 'book-concert-uuid',
     name: '북 콘서트 홀',
     img: bookConcertImg,
     ...bookConcertMapProps,
@@ -419,6 +424,7 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
   },
   myRoom: {
     floorId: '00000000-0000-0000-0000-000000000000',
+    // myRoom에서는 webRTC 연결하지 않으므로 defaultRoomId 필요 없음
     name: '내 서재',
     img: myRoomImg,
     zones: [

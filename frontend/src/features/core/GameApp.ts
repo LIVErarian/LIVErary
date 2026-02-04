@@ -8,6 +8,7 @@ import {
 } from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 
+import { roomApi } from '@/api/room.api';
 import playerMSheetImg from '@/assets/characters/basic_male.png';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useGameStore } from '@/store/useGameStore';
@@ -140,21 +141,37 @@ export class GameApp {
     this._worldHeight = mapConfig.height ?? this.DEFAULT_HEIGHT;
     this._currentFloorId = mapConfig.floorId;
 
+    // 플레이어 위치 설정
+    const spawnPoint = useGameStore.getState().spawnPoint;
+
     // 플레이어 위치 및 방향 초기화
     if (this._player) {
+      // floor에 따른 캐릭터 크기 변경
       this._player.setScaleFactor(
         this.getPlayerScaleForFloorId(this._currentFloorId),
       );
-      if (floor === 'myRoom') {
-        this._player.x = this._worldWidth / 2;
-        this._player.y = this._worldHeight / 2;
-      } else if (floor === 'bookConcert') {
-        this._player.x = this._worldWidth / 2;
-        this._player.y = this._worldHeight;
+
+      if (spawnPoint) {
+        // spanwPoint 있는 경우 spawnPoint로 위치 초기화
+        this._player.x = this._viewport.worldWidth * spawnPoint.x;
+        this._player.y = this._viewport.worldHeight * spawnPoint.y;
+
+        // null로 초기화해야 다음 이동에 영향 x
+        useGameStore.getState().setSpawnPoint(null);
       } else {
-        this._player.x = this._worldWidth * 0.38;
-        this._player.y = this._worldHeight * 0.25;
+        if (floor === 'myRoom') {
+          this._player.x = this._worldWidth / 2;
+          this._player.y = this._worldHeight / 2;
+        } else if (floor === 'bookConcert') {
+          this._player.x = this._worldWidth / 2;
+          this._player.y = this._worldHeight;
+        } else {
+          // 기본 엘리베이터 위치
+          this._player.x = this._worldWidth * 0.38;
+          this._player.y = this._worldHeight * 0.25;
+        }
       }
+      // 아래쪽 보는 애니메이션으로 자동 세팅
       this._lookingDirection = 'DOWN';
       this._player.setAnimation('DOWN', false);
     }
@@ -423,6 +440,7 @@ export class GameApp {
     }
 
     if (action.type === 'confirmReposition') {
+      // 이동 후 즉시 재충돌 방지
       const suppressFor = (
         position:
           | 'zoneCenter'
@@ -440,15 +458,89 @@ export class GameApp {
         return 'exit';
       };
 
+      // 모달 열기
       useModalStore.getState().openModal('entrance', {
         title: action.title,
         message: action.message,
-        onConfirm: () =>
-          this.movePlayerToPosition(
-            action.confirmPosition,
-            zone,
-            suppressFor(action.confirmPosition, 'confirm'),
-          ),
+
+        // 확인 버튼 클릭 시 로직
+        onConfirm: async () => {
+          console.log('📍 이동 위치 확인:', action.confirmPosition); // 디버깅용 로그
+
+          // 방 입장시
+          if (action.confirmPosition === 'zoneCenter') {
+            console.log(`🚪 [${zone?.id}] 방 입장 로직 실행`);
+
+            try {
+              // 구역별 방 타입 매핑
+              let targetType: 'TALK' | 'READING' | 'CONCERT' | undefined;
+              if (zone?.id?.includes('room-')) targetType = 'TALK';
+              else if (zone?.id?.includes('concert')) targetType = 'CONCERT';
+              else if (zone?.id?.includes('reading')) targetType = 'READING';
+
+              // 방 목록 조회 API 호출
+              const response = await roomApi.getRoomList({
+                size: 50,
+                roomType: targetType,
+              });
+
+              // 방 데이터 파싱
+              const data =
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (response as any).result || (response as any).data || response;
+              const roomList = data.content || [];
+
+              // 방 매칭 로직
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const targetRoom = roomList.find((room: any) => {
+                // room-4 구역이고 TALK 타입 방이면 매칭 (임시 로직)
+                if (zone?.id === 'room-4' && room.roomType === 'TALK')
+                  return true;
+                return room.roomType === targetType;
+              });
+
+              if (targetRoom) {
+                console.log('접속할 방 ID:', targetRoom.roomId);
+
+                // WebRTC 연결
+                useGameStore.getState().setRoomId(targetRoom.roomId);
+
+                // 물리적 이동
+                this.movePlayerToPosition(
+                  action.confirmPosition,
+                  zone,
+                  suppressFor(action.confirmPosition, 'confirm'),
+                );
+              } else {
+                alert('현재 입장 가능한 방이 없습니다.');
+                // 이동하지 않음 (입장 취소 효과)
+              }
+            } catch (error) {
+              console.error('방 입장 처리 중 오류:', error);
+              alert('방 정보를 불러오지 못했습니다.');
+            }
+          }
+
+          // 방 퇴장 로직 (목적지가 center가 아닌 경우 = 밖으로 나감)
+          else {
+            console.log('🏃 방 퇴장 로직 실행');
+
+            // 현재 층의 기본 채널(로비/복도) ID 가져오기
+            const defaultId = null;
+
+            // WebRTC 채널 변경 (null)
+            useGameStore.getState().setRoomId(defaultId);
+
+            // 물리적 이동 (밖으로 내보내기)
+            this.movePlayerToPosition(
+              action.confirmPosition,
+              zone,
+              suppressFor(action.confirmPosition, 'confirm'),
+            );
+          }
+        },
+
+        // 취소 버튼 로직
         onCancel: () =>
           this.movePlayerToPosition(
             action.cancelPosition,

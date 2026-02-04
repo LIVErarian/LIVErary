@@ -11,6 +11,7 @@ export const GamePage = () => {
   const { gameAppRef, isReady } = useGame(containerRef);
   const lastFloorRef = useRef<string | null>(null);
   const currentFloor = useGameStore((state) => state.currentFloor);
+  const spawnPoint = useGameStore((state) => state.spawnPoint);
 
   const { connect, disconnect } = useSocketStore();
 
@@ -28,15 +29,20 @@ export const GamePage = () => {
    */
   useEffect(() => {
     if (gameAppRef.current && currentFloor && isReady) {
-      if (lastFloorRef.current === currentFloor) return;
+      const isSameFloor = lastFloorRef.current === currentFloor;
+      const hasSpawnPoint = !!spawnPoint;
 
-      console.log(`층 변경 시도: ${currentFloor}`);
+      if (isSameFloor && !hasSpawnPoint) return;
+
+      console.log(
+        `층 변경/이동 시도: ${currentFloor} (Spawn: ${hasSpawnPoint})`,
+      );
       gameAppRef.current.changeMap(currentFloor);
 
       // 층이 변경되면 lastFloorRef 업데이트
       lastFloorRef.current = currentFloor;
     }
-  }, [currentFloor, gameAppRef, isReady]);
+  }, [currentFloor, spawnPoint, gameAppRef, isReady]);
 
   return <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />} />;
 };

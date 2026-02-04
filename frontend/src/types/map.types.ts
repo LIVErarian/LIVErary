@@ -86,6 +86,7 @@ export interface MapCollisionConfig {
 
 export interface MapConfig {
   floorId: string;
+  defaultRoomId?: string | null; // myRoom에서는 필요 없음
   name: string;
   img: string;
   width?: number;

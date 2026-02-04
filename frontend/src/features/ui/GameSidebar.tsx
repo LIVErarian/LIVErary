@@ -25,11 +25,13 @@ export const GameSidebar = () => {
   const user = useAuthStore((state) => state.user);
   const openModal = useModalStore((state) => state.openModal);
 
+  const roomId = useGameStore((state) => state.roomId);
+
   const [isMicOn, setIsMicOn] = useState(false);
 
   // TODO: api 연결하면 roomId로 수정 필요
   const { toggleMic, remoteStreams } = useWebRTC(
-    'd36ad386-add1-4dcd-b2d1-3447c4d47a77',
+    roomId || '', // 로비에 항상 열려있는 roomId 기본 연결 필요
     user?.userId || '',
   );
 
