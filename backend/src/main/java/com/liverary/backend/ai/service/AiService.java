@@ -46,6 +46,8 @@ public class AiService {
     private final BookHistoryRepository bookHistoryRepository;
     private final CategoryRepository categoryRepository;
 
+    private static final int RECOMMEND_LIMIT = 3;
+
     /**
      * 사용자의 활동 이력을 기반으로 맞춤형 독서 모임 방을 추천합니다.
      *
@@ -75,9 +77,11 @@ public class AiService {
                 pageable
         );
 
-        // 후보 방이 없으면 빈 리스트 반환
-        if (candidateRooms.isEmpty()) {
-            return List.of();
+        // 후보 방이 3개 이하일 경우 바로 반환
+        if (candidateRooms.size() <= RECOMMEND_LIMIT) {
+            return candidateRooms.stream()
+                    .map(RoomListResponse::from)
+                    .toList();
         }
 
         // 유저 데이터 조회 (선호 카테고리, 읽은 책, 찜한 책)
