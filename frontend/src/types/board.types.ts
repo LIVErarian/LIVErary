@@ -58,6 +58,7 @@ export interface BoardListItem extends BaseBoard {
 // 홍보 게시글에 포함될 방 상세 정보
 export interface RoomDetailInfo {
   roomId: string;
+  hostId: string;
   title: string;
   category: string;
   currentMembers: number;
