@@ -9,7 +9,7 @@ app = FastAPI()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # 모델 로드
-MODEL_NAME = 'intfloat/multilingual-e5-large-instruct'
+MODEL_NAME = 'intfloat/multilingual-e5-small'
 model = SentenceTransformer(MODEL_NAME, device=device)
 
 @app.post("/recommend")
