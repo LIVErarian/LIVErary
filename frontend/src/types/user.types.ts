@@ -41,5 +41,10 @@ export interface UserPreferencesRequest {
   categoryIds: string[];
 }
 
+// 회원 정보 수정 요청 바디 (확장 가능)
+export interface UserUpdateRequest {
+  nickname: string;
+}
+
 // 공통 응답 포맷(status/code/message/data)을 그대로 사용
 export type UserPreferencesResponse = CommonResponse<null>;

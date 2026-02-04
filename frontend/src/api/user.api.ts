@@ -7,6 +7,7 @@ import type {
   UserPreferencesRequest,
   UserPreferencesResponse,
   UserProfile,
+  UserUpdateRequest,
 } from '@/types/user.types';
 
 export const userApi = {
@@ -39,7 +40,6 @@ export const userApi = {
     }
 
     return data.data;
-
   },
 
   /**
@@ -49,5 +49,13 @@ export const userApi = {
    */
   savePreferences: async (req: UserPreferencesRequest): Promise<void> => {
     await api.post<UserPreferencesResponse>('/user/preferences', req);
+  },
+
+  /**
+   * 회원 정보 수정 (현재는 닉네임만)
+   * @param req UserUpdateRequest
+   */
+  updateProfile: async (req: UserUpdateRequest): Promise<void> => {
+    await api.patch('/user', req);
   },
 };
