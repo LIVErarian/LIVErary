@@ -140,7 +140,7 @@ public class RoomController {
      * 방 목록을 조회하거나 검색합니다.
      *
      * <p>현재 진행 중(LIVE)이거나 예정된(SCHEDULED) 상태의 방 목록을 페이징하여 반환합니다.
-     * 검색어(keyword)가 존재할 경우 제목 또는 초대 코드로 검색을 수행합니다.
+     * 검색어(keyword)가 존재할 경우 제목으로 검색을 수행합니다.
      * 쿼리 파라미터로 룸 타입(층)을 지정하여 필터링할 수 있으며, 지정하지 않을 경우 전체 목록을 조회합니다.</p>
      *
      * @param roomType 조회할 방의 타입. null일 경우 모든 타입의 방을 조회
@@ -157,6 +157,24 @@ public class RoomController {
         Page<RoomListResponse> responses = roomService.getRooms(roomType, keyword, pageable);
         return BaseResponse.success(responses);
     }
+
+    /**
+     * 입장 코드로 방을 검색합니다.
+     *
+     * <p>코드는 정확히 일치해야 합니다.
+     * 검색 결과는 단건(방 하나)으로 반환합니다.</p>
+     *
+     * @param code 사용자가 입력한 코드
+     * @return 입장 코드와 일치하는 방 객체
+     */
+    @GetMapping("/search")
+    public BaseResponse<RoomListResponse> searchRoomByCode(
+            @RequestParam String code
+    ) {
+        RoomListResponse response = roomService.searchRoomByCode(code);
+        return BaseResponse.success(response);
+    }
+
 
     /**
      * 특정 방의 상세 정보를 조회합니다.
