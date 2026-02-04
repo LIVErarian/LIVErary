@@ -16,6 +16,7 @@ import java.util.UUID;
 public class FriendResponse {
 
     private UUID friendId;
+    private UUID userId;
     private String email;
     private String nickname;
     private FriendStatus status;
@@ -30,6 +31,7 @@ public class FriendResponse {
     public static FriendResponse of(Friend friend, User otherUser) {
         return FriendResponse.builder()
                 .friendId(friend.getFriendId())
+                .userId(otherUser.getUserId())
                 .email(otherUser.getEmail())
                 .nickname(otherUser.getNickname())
                 .status(friend.getStatus())
