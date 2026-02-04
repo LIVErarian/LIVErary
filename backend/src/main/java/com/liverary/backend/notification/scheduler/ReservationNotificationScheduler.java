@@ -110,8 +110,7 @@ public class ReservationNotificationScheduler {
                 notificationService.send(
                         reservation.getUser(),
                         NotificationType.RESERVATION,
-                        message,
-                        "/rooms/"+reservation.getRoom().getRoomId() // TODO 수정
+                        message
                 );
 
                 // 캐시 저장
@@ -163,8 +162,7 @@ public class ReservationNotificationScheduler {
                 notificationService.send(
                         reservation.getUser(),
                         NotificationType.RESERVATION,
-                        message,
-                        "/rooms/"+reservation.getRoom().getRoomId() // TODO 수정
+                        message
                 );
 
                 // 캐시에 저장

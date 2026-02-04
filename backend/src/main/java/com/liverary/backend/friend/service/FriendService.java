@@ -75,8 +75,8 @@ public class FriendService {
         notificationService.send(
                 receiver,
                 NotificationType.FRIEND_REQUEST,
-                sender.getNickname()+"님이 친구 요청을 보냈습니다.",
-                "/friends/requests"); // 프론트 상의 후 url 수정
+                sender.getNickname()+"님이 친구 요청을 보냈습니다."
+        );
     }
 
 

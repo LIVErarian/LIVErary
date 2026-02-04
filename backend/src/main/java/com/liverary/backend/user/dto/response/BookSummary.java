@@ -19,6 +19,7 @@ public class BookSummary {
     private String title;
     private String author;
     private String coverUrl;
+    private String isbn;
     private BookStatus status;
 
     /**
@@ -35,6 +36,7 @@ public class BookSummary {
                 .title(book.getTitle())
                 .author(book.getAuthor())
                 .coverUrl(book.getCoverUrl())
+                .isbn(book.getIsbn())
                 .status(status)
                 .build();
     }

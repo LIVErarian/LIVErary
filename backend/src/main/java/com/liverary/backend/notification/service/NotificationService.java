@@ -66,14 +66,13 @@ public class NotificationService {
      * @param url
      */
     @Transactional
-    public void send(User user, NotificationType type, String content, String url) {
+    public void send(User user, NotificationType type, String content) {
         // 1. DB에 알림 저장 (로그 남기기용)
         Notification notification = notificationRepository.save(
                 Notification.builder()
                 .user(user)
                 .type(type)
                 .content(content)
-                .relatedUrl(url)
                 .isRead(false)
                 .build()
         );

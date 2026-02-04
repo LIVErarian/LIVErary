@@ -70,8 +70,7 @@ public class ReviewService {
             notificationService.send(
                     board.getUser(),
                     NotificationType.BOARD_REPLY,
-                    "작성하신 글에 답글이 등록되었습니다.",
-                    "/boards/"+board.getBoardId() // 프론트 상의 후 url 수정
+                    "작성하신 글에 답글이 등록되었습니다."
             );
         }
 

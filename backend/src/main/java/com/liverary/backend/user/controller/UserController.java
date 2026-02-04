@@ -73,7 +73,14 @@ public class UserController {
 
         UUID userId = getUserId(user);
 
-        Page<BookSummary> response = userService.getUserBooksByStatus(userId, status, pageable);
+        // pageable 객체의 정렬 조건을 덮어씌워서 최신순(updatedAt 내림차순)으로 강제함
+        Pageable sortedPageable = org.springframework.data.domain.PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "updatedAt")
+        );
+
+        Page<BookSummary> response = userService.getUserBooksByStatus(userId, status, sortedPageable);
 
         return BaseResponse.success(response);
     }
