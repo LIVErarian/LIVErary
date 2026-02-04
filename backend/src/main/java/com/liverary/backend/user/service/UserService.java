@@ -59,8 +59,11 @@ public class UserService {
         long wishCount = bookHistoryRepository.countByUserAndStatus(user, BookStatus.WISH);
         long readingCount = bookHistoryRepository.countByUserAndStatus(user, BookStatus.READING);
         long completedCount = bookHistoryRepository.countByUserAndStatus(user, BookStatus.COMPLETED);
+        List<String> preferences = userPreferenceRepository.findByUser(user).stream()
+                .map(preference -> preference.getCategory().getName())
+                .toList();
 
-        return ProfileResponse.of(user, wishCount, readingCount, completedCount);
+        return ProfileResponse.of(user, wishCount, readingCount, completedCount, preferences);
     }
 
     /**
