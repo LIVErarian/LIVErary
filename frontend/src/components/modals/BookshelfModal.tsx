@@ -10,7 +10,6 @@
 import { useState } from 'react';
 import clsx from 'clsx';
 
-import { BaseModal } from '@/components/common/BaseModal';
 import { PixelButton } from '@/components/common/PixelButton';
 // Mock 데이터 (임시)
 import { MOCK_READ_BOOKS, MOCK_WISHED_BOOKS } from '@/mocks/bookshelfData';
@@ -20,16 +19,11 @@ import * as styles from './BookshelfModal.css';
 
 const BOOKS_PER_PAGE = 8; // 페이지당 책 개수 (4열 * 2행)
 
-interface BookshelfModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
 // 탭 타입
 type TabType = 'wished' | 'read';
 
 // BookshelfModal 컴포넌트
-export const BookshelfModal = ({ isOpen, onClose }: BookshelfModalProps) => {
+export const BookshelfModal = () => {
   // 현재 활성 탭 (찜한 책 / 읽은 책)
   const [activeTab, setActiveTab] = useState<TabType>('wished');
 
@@ -70,7 +64,6 @@ export const BookshelfModal = ({ isOpen, onClose }: BookshelfModalProps) => {
   const handlePrevPage = () => {
     if (currentPage > 0) {
       setCurrentPage((prev) => prev - 1);
-      // TODO: API 연동 시 데이터 refetch
     }
   };
 
@@ -80,7 +73,6 @@ export const BookshelfModal = ({ isOpen, onClose }: BookshelfModalProps) => {
   const handleNextPage = () => {
     if (currentPage < totalPages - 1) {
       setCurrentPage((prev) => prev + 1);
-      // TODO: API 연동 시 데이터 refetch
     }
   };
 
@@ -194,39 +186,37 @@ export const BookshelfModal = ({ isOpen, onClose }: BookshelfModalProps) => {
   };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose}>
-      <div className={styles.modalContainer}>
-        {/* 탭 영역 */}
-        <div className={styles.tabContainer}>
-          {/* 찜한 책 탭 */}
-          <button
-            className={clsx(
-              styles.tabButton,
-              activeTab === 'wished' && styles.tabActive,
-            )}
-            onClick={() => handleTabChange('wished')}
-          >
-            📖 찜한 책
-          </button>
+    <div className={styles.modalContainer}>
+      {/* 탭 영역 */}
+      <div className={styles.tabContainer}>
+        {/* 찜한 책 탭 */}
+        <PixelButton
+          className={clsx(
+            styles.tabButton,
+            activeTab === 'wished' && styles.tabActive,
+          )}
+          onClick={() => handleTabChange('wished')}
+        >
+          찜한 책
+        </PixelButton>
 
-          {/* 읽은 책 탭 */}
-          <button
-            className={clsx(
-              styles.tabButton,
-              activeTab === 'read' && styles.tabActive,
-            )}
-            onClick={() => handleTabChange('read')}
-          >
-            ✅ 읽은 책
-          </button>
-        </div>
-
-        {/* 책 목록 영역 */}
-        <div className={styles.contentArea}>{renderBookList()}</div>
-
-        {/* 페이지네이션 */}
-        {renderPagination()}
+        {/* 읽은 책 탭 */}
+        <PixelButton
+          className={clsx(
+            styles.tabButton,
+            activeTab === 'read' && styles.tabActive,
+          )}
+          onClick={() => handleTabChange('read')}
+        >
+          읽은 책
+        </PixelButton>
       </div>
-    </BaseModal>
+
+      {/* 책 목록 영역 */}
+      <div className={styles.contentArea}>{renderBookList()}</div>
+
+      {/* 페이지네이션 */}
+      {renderPagination()}
+    </div>
   );
 };
