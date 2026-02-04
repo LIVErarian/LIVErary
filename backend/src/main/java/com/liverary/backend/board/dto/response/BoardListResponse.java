@@ -22,6 +22,7 @@ public class BoardListResponse {
     private Type type;
     private Status status;
     private LocalDateTime createdAt;
+    private String categoryName;
 
     /**
      * Board 엔티티를 BoardListResponse DTO로 변환
@@ -30,6 +31,13 @@ public class BoardListResponse {
      * @return 변환된 목록 응답 DTO
      */
     public static BoardListResponse from(Board board) {
+
+        String categoryName = null;
+
+        if(board.getType() == Type.PROMOTION) {
+            categoryName = board.getRoom().getCategory().getName();
+        }
+
         return BoardListResponse.builder()
                 .boardId(board.getBoardId())
                 .title(board.getTitle())
@@ -37,6 +45,7 @@ public class BoardListResponse {
                 .type(board.getType())
                 .status(board.getStatus())
                 .createdAt(board.getCreatedAt())
+                .categoryName(categoryName)
                 .build();
     }
 }
