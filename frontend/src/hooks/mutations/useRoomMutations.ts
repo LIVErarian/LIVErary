@@ -25,6 +25,8 @@ import type {
 export const useCreateRoom = () => {
   const queryClient = useQueryClient();
   const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
+  const setRoomId = useGameStore((state) => state.setRoomId);
+  const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
 
   return useMutation<
     CreateRoomResponseData,
@@ -36,22 +38,29 @@ export const useCreateRoom = () => {
       // 라이브면 즉시 방으로 이동
       if (variables.status === 'LIVE') {
         console.log('방 생성 완료:', data.roomId);
+        setRoomId(data.roomId);
+
         // concert인 경우 콘서트 홀로 이동
-        if (variables.roomType === 'CONCERT') setCurrentFloor('bookConcert');
+        if (variables.roomType === 'CONCERT') {
+          setCurrentFloor('bookConcert');
+          setSpawnPoint(null);
+        }
         // booktalk인 경우 분기 필요
         else if (variables.roomType === 'TALK')
-          if (variables.accessType === 'PRIVATE')
+          if (variables.accessType === 'PRIVATE') {
             // Private인 경우 회의실로 이동
             setCurrentFloor('conferenceFloor');
-          // Public인 경우 bookTalkFloor로 보내고 네번째 방으로
-          else {
+            setSpawnPoint(null); // 오른쪽 입구쪽으로 이동 필요
+          } else {
+            // Public인 경우 bookTalkFloor로 보내고 네번째 방으로
+            setSpawnPoint({ x: 0.82, y: 0.78 }); // room4 spawnpoint
             setCurrentFloor('bookTalkFloor');
-            // TODO: 네번째 방으로 보내는 로직 필요
           }
       }
       // Scheduled인 경우 방 예약
       else {
-        console.log('방 예약 완료:', data.roomId);
+        queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
+        queryClient.invalidateQueries({ queryKey: roomKeys.lists() });
         alert('예약이 완료되었습니다.');
       }
 
@@ -70,6 +79,7 @@ export const useCreateRoom = () => {
  */
 export const useJoinRoom = () => {
   const queryClient = useQueryClient();
+  const setRoomId = useGameStore((state) => state.setRoomId);
 
   return useMutation<
     JoinRoomResponseData,
@@ -82,7 +92,7 @@ export const useJoinRoom = () => {
       queryClient.invalidateQueries({ queryKey: roomKeys.detail(data.roomId) });
 
       alert('방에 참여하였습니다.');
-      // TODO: 방 참여시 webRTC 로직 연결
+      setRoomId(data.roomId);
     },
     onError: (error) => {
       // 리스트 강제 갱신
@@ -98,6 +108,7 @@ export const useJoinRoom = () => {
  */
 export const useLeaveRoom = () => {
   const queryClient = useQueryClient();
+  const setRoomId = useGameStore((state) => state.setRoomId);
 
   return useMutation<string, AxiosError, { roomId: string }>({
     mutationFn: roomApi.leaveRoom,
@@ -108,7 +119,8 @@ export const useLeaveRoom = () => {
         queryKey: roomKeys.detail(variables.roomId),
       });
 
-      // TODO: webRTC 로직 연결
+      // TODO: 해당 층의 로비/복도 채널로 복귀
+      setRoomId(null);
     },
   });
 };

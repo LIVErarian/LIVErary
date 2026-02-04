@@ -9,19 +9,22 @@ export type ModalType =
   | 'boardCreate'
   | 'boardUpdate'
   | 'logout'
-  | 'roomlist'
+  | 'roomList'
   | 'move'
   | 'rank'
   | 'error'
   | 'bookshelf'
   | 'friendList'
   | 'error'
+  | 'createRoom'
+  | 'entrance'
   | null;
 
 interface ModalProps {
   title?: string;
   message?: string;
   onConfirm?: () => void;
+  onCancel?: () => void;
   boardId?: string;
 }
 
@@ -34,6 +37,7 @@ interface ModalState {
   currentModal: ModalType;
   modalProps: ModalProps;
   error: ErrorState | null; // 에러 상태 분리
+
   openModal: (modal: ModalType, props?: ModalProps) => void;
   closeModal: () => void;
   openError: (error: ErrorState) => void;
@@ -44,6 +48,7 @@ export const useModalStore = create<ModalState>((set) => ({
   currentModal: null,
   modalProps: {},
   error: null,
+
   openModal: (modal, props = {}) =>
     set({ currentModal: modal, modalProps: props }),
   closeModal: () => set({ currentModal: null, modalProps: {} }),

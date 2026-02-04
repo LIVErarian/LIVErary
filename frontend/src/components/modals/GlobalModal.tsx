@@ -4,9 +4,11 @@ import { BoardCreate } from '../board/BoardCreate';
 import { BoardDetail } from '../board/BoardDetail';
 import { BoardList } from '../board/BoardList';
 import { BoardUpdate } from '../board/BoardUpdate';
+import { PixelButton } from '../common/PixelButton';
 import { PixelModal } from '../common/PixelModal';
 import { BookshelfModal } from './BookshelfModal';
 import { ConfirmModal } from './ConfirmModal';
+import { CreateRoomModal } from './CreateRoomModal';
 import { ElevatorModal } from './ElevatorModal';
 import { ErrorModal } from './ErrorModal';
 import { FriendListModal } from './FriendListModal';
@@ -20,11 +22,40 @@ import * as styles from './GlobalModal.css';
 //   </div>
 // );
 
-const RoomContent = () => (
-  <div className={styles.contentWrapper}>
-    <p>방 목록 기능을 준비중입니다.</p>
-  </div>
-);
+const RoomContent = () => {
+  const { openModal } = useModalStore();
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        height: '100%',
+      }}
+    >
+      {/* 🟢 상단 헤더 영역 (제목 + 방 만들기 버튼) */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>방 목록</h2>
+
+        {/* 방 만들기 버튼 */}
+        <PixelButton
+          variant="primary" // 강조 색상 (빨강/브랜드 컬러)
+          onClick={() => openModal('createRoom')} // 'createRoom' 모달 열기
+          style={{ padding: '8px 16px', fontSize: '0.9rem' }}
+        >
+          + 방 만들기
+        </PixelButton>
+      </div>
+    </div>
+  );
+};
 
 const RankContent = () => (
   <div className={styles.contentWrapper}>
@@ -49,9 +80,11 @@ export const GlobalModal = () => {
       <ConfirmModal
         isOpen={currentModal === 'move'}
         onClose={() => {
+          if (modalProps.onCancel) modalProps.onCancel();
           closeModal();
         }}
         onConfirm={() => {
+          if (modalProps.onConfirm) modalProps.onConfirm();
           closeModal();
         }}
         title={modalProps.title || '알림'}
@@ -59,6 +92,24 @@ export const GlobalModal = () => {
         confirmText="이동하기"
       >
         <p>{modalProps.message}</p>
+      </ConfirmModal>
+
+      {/* 방 입퇴장 확인 모달 */}
+      <ConfirmModal
+        isOpen={currentModal === 'entrance'}
+        onClose={() => {
+          if (modalProps.onCancel) modalProps.onCancel();
+          closeModal();
+        }}
+        onConfirm={() => {
+          if (modalProps.onConfirm) modalProps.onConfirm();
+          closeModal();
+        }}
+        title={modalProps.title || '입장 확인'}
+      >
+        <p style={{ textAlign: 'center' }}>
+          {modalProps.message || '이 방에 입장하시겠습니까?'}
+        </p>
       </ConfirmModal>
 
       {/* 엘리베이터 모달 */}
@@ -109,12 +160,22 @@ export const GlobalModal = () => {
 
       {/* 방 목록 모달 */}
       <PixelModal
-        isOpen={currentModal === 'roomlist'}
+        isOpen={currentModal === 'roomList'}
         onClose={closeModal}
         title="🚪 방 목록"
         width="500px"
       >
         <RoomContent />
+      </PixelModal>
+
+      {/* 방 만들기 모달 */}
+      <PixelModal
+        isOpen={currentModal === 'createRoom'}
+        onClose={closeModal}
+        title="방 추가하기"
+        width="500px"
+      >
+        <CreateRoomModal />
       </PixelModal>
 
       {/* 랭킹 모달 */}
