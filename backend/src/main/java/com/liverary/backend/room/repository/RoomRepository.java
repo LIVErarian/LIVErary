@@ -11,7 +11,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -24,13 +26,11 @@ public interface RoomRepository extends JpaRepository<Room, UUID> {
     // RoomType 상관없이 Status 목록에 포함된 방들 조회 (전체 조회용)
     Page<Room> findByStatusIn(List<RoomStatus> statuses, Pageable pageable);
 
-    // Status 목록에 포함된 방들 중 keyword가 제목에 포함되어 있거나 코드와 일치하는 방 검색
-    @Query("SELECT r FROM Room r WHERE r.status IN :statuses AND (r.title LIKE %:keyword% OR r.code = :keyword)")
-    Page<Room> searchByKeyword(
-            @Param("statuses") List<RoomStatus> statuses,
-            @Param("keyword") String keyword,
-            Pageable pageable
-    );
+    // Status 목록에 포함된 방들 중 keyword가 제목에 포함되어 있는 방 검색
+    Page<Room> findByStatusInAndTitleContaining(Collection<RoomStatus> statuses, String keyword, Pageable pageable);
+
+    // 초대 코드(Code)로 정확히 일치하는 방 검색 (단건)
+    Optional<Room> findByCodeAndStatusIn(String code, Collection<RoomStatus> statuses);
 
     // [자동 시작 대상] 시작 시간까지 10분 이하로 남은 예약 방 조회
     List<Room> findAllByStatusAndStartAtLessThanEqual(RoomStatus status, LocalDateTime time);
