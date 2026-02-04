@@ -61,6 +61,15 @@ export class Player extends Container {
     this._character.eventMode = 'static';
     this._character.cursor = 'pointer';
 
+    // 히트 영역 설정 (투명 영역 제외하고 실제 캐릭터 크기에 맞춤)
+    // anchor(0.5, 0.7) 기준 오프셋 계산
+    this._character.hitArea = new Rectangle(
+      -this.ACTUAL_WIDTH / 2,
+      -this.ACTUAL_HEIGHT * 0.7,
+      this.ACTUAL_WIDTH,
+      this.ACTUAL_HEIGHT,
+    );
+
     // 클릭 이벤트 핸들러 추가
     if (onClickCallback) {
       this._character.on('pointerdown', () => {
