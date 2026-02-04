@@ -1,0 +1,221 @@
+import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+
+import { searchBook } from '@/api/book.api';
+import { categoryApi } from '@/api/category.api';
+import { useDebounce } from '@/hooks/common/useDebounce';
+import { useCreateRoom } from '@/hooks/mutations/useRoomMutations';
+import { useAuthStore } from '@/store/useAuthStore';
+
+import type { Book } from '@/types/book.types';
+import type { AccessType, RoomType } from '@/types/room.types';
+
+export const useCreateRoomForm = (closeModal: () => void) => {
+  const { mutate: createRoom, isPending } = useCreateRoom();
+  const user = useAuthStore((state) => state.user);
+
+  const initialRoomType: RoomType = user?.role === 'ADMIN' ? 'CONCERT' : 'TALK';
+
+  const [title, setTitle] = useState('');
+  const [roomType] = useState<RoomType>(initialRoomType);
+  const [accessType, setAccessType] = useState<AccessType>('PUBLIC');
+  const [maxUser, setMaxUser] = useState<number>(4);
+  const [categoryId, setCategoryId] = useState('');
+
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [startTime, setStartTime] = useState('12:00');
+  const [endDate, setEndDate] = useState('');
+  const [endTime, setEndTime] = useState('13:00');
+
+  const [bookSearchKeyword, setBookSearchKeyword] = useState('');
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  const debouncedKeyword = useDebounce(bookSearchKeyword, 300);
+
+  // 데이터 로딩
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: categoryApi.getCategoryList,
+  });
+
+  const { data: bookSearchResults, isLoading: isSearchingBooks } = useQuery({
+    queryKey: ['bookSearchDropdown', debouncedKeyword],
+    queryFn: () => searchBook(debouncedKeyword, 0, 10),
+    enabled: !!debouncedKeyword && debouncedKeyword.length >= 2,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // 바깥 클릭 시 검색창 닫히게
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setBookSearchKeyword('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // 핸들러
+  // 예약이면 무조건 private으로 변경
+  const handleScheduledChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setIsScheduled(checked);
+
+    if (checked) {
+      setAccessType('PRIVATE');
+      const today = new Date().toISOString().split('T')[0];
+      if (!startDate) setStartDate(today);
+      if (!endDate) setEndDate(today);
+    } else {
+      setAccessType('PUBLIC');
+    }
+  };
+
+  // 책 검색
+  const handleBookSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBookSearchKeyword(e.target.value);
+    if (selectedBook) {
+      setSelectedBook(null);
+      setCategoryId('');
+    }
+  };
+
+  // 책 선택시 카테고리 자동 선택
+  const handleBookSelect = (book: Book) => {
+    setSelectedBook(book);
+    setBookSearchKeyword('');
+
+    if (categories.length > 0) {
+      const matched = categories.find(
+        (c) => book.category.includes(c.name) || c.name.includes(book.category),
+      );
+      if (matched) setCategoryId(matched.categoryId);
+    }
+  };
+
+  // 책 제거
+  const handleRemoveBook = () => {
+    setSelectedBook(null);
+    setCategoryId('');
+    setBookSearchKeyword('');
+  };
+
+  // 인원 수 조절 (버튼)
+  const handleMaxUserBtn = (delta: number) => {
+    const newVal = maxUser + delta;
+    if (newVal >= 2 && newVal <= 20) setMaxUser(newVal);
+  };
+
+  // 인원 수 직접 입력
+  const handleMaxUserInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10);
+    if (isNaN(val)) return;
+    if (val > 20) setMaxUser(20);
+    else setMaxUser(val);
+  };
+
+  // 인원 수 입력 범위 보정
+  const handleMaxUserBlur = () => {
+    if (maxUser < 2) setMaxUser(2);
+  };
+
+  // 제출
+  const handleSubmit = () => {
+    if (!title.trim()) return alert('방 제목을 입력해주세요.');
+    if (!categoryId) return alert('카테고리를 선택해주세요.');
+    if (!selectedBook && !categoryId) return alert('카테고리는 필수입니다.');
+    if (maxUser < 2 || maxUser > 20)
+      return alert('인원은 2명 이상 20명 이하여야 합니다.');
+
+    let formattedStart = undefined;
+    let formattedEnd = undefined;
+
+    if (isScheduled) {
+      if (!startDate || !startTime || !endDate || !endTime) {
+        return alert('예약 시간을 모두 설정해주세요.');
+      }
+      const start = new Date(`${startDate}T${startTime}:00`);
+      const end = new Date(`${endDate}T${endTime}:00`);
+      const now = new Date();
+
+      if (start < now) return alert('시작 시간은 현재보다 미래여야 합니다.');
+      if (end <= start)
+        return alert('종료 시간은 시작 시간보다 뒤여야 합니다.');
+
+      const diffTime = end.getTime() - start.getTime();
+      const oneDayInMs = 24 * 60 * 60 * 1000;
+
+      if (diffTime > oneDayInMs) {
+        return alert('종료 시간은 시작 시간으로부터 24시간 이내여야 합니다.');
+      }
+
+      formattedStart = start.toISOString();
+      formattedEnd = end.toISOString();
+    }
+
+    createRoom(
+      {
+        title,
+        roomType,
+        accessType,
+        maxUser,
+        status: isScheduled ? 'SCHEDULED' : 'LIVE',
+        categoryId,
+        isbn: selectedBook?.isbn,
+        startAt: formattedStart,
+        endAt: formattedEnd,
+      },
+      {
+        onSuccess: () => closeModal(),
+      },
+    );
+  };
+
+  return {
+    formState: {
+      title,
+      accessType,
+      maxUser,
+      categoryId,
+      isScheduled,
+      startDate,
+      startTime,
+      endDate,
+      endTime,
+      selectedBook,
+      categories,
+      bookSearchKeyword,
+      bookSearchResults: bookSearchResults?.content || [],
+      isSearchingBooks,
+      debouncedKeyword,
+    },
+    setters: {
+      setTitle,
+      setAccessType,
+      setCategoryId,
+      setStartDate,
+      setStartTime,
+      setEndDate,
+      setEndTime,
+    },
+    handlers: {
+      handleScheduledChange,
+      handleBookSearchChange,
+      handleBookSelect,
+      handleRemoveBook,
+      handleMaxUserBtn,
+      handleMaxUserInputChange, // 추가
+      handleMaxUserBlur, // 추가
+      handleSubmit,
+    },
+    searchContainerRef,
+    isPending,
+  };
+};

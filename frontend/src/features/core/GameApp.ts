@@ -640,6 +640,8 @@ export class GameApp {
                   size: 50,
                   roomType: targetType,
                 });
+
+                if (response === null) return;
                 const roomList = response.content || [];
                 /**
                  * 비-독서모임 존은 기존 정책을 유지한다.
