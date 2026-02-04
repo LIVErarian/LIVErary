@@ -78,4 +78,55 @@ public class BookHistoryService {
                 })
                 .orElseGet(() -> WishStatusResponse.of(false));
     }
+    /**
+     * 읽고 있는 책 등록
+     * @param isbn 도서 ISBN
+     * @param userId 유저 ID
+     */
+    @Transactional
+    public void registerReading(String isbn, UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        Book book = bookService.getOrSaveBook(isbn);
+
+        // 이미 읽고 있는 상태인지 확인
+        if (bookHistoryRepository.existsByUserAndBookAndStatus(user, book, BookStatus.READING)) {
+            return;
+        }
+
+        BookHistory history = BookHistory.builder()
+                .user(user)
+                .book(book)
+                .status(BookStatus.READING)
+                .build();
+        
+        bookHistoryRepository.save(history);
+    }
+
+    /**
+     * 다 읽은 책 등록
+     * @param isbn 도서 ISBN
+     * @param userId 유저 ID
+     */
+    @Transactional
+    public void registerCompleted(String isbn, UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        Book book = bookService.getOrSaveBook(isbn);
+
+        // 이미 다 읽은 상태인지 확인
+        if (bookHistoryRepository.existsByUserAndBookAndStatus(user, book, BookStatus.COMPLETED)) {
+            return;
+        }
+
+        BookHistory history = BookHistory.builder()
+                .user(user)
+                .book(book)
+                .status(BookStatus.COMPLETED)
+                .build();
+
+        bookHistoryRepository.save(history);
+    }
 }

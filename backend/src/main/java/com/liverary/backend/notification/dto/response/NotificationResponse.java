@@ -18,7 +18,6 @@ public class NotificationResponse {
 
     private UUID notificationId;
     private String content;
-    private String relatedUrl;
     private NotificationType type;
     private boolean isRead;
     private LocalDateTime createdAt;
@@ -27,7 +26,6 @@ public class NotificationResponse {
         return NotificationResponse.builder()
                 .notificationId(notification.getNotificationId())
                 .content(notification.getContent())
-                .relatedUrl(notification.getRelatedUrl())
                 .type(notification.getType())
                 .isRead(notification.isRead())
                 .createdAt(notification.getCreatedAt())

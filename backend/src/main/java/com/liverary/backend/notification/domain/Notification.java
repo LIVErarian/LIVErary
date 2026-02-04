@@ -34,10 +34,7 @@ public class Notification {
     @Column(nullable = false)
     private String content;
 
-    // 클라이언트 알림 클릭 시 이동할 URL
-    private String relatedUrl;
-
-    // 읽음 여부 (기본값: false)
+    // 알림 읽음 여부 (기본값: false)
     @Column(nullable = false)
     private boolean isRead;
 
@@ -46,11 +43,10 @@ public class Notification {
     private LocalDateTime createdAt;
 
     @Builder
-    public Notification(User user, NotificationType type, String content, String relatedUrl, boolean isRead){
+    public Notification(User user, NotificationType type, String content, boolean isRead){
         this.user = user;
         this.type = type;
         this.content = content;
-        this.relatedUrl = relatedUrl;
         this.isRead = isRead;
         this.createdAt = LocalDateTime.now();
 

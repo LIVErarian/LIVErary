@@ -62,4 +62,32 @@ public class BookHistoryController {
         return BaseResponse.success(response);
     }
 
+    /**
+     * 읽고 있는 책 등록 API
+     * - POST /api/book-history/reading/{isbn}
+     */
+    @PostMapping("/reading/{isbn}")
+    public BaseResponse<Void> registerReading(
+            @PathVariable String isbn,
+            @AuthenticationPrincipal UserDetails user
+    ){
+        UUID userId = getUserId(user);
+        bookHistoryService.registerReading(isbn, userId);
+        return BaseResponse.success();
+    }
+
+    /**
+     * 다 읽은 책 등록 API
+     * - POST /api/book-history/completed/{isbn}
+     */
+    @PostMapping("/completed/{isbn}")
+    public BaseResponse<Void> registerCompleted(
+            @PathVariable String isbn,
+            @AuthenticationPrincipal UserDetails user
+    ){
+        UUID userId = getUserId(user);
+        bookHistoryService.registerCompleted(isbn, userId);
+        return BaseResponse.success();
+    }
+
 }
