@@ -22,8 +22,6 @@ export const FriendListModal = () => {
   const [searchEmail, setSearchEmail] = useState('');
   const [isSearchMode, setIsSearchMode] = useState(false);
 
-  const { openModal } = useModalStore();
-
   const { data: friendList, isLoading: isLoadingFriends } = useFriendList(
     0,
     50,
@@ -81,7 +79,7 @@ export const FriendListModal = () => {
    * @param friendId - 친구 요청 ID (선택적, 수락/거절용)
    */
   const handleViewProfile = (userId: string, friendId?: string) => {
-    openModal('userProfile', { userId, friendId });
+    useModalStore.getState().openUserProfile(userId, friendId);
   };
 
   /**

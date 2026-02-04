@@ -800,7 +800,7 @@ export class GameApp {
         // 클릭 콜백: 타인 프로필 열기
         const handleOtherClick = (userId: string) => {
           console.log('🖱️ Character clicked, userId:', userId);
-          useModalStore.getState().openModal('userProfile', { userId });
+          useModalStore.getState().openUserProfile(userId);
         };
 
         otherPlayer = new Player(

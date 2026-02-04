@@ -65,10 +65,16 @@ const RankContent = () => (
 );
 
 export const GlobalModal = () => {
-  const { currentModal, modalProps, closeModal } = useModalStore();
+  const {
+    currentModal,
+    modalProps,
+    closeModal,
+    userProfile,
+    closeUserProfile,
+  } = useModalStore();
   const { mutate: logout } = useLogout();
 
-  if (!currentModal) return null;
+  if (!currentModal && !userProfile) return null;
 
   const handleLogout = () => {
     closeModal();
@@ -249,6 +255,16 @@ export const GlobalModal = () => {
       >
         <BookSearchModal />
       </PixelModal>
+
+      {/* 오버레이: 타인 프로필 모달 (항상 최상단) */}
+      {userProfile && (
+        <ProfileModal
+          isOpen={true}
+          onClose={closeUserProfile}
+          userId={userProfile.userId}
+          friendId={userProfile.friendId}
+        />
+      )}
     </>
   );
 };
