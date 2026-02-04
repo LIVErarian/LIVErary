@@ -132,6 +132,7 @@ public class UserSession implements Closeable {
             drainQueuedCandidates(sender.getUserId(), incoming);
             return incoming;
         } catch (RuntimeException e) {
+            // connect/process 중간 실패 시 부분 생성된 수신 endpoint를 즉시 정리한다.
             cancelDataFrom(sender.getUserId());
             throw e;
         }
@@ -160,6 +161,7 @@ public class UserSession implements Closeable {
      */
     @Override
     public void close() throws IOException {
+        // 여러 경로(leave/disconnect/shutdown)에서 중복 호출돼도 한 번만 정리한다.
         if (!closed.compareAndSet(false, true)) {
             return;
         }
@@ -234,6 +236,7 @@ public class UserSession implements Closeable {
         try {
             endpoint.release();
         } catch (RuntimeException e) {
+            // release 실패는 다음 정리 흐름을 막지 않도록 로그만 남긴다.
             log.debug("endpoint release failed. userId={}, roomId={}", userId, roomId, e);
         }
     }

@@ -143,6 +143,7 @@ public class SocketService implements Closeable {
      * @param userId 사용자 ID
      */
     public void leaveByUserId(UUID userId) {
+        // 중복 leave/disconnect를 허용하기 위해 세션이 없으면 조용히 종료한다.
         UserSession user = registry.removeByUserIdIfPresent(userId);
         if (user == null) {
             return;
@@ -169,6 +170,7 @@ public class SocketService implements Closeable {
         try {
             UUID userId = UUID.fromString(principal.getName());
             leaveByUserId(userId);
+            // 소켓 disconnect가 발생하면 DB 기준 JOINED 상태도 강제로 정리한다.
             forceLeaveJoinedRooms(userId);
         } catch (IllegalArgumentException ignored) {
             // Principal name이 UUID 형식이 아니면 소켓 세션 정리 대상이 아니다.
@@ -268,6 +270,7 @@ public class SocketService implements Closeable {
     }
 
     private void forceLeaveJoinedRooms(UUID userId) {
+        // 중복 JOINED 이력/경합 상황을 고려해 roomId를 고유값으로 정리한다.
         List<UUID> joinedRoomIds = roomHistoryRepository.findRoomIdsByUserIdAndStatus(userId, HistoryStatus.JOINED)
                 .stream()
                 .distinct()

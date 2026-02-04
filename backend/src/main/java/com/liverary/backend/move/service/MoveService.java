@@ -151,7 +151,7 @@ public class MoveService {
             removeUserFromFloorSet(userId, floorId);
         }
 
-        // 혹시 userFloor 매핑과 floorUsers 상태가 어긋난 경우까지 정리
+        // userFloor/floorUsers가 어긋난 비정상 케이스까지 스윕 정리한다.
         floorUsers.forEach((id, users) -> {
             users.remove(userId);
             if (users.isEmpty()) {
