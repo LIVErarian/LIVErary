@@ -164,14 +164,14 @@ public class RoomController {
      * <p>코드는 정확히 일치해야 합니다.
      * 검색 결과는 단건(방 하나)으로 반환합니다.</p>
      *
-     * @param request 사용자가 입력한 코드를 담고 있는 요청 객체
+     * @param code 사용자가 입력한 코드
      * @return 입장 코드와 일치하는 방 객체
      */
     @GetMapping("/search")
     public BaseResponse<RoomListResponse> searchRoomByCode(
-            @RequestBody CodeSearchRequest request
+            @RequestParam String code
     ) {
-        RoomListResponse response = roomService.searchRoomByCode(request.getCode());
+        RoomListResponse response = roomService.searchRoomByCode(code);
         return BaseResponse.success(response);
     }
 
