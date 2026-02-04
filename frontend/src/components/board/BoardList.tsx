@@ -101,7 +101,7 @@ export const BoardList = () => {
                       )
                     ) : (
                       // PROMOTION
-                      post.category || '기타'
+                      post.categoryName || '기타'
                     )}
                   </span>
                 )}
