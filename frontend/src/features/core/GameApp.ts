@@ -4,6 +4,7 @@ import {
   Container,
   Graphics,
   Sprite,
+  Text,
   Ticker,
 } from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
@@ -11,7 +12,10 @@ import { Viewport } from 'pixi-viewport';
 import { roomApi } from '@/api/room.api';
 import playerMSheetImg from '@/assets/characters/basic_male.png';
 import { findRecommendedRoomByZone } from '@/features/room/bookTalkRoomMatcher';
-import { isBookTalkZone } from '@/features/room/bookTalkRoomSlots';
+import {
+  BOOK_TALK_ZONE_IDS,
+  isBookTalkZone,
+} from '@/features/room/bookTalkRoomSlots';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
@@ -34,6 +38,7 @@ import type {
   MoveRequest,
 } from '@/types/socket.types';
 
+import { contentFont } from '@/styles/global.css';
 import { palette } from '@/styles/theme.css';
 
 export class GameApp {
@@ -50,6 +55,9 @@ export class GameApp {
   private _suppressZoneTriggers: Map<string, Set<'enter' | 'exit'>> = new Map();
   private _bgSprite: Sprite | null = null;
   private _mapButtonsContainer: Container | null = null;
+  private _bookTalkRoomInfoContainer: Container | null = null;
+  private _bookTalkRoomInfoTextMap: Map<string, Text> = new Map();
+  private _bookTalkRoomInfoSnapshot: string = '';
   private _mapZones: Array<
     MapZoneConfig & { absX: number; absY: number; absW: number; absH: number }
   > = [];
@@ -235,6 +243,7 @@ export class GameApp {
 
     this.updateMapButtons(mapConfig);
     this.updateMapZones(mapConfig);
+    this.updateBookTalkRoomInfoOverlay(floor);
     this.updateCollision(mapConfig);
 
     // 중앙 정렬 로직
@@ -311,6 +320,107 @@ export class GameApp {
       absW: zone.width * this._worldWidth,
       absH: zone.height * this._worldHeight,
     }));
+  }
+
+  /**
+   * 3층 독서 모임 공간에서만 Pixi 레이어에 룸 정보 라벨을 생성한다.
+   * (요구사항: React UI 오버레이가 아니라 맵 위에 직접 표시)
+   */
+  private updateBookTalkRoomInfoOverlay(floor: FloorType) {
+    if (this._bookTalkRoomInfoContainer) {
+      this._viewport.removeChild(this._bookTalkRoomInfoContainer);
+      this._bookTalkRoomInfoContainer.destroy({ children: true });
+      this._bookTalkRoomInfoContainer = null;
+      this._bookTalkRoomInfoTextMap.clear();
+      this._bookTalkRoomInfoSnapshot = '';
+    }
+
+    if (floor !== 'bookTalkFloor') return;
+
+    const container = new Container();
+    this._bookTalkRoomInfoContainer = container;
+    this._viewport.addChild(container);
+
+    BOOK_TALK_ZONE_IDS.forEach((zoneId) => {
+      const zone = this._mapZones.find((entry) => entry.id === zoneId);
+      if (!zone) return;
+
+      // 각 zone의 좌상단 기준으로 약간 오른쪽/아래에 고정 배치
+      const labelLeftX = Math.round(zone.absX + 20);
+      const labelTopY = Math.round(zone.absY + 20);
+      const cardWidth = 176;
+      const cardHeight = 40;
+
+      const labelBackground = new Graphics();
+      labelBackground.roundRect(0, 0, cardWidth, cardHeight, 7).fill({
+        color: 0x4a2619,
+        alpha: 0.9,
+      });
+      labelBackground.stroke({
+        width: 1.5,
+        color: 0xc58346,
+        alpha: 0.95,
+      });
+      labelBackground.x = labelLeftX;
+      labelBackground.y = labelTopY;
+
+      const labelText = new Text({
+        text: '',
+        style: {
+          fill: 0xddd3b9,
+          fontFamily: contentFont,
+          fontSize: 11,
+          fontWeight: 'normal',
+          lineHeight: 14,
+          align: 'left',
+        },
+      });
+      labelText.anchor.set(0, 0.5);
+      labelText.x = labelLeftX + 8;
+      labelText.y = labelTopY + cardHeight / 2;
+
+      this._bookTalkRoomInfoTextMap.set(zoneId, labelText);
+      container.addChild(labelBackground);
+      container.addChild(labelText);
+    });
+
+    this.refreshBookTalkRoomInfoOverlay();
+  }
+
+  /**
+   * 추천 룸 배열 값이 변경될 때만 라벨 텍스트를 갱신한다.
+   * 매 프레임 호출하지만 스냅샷 비교로 실제 변경 시에만 repaint 한다.
+   */
+  private refreshBookTalkRoomInfoOverlay() {
+    if (!this._bookTalkRoomInfoContainer) return;
+
+    const { recommendedRooms } = useBookTalkRoomStore.getState();
+    const snapshot = JSON.stringify(
+      recommendedRooms.map((room) => ({
+        roomId: room.roomId,
+        title: room.title,
+        currentCount: room.currentCount,
+        maxUser: room.maxUser,
+      })),
+    );
+
+    if (snapshot === this._bookTalkRoomInfoSnapshot) return;
+    this._bookTalkRoomInfoSnapshot = snapshot;
+
+    BOOK_TALK_ZONE_IDS.forEach((zoneId, index) => {
+      const labelText = this._bookTalkRoomInfoTextMap.get(zoneId);
+      if (!labelText) return;
+
+      const room = recommendedRooms[index];
+      if (!room) {
+        labelText.text = '배정된 방 없음';
+        return;
+      }
+
+      const title =
+        room.title.length > 12 ? `${room.title.slice(0, 12)}...` : room.title;
+      labelText.text = `${title}\n${room.currentCount} / ${room.maxUser}`;
+    });
   }
 
   private updateCollision(mapConfig: { collision?: MapCollisionConfig }) {
@@ -437,9 +547,7 @@ export class GameApp {
     }
 
     if (action.type === 'openModal') {
-      if (action.modalType === 'elevator') {
-        useModalStore.getState().openModal('elevator');
-      }
+      useModalStore.getState().openModal(action.modalType);
     }
 
     if (action.type === 'confirmReposition') {
@@ -654,6 +762,10 @@ export class GameApp {
 
   private update(ticker: Ticker) {
     if (!this._player) return;
+
+    if (this._currentFloorId === MAP_DATA.bookTalkFloor.floorId) {
+      this.refreshBookTalkRoomInfoOverlay();
+    }
 
     const isModalOpen = useModalStore.getState().currentModal !== null;
     if (isModalOpen) {
