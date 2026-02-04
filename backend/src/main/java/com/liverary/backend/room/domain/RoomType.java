@@ -9,6 +9,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum RoomType {
+    STABLE("상시 오픈방"),
     READING("독서실"),
     TALK("대화방"),
     CONCERT("북콘서트");

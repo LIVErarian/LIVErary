@@ -13,13 +13,13 @@ import com.liverary.backend.room.dto.response.*;
 import com.liverary.backend.room.repository.RoomHistoryRepository;
 import com.liverary.backend.room.repository.RoomRepository;
 import com.liverary.backend.room.repository.RoomReservationRepository;
+import com.liverary.backend.user.domain.Role;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import com.liverary.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +67,13 @@ public class RoomService {
     public RoomCreateResponse createRoom(UUID userId, RoomCreateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // STABLE 타입은 관리자(ADMIN)만 생성 가능
+        if (request.getRoomType() == RoomType.STABLE) {
+            if (user.getRole() != Role.ADMIN) {
+                throw new BaseException(ErrorCode.INSUFFICIENT_PRIVILEGES);
+            }
+        }
 
         // 동일 시간대에 중복 예약을 방지
         if (request.getStatus() == RoomStatus.SCHEDULED) {
@@ -555,7 +562,7 @@ public class RoomService {
     @Transactional
     public void autoCloseNoShowRooms() {
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(10);
-        List<Room> rooms = roomRepository.findAllByStatusAndStartAtLessThanEqualAndCurrentCount(RoomStatus.LIVE, threshold, 0);
+        List<Room> rooms = roomRepository.findAllByStatusAndStartAtLessThanEqualAndCurrentCountAndRoomTypeNot(RoomStatus.LIVE, threshold, 0, RoomType.STABLE);
 
         for (Room room : rooms) {
             room.updateStatus(RoomStatus.FINISHED);
@@ -569,9 +576,10 @@ public class RoomService {
      * 예약 시 설정한 종료 시각이 되면 방의 상태를 FINISED로 변경합니다.
      * 아직 방에 남아있던 참여자들의 상태를 LEFT로 변경하여 퇴장 처리를 합니다.
      */
+    @Transactional
     public void autoCloseFinishedRooms() {
         LocalDateTime now = LocalDateTime.now();
-        List<Room> rooms = roomRepository.findAllByStatusAndEndAtLessThanEqual(RoomStatus.LIVE, now);
+        List<Room> rooms = roomRepository.findAllByStatusAndEndAtLessThanEqualAndRoomTypeNot(RoomStatus.LIVE, now, RoomType.STABLE);
 
         for (Room room : rooms) {
             room.updateStatus(RoomStatus.FINISHED);
