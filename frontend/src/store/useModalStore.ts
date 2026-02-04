@@ -3,6 +3,7 @@ import { create } from 'zustand';
 export type ModalType =
   | 'settings'
   | 'profile'
+  | 'userProfile' // 타인 프로필 조회
   | 'elevator'
   | 'boardList'
   | 'boardDetail'
@@ -27,6 +28,7 @@ interface ModalProps {
   onConfirm?: () => void;
   onCancel?: () => void;
   boardId?: string;
+  userId?: string; // 타인 프로필 조회용
 }
 
 interface ErrorState {

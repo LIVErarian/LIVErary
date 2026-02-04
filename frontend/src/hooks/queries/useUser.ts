@@ -26,3 +26,16 @@ export const useGetMyProfile = () => {
 
   return { data, isSuccess, isError, isLoading };
 };
+
+/**
+ * 타인 프로필 조회 Hook
+ * @param userId - 조회할 사용자 ID (undefined면 쿼리 실행 안 함)
+ * @returns 타인 프로필 정보 (관계 상태 포함)
+ */
+export const useOtherProfile = (userId: string | undefined) => {
+  return useQuery({
+    queryKey: ['user', 'profile', userId],
+    queryFn: () => userApi.getOtherProfile(userId!),
+    enabled: !!userId, // userId가 있을 때만 실행
+  });
+};
