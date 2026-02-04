@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import {
@@ -21,6 +22,7 @@ const formatDate = (dateString: string) =>
 
 const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const { mutate: applyRoom, isPending: isApplying } = useApplyScheduledRoom();
   const { mutate: cancelApply, isPending: isCanceling } =
@@ -31,12 +33,6 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
 
   // localJoined: 유저의 수동 조작 상태 (null이면 서버 데이터 사용)
   const [localJoined, setLocalJoined] = useState<boolean | null>(null);
-
-  // localCurrentMembers: 서버값을 기반으로 로컬에서 즉시 증감 처리
-  // 초기값은 서버에서 받은 값(post.roomDetail)으로 설정하고, 이후는 join/cancel로만 변경
-  const [localCurrentMembers, setLocalCurrentMembers] = useState<number | null>(
-    () => post.roomDetail?.currentMembers ?? null,
-  );
 
   const room = post.roomDetail;
   // 방 정보가 없을 경우 (삭제된 방 등) 처리
@@ -76,7 +72,10 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
           onSuccess: (data) => {
             setReservationCode(data.code);
             setLocalJoined(true);
-            setLocalCurrentMembers((prev) => (prev ?? room.currentMembers) + 1);
+            // 서버에서 최신 게시글(방) 상세를 다시 조회하여 방 정보를 갱신
+            queryClient.invalidateQueries({
+              queryKey: ['boards', 'detail', post.boardId],
+            });
             setError(null);
           },
           onError: (e: AxiosError<CommonResponse<null>>) => {
@@ -97,9 +96,10 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
           onSuccess: () => {
             setLocalJoined(false);
             setReservationCode(null);
-            setLocalCurrentMembers((prev) =>
-              Math.max((prev ?? room.currentMembers) - 1, 0),
-            );
+            // 서버에서 최신 게시글(방) 상세를 다시 조회하여 방 정보를 갱신
+            queryClient.invalidateQueries({
+              queryKey: ['boards', 'detail', post.boardId],
+            });
           },
         },
       );
@@ -130,8 +130,7 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
           <div className={styles.roomMeta}>
             <span className={styles.tag}>{room.category}</span>
             <span>
-              👤 {localCurrentMembers ?? room.currentMembers} /{' '}
-              {room.maxMembers}명
+              👤 {room.currentMembers} / {room.maxMembers}명
             </span>
           </div>
 
