@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { PixelButton } from '@/components/common/PixelButton';
+import { useNotification } from '@/hooks/queries/useNotification';
 import { RemoteAudio } from '@/hooks/webrtc/RemoteAudio'; // 경로 확인 필요
 import { useWebRTC } from '@/hooks/webrtc/useWebRTC';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -27,6 +28,7 @@ export const GameSidebar = () => {
 
   const roomId = useGameStore((state) => state.roomId);
 
+  const { unreadCount } = useNotification();
   const [isMicOn, setIsMicOn] = useState(false);
 
   // TODO: api 연결하면 roomId로 수정 필요
@@ -248,6 +250,36 @@ export const GameSidebar = () => {
         </button>
 
         <div className={styles.mediaRow}>
+          <div style={{ position: 'relative' }}>
+            <PixelButton
+              variant="beige"
+              shape="circle"
+              size="sm"
+              onClick={() => openModal('notification')}
+            >
+              🔔
+            </PixelButton>
+            {unreadCount > 0 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  backgroundColor: 'red',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: '16px',
+                  height: '16px',
+                  fontSize: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </div>
+            )}
+          </div>
           <PixelButton
             variant={isMicOn ? 'primary' : 'beige'}
             shape="circle"

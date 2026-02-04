@@ -22,6 +22,7 @@ export type ModalType =
   | 'createRoom'
   | 'entrance'
   | 'bookDetail'
+  | 'notification'
   | null;
 
 interface ModalProps {
@@ -32,6 +33,7 @@ interface ModalProps {
   boardId?: string;
   isbn?: string;
   from?: ModalType; // 모달이 어디서 열렸는지
+  initialTab?: 'FRIENDS' | 'REQUESTS' | 'BLOCKED';
 }
 
 interface ErrorState {
