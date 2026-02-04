@@ -100,7 +100,8 @@ export type LeaveRoomResponse = CommonResponse<null>;
 // 방 들어가기 요청
 export interface JoinRoomRequest {
   roomId: string; // uuid
-  code: string;
+  // PUBLIC 방은 code가 없어도 되므로 optional 처리
+  code?: string;
 }
 
 // 방 들어가기 응답
