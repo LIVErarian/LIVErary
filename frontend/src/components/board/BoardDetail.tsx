@@ -20,6 +20,8 @@ const formatDate = (dateString: string) =>
   new Date(dateString).toLocaleString();
 
 const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
+  const { user } = useAuthStore();
+
   const { mutate: applyRoom, isPending: isApplying } = useApplyScheduledRoom();
   const { mutate: cancelApply, isPending: isCanceling } =
     useDeleteApplyScheduledRoom();
@@ -32,6 +34,9 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
 
   const room = post.roomDetail;
   if (!room) return null;
+
+  // 본인 글(방장) 여부 확인
+  const isHost = user?.nickname === post.nickname;
 
   // 렌더링 시 사용할 최종 참여 상태 계산 (Local State 우선, 없으면 Server Data)
   const isJoined = localJoined ?? room.joined ?? false;
@@ -145,30 +150,31 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
           </div>
 
           {/* 버튼 영역 (항상 하단에 위치) */}
-          {!isJoined ? (
-            <PixelButton
-              onClick={handleJoin}
-              disabled={isApplying}
-              style={{
-                backgroundColor: theme.colors.primary,
-                color: 'white',
-                marginTop: 'auto',
-              }}
-            >
-              {isApplying ? '처리 중...' : '참여하기'}
-            </PixelButton>
-          ) : (
-            <PixelButton
-              onClick={handleCancel}
-              disabled={isCanceling}
-              style={{
-                marginTop: 'auto',
-                backgroundColor: theme.colors.disabledBg,
-              }}
-            >
-              {isCanceling ? '처리 중...' : '참여 취소'}
-            </PixelButton>
-          )}
+          {!isHost &&
+            (!isJoined ? (
+              <PixelButton
+                onClick={handleJoin}
+                disabled={isApplying}
+                style={{
+                  backgroundColor: theme.colors.primary,
+                  color: 'white',
+                  marginTop: 'auto',
+                }}
+              >
+                {isApplying ? '처리 중...' : '참여하기'}
+              </PixelButton>
+            ) : (
+              <PixelButton
+                onClick={handleCancel}
+                disabled={isCanceling}
+                style={{
+                  marginTop: 'auto',
+                  backgroundColor: theme.colors.disabledBg,
+                }}
+              >
+                {isCanceling ? '처리 중...' : '참여 취소'}
+              </PixelButton>
+            ))}
         </div>
       </div>
 
