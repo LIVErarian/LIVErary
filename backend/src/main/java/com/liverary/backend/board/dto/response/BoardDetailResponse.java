@@ -26,12 +26,12 @@ public class BoardDetailResponse {
     private LocalDateTime createdAt;
 
     private RoomDetailInfo roomDetail;
-
     // PROMOTION 게시판이 아닐 경우 값이 없을 수 있음
     @Getter
     @Builder
     public static class RoomDetailInfo {
         private UUID roomId;
+        private UUID hostId;
         private String title;
         private String category;
         private Integer currentMembers;
@@ -66,6 +66,7 @@ public class BoardDetailResponse {
 
             var roomBuilder = RoomDetailInfo.builder()
                     .roomId(room.getRoomId())
+                    .hostId(room.getCreator().getUserId())
                     .title(room.getTitle())
                     .currentMembers(currentCount)
                     .maxMembers(room.getMaxUser())
