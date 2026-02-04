@@ -6,8 +6,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -66,16 +64,6 @@ public class Friend {
      */
     public void accept() {
         this.status = FriendStatus.ACCEPTED;
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    /**
-     * 친구 차단 시 상태 변경
-     */
-    public void block(User blocker, User blocked) {
-        this.sender = blocker;
-        this.receiver = blocked;
-        this.status = FriendStatus.BLOCKED;
         this.updatedAt = LocalDateTime.now();
     }
 
