@@ -10,7 +10,10 @@ import { Viewport } from 'pixi-viewport';
 
 import { roomApi } from '@/api/room.api';
 import playerMSheetImg from '@/assets/characters/basic_male.png';
+import { findRecommendedRoomByZone } from '@/features/room/bookTalkRoomMatcher';
+import { isBookTalkZone } from '@/features/room/bookTalkRoomSlots';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
@@ -472,38 +475,64 @@ export class GameApp {
             console.log(`🚪 [${zone?.id}] 방 입장 로직 실행`);
 
             try {
-              // 구역별 방 타입 매핑
-              let targetType: 'TALK' | 'READING' | 'CONCERT' | undefined;
-              if (zone?.id?.includes('room-')) targetType = 'TALK';
-              else if (zone?.id?.includes('concert')) targetType = 'CONCERT';
-              else if (zone?.id?.includes('reading')) targetType = 'READING';
+              let targetRoomId: string | null = null;
 
-              // 방 목록 조회 API 호출
-              const response = await roomApi.getRoomList({
-                size: 50,
-                roomType: targetType,
-              });
+              /**
+               * 독서 모임 공간(room-1 ~ room-4)은
+               * 이미 프론트에서 받아둔 추천 방 배열을 인덱스 기준으로 사용한다.
+               * - room-1 -> recommendedRooms[0]
+               * - room-2 -> recommendedRooms[1]
+               * - room-3 -> recommendedRooms[2]
+               * - room-4 -> recommendedRooms[3]
+               */
+              if (zone?.id && isBookTalkZone(zone.id)) {
+                /**
+                 * 독서모임 4개 존은 "추천 배열 인덱스"로만 방을 결정한다.
+                 * 서버에서 받은 추천 순서를 곧 화면 배치 순서로 취급한다.
+                 * (요구사항: category 기반 recommend 배열을 4개 존에 배정)
+                 */
+                const { recommendedRooms } = useBookTalkRoomStore.getState();
+                const targetRoom = findRecommendedRoomByZone(
+                  zone.id,
+                  recommendedRooms,
+                );
+                targetRoomId = targetRoom?.roomId ?? null;
+              } else {
+                // 기존 흐름 유지: 북콘서트/독서실 등은 roomType 기반으로 첫 방 1개 선택
+                let targetType: 'TALK' | 'READING' | 'CONCERT' | undefined;
+                if (zone?.id?.includes('room-')) targetType = 'TALK';
+                else if (zone?.id?.includes('concert')) targetType = 'CONCERT';
+                else if (zone?.id?.includes('reading')) targetType = 'READING';
 
-              // 방 데이터 파싱
-              const data =
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (response as any).result || (response as any).data || response;
-              const roomList = data.content || [];
+                const response = await roomApi.getRoomList({
+                  size: 50,
+                  roomType: targetType,
+                });
+                const roomList = response.content || [];
+                /**
+                 * 비-독서모임 존은 기존 정책을 유지한다.
+                 * 같은 타입 방 중 첫 번째 roomId를 사용한다.
+                 */
+                targetRoomId = roomList[0]?.roomId ?? null;
+              }
 
-              // 방 매칭 로직
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const targetRoom = roomList.find((room: any) => {
-                // room-4 구역이고 TALK 타입 방이면 매칭 (임시 로직)
-                if (zone?.id === 'room-4' && room.roomType === 'TALK')
-                  return true;
-                return room.roomType === targetType;
-              });
+              if (targetRoomId) {
+                console.log('접속할 방 ID:', targetRoomId);
 
-              if (targetRoom) {
-                console.log('접속할 방 ID:', targetRoom.roomId);
+                /**
+                 * 1) REST 입장 API 호출 (/api/room/{roomId}/join)
+                 * 2) 성공 시 roomId 저장
+                 * 3) GameSidebar의 useWebRTC가 roomId 변화를 감지하여
+                 *    STOMP joinRoom + 시그널링 절차를 시작한다.
+                 */
+                await roomApi.joinRoom({ roomId: targetRoomId });
 
-                // WebRTC 연결
-                useGameStore.getState().setRoomId(targetRoom.roomId);
+                /**
+                 * roomId 저장은 "RTC 연결 시작 스위치" 역할이다.
+                 * GameSidebar의 useWebRTC(roomId, userId)가 이 변화를 감지해
+                 * STOMP /app/joinRoom -> offer/answer 교환을 시작한다.
+                 */
+                useGameStore.getState().setRoomId(targetRoomId);
 
                 // 물리적 이동
                 this.movePlayerToPosition(
@@ -515,9 +544,19 @@ export class GameApp {
                 alert('현재 입장 가능한 방이 없습니다.');
                 // 이동하지 않음 (입장 취소 효과)
               }
-            } catch (error) {
+            } catch (error: unknown) {
               console.error('방 입장 처리 중 오류:', error);
-              alert('방 정보를 불러오지 못했습니다.');
+              /**
+               * Axios 에러 응답(message)이 있으면 우선 노출하고,
+               * 없으면 공통 메시지로 폴백한다.
+               */
+              const apiError = error as {
+                response?: { data?: { message?: string } };
+              };
+              const message =
+                apiError?.response?.data?.message ??
+                '방에 입장하지 못했습니다.';
+              alert(message);
             }
           }
 
@@ -525,11 +564,37 @@ export class GameApp {
           else {
             console.log('🏃 방 퇴장 로직 실행');
 
-            // 현재 층의 기본 채널(로비/복도) ID 가져오기
-            const defaultId = null;
+            /**
+             * 현재 플레이어가 실제로 참여 중인 roomId를 조회한다.
+             * null이면 이미 방 미참여 상태이므로 leave API 호출은 생략한다.
+             */
+            const currentRoomId = useGameStore.getState().roomId;
 
-            // WebRTC 채널 변경 (null)
-            useGameStore.getState().setRoomId(defaultId);
+            try {
+              /**
+               * 서버에 먼저 퇴장을 알린 뒤 프론트 자원을 정리한다.
+               * 요구사항: POST /api/room/{roomId}/leave 호출 이후 cleanup
+               */
+              if (currentRoomId) {
+                await roomApi.leaveRoom({ roomId: currentRoomId });
+              }
+            } catch (error: unknown) {
+              console.error('방 퇴장 처리 중 오류:', error);
+              const apiError = error as {
+                response?: { data?: { message?: string } };
+              };
+              const message =
+                apiError?.response?.data?.message ??
+                '방 퇴장에 실패했습니다. 잠시 후 다시 시도해주세요.';
+              alert(message);
+              return;
+            }
+
+            /**
+             * roomId를 null로 바꾸면 useWebRTC effect가 정리(cleanup)되면서
+             * peer connection/remote stream이 함께 해제된다.
+             */
+            useGameStore.getState().setRoomId(null);
 
             // 물리적 이동 (밖으로 내보내기)
             this.movePlayerToPosition(

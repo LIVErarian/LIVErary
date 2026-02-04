@@ -87,9 +87,17 @@ export const roomApi = {
    */
   joinRoom: async (req: JoinRoomRequest): Promise<JoinRoomResponseData> => {
     const { roomId, code } = req;
-    const { data } = await api.post<JoinRoomResponse>(`/room/${roomId}/join`, {
-      code,
-    });
+
+    /**
+     * 공개방은 code 없이 입장 가능하므로 빈 객체를 전송한다.
+     * 비공개방은 code가 있을 때만 body에 포함한다.
+     * (undefined를 그대로 보내지 않아 서버 DTO 검증 충돌을 줄임)
+     */
+    const payload = code ? { code } : {};
+    const { data } = await api.post<JoinRoomResponse>(
+      `/room/${roomId}/join`,
+      payload,
+    );
 
     if (!data.data) throw new Error('방 입장에 실패했습니다.');
 
