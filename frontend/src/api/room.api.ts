@@ -11,6 +11,7 @@ import type {
   DeleteApplyScheduledResponse,
   DeleteScheduledRoomRequest,
   DeleteScheduledRoomResponse,
+  GetRecommendedRoomResponse,
   GetRoomDetailRequest,
   GetRoomDetailResponse,
   GetRoomDetailResponseData,
@@ -26,6 +27,7 @@ import type {
   PatchScheduledRoomRequest,
   PatchScheduledRoomResponse,
   PatchScheduledRoomResponseData,
+  RECOMMENDED_ROOM,
 } from '@/types/room.types';
 
 export const roomApi = {
@@ -180,6 +182,25 @@ export const roomApi = {
     );
 
     // 빈 배열이라도 올 수 있으니 null 체크만
+    if (!data.data) return [];
+
+    return data.data;
+  },
+
+  /**
+   * [GET] 추천 방 목록 조회
+   * @param categoryId (optional)
+   * @returns
+   */
+  getRecommendedRooms: async (
+    categoryId?: string,
+  ): Promise<RECOMMENDED_ROOM[]> => {
+    const params = categoryId ? { categoryId } : undefined;
+    const { data } = await api.get<GetRecommendedRoomResponse>(
+      '/room/recommend',
+      { params },
+    );
+
     if (!data.data) return [];
 
     return data.data;

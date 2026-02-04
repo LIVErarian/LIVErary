@@ -21,6 +21,18 @@ export interface ROOM_DETAIL extends ROOM_INFO {
   currentCount: number; // 현재 참여 인원
 }
 
+// 추천 방 정보
+export interface RECOMMENDED_ROOM {
+  roomId: string;
+  title: string;
+  roomType: RoomType;
+  accessType: AccessType;
+  status: RoomStatus;
+  categoryName: string;
+  currentCount: number;
+  maxUser: number;
+}
+
 // ======================= API =======================
 // 방 검색 요청
 export interface GetRoomListRequest {
@@ -156,3 +168,6 @@ export interface GetScheduledRoomResponseData {
 export type GetScheduledRoomResponse = CommonResponse<
   GetScheduledRoomResponseData[]
 >;
+
+// 추천 방 목록 응답
+export type GetRecommendedRoomResponse = CommonResponse<RECOMMENDED_ROOM[]>;

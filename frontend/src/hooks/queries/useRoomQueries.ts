@@ -13,6 +13,8 @@ export const roomKeys = {
   details: () => [...roomKeys.all, 'detail'] as const,
   detail: (roomId: string) => [...roomKeys.details(), roomId] as const,
   myScheduled: () => [...roomKeys.all, 'my-scheduled'] as const,
+  recommended: (categoryId?: string) =>
+    [...roomKeys.all, 'recommend', categoryId ?? 'all'] as const,
 };
 
 /**
@@ -46,5 +48,19 @@ export const useMyScheduledRooms = () => {
   return useQuery({
     queryKey: roomKeys.myScheduled(),
     queryFn: roomApi.getMyScheduledRooms,
+  });
+};
+
+/**
+ * 추천 방 목록 받아오기
+ */
+export const useRecommendedRooms = (
+  categoryId: string | undefined,
+  enabled = true,
+) => {
+  return useQuery({
+    queryKey: roomKeys.recommended(categoryId),
+    queryFn: () => roomApi.getRecommendedRooms(categoryId),
+    enabled,
   });
 };

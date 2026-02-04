@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { GameLayout } from '@/components/layout/GameLayout';
 import { useGame } from '@/features/core/useGame';
+import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown';
 import { GameSidebar } from '@/features/ui/GameSidebar';
 import { useGameStore } from '@/store/useGameStore';
 import { useSocketStore } from '@/store/useSocketStore';
@@ -44,5 +45,9 @@ export const GamePage = () => {
     }
   }, [currentFloor, spawnPoint, gameAppRef, isReady]);
 
-  return <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />} />;
+  return (
+    <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />}>
+      <BookTalkCategoryDropdown />
+    </GameLayout>
+  );
 };
