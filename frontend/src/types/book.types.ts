@@ -7,12 +7,18 @@ export interface Book {
   author: string;
   category: string;
   coverUrl: string;
+  isWished?: boolean; // 찜 상태 (optional)
+}
+
+export interface WishStatusResponse {
+  wished: boolean; // API 응답 실제 속성 이름
 }
 
 export interface BookDetail extends Book {
   publisher: string;
   purchaseUrl: string;
   content: string; // 책 설명
+  description?: string;
 }
 
 export interface BookSearchResponse {

@@ -77,19 +77,20 @@ export const BookshelfModal = () => {
   };
 
   /**
-   * 찜 취소 핸들러 (Optimistic UI Update)
-   * - 즉시 UI에서 제거 (낙관적 업데이트)
-   * - 추후 API 연동 시 실패하면 롤백 처리
+   * 찜 토글 핸들러 (Optimistic UI Update)
+   * - 찜한 책 탭에서 하트 클릭 시 목록에서 제거
+   * - BookCard의 onToggleWish prop에 전달됨
    *
-   * @param wishId - 취소할 찜 ID
+   * @param isbn - 토글할 책의 ISBN
+   * @returns 찜 상태 (제거되므로 항상 false 반환)
    */
-  const handleRemoveWish = (wishId: string) => {
-    console.log('찜 취소:', wishId);
+  const handleToggleWish = async (isbn: string): Promise<boolean> => {
+    console.log('찜 토글 (목록에서 제거):', isbn);
 
     // Optimistic Update: 즉시 UI에서 제거
     setWishedBooks((prev) => ({
       ...prev,
-      content: prev.content.filter((book) => book.wishId !== wishId),
+      content: prev.content.filter((book) => book.isbn !== isbn),
     }));
 
     // 페이지에 책이 없으면 이전 페이지로 이동
@@ -100,9 +101,10 @@ export const BookshelfModal = () => {
       setCurrentPage((prev) => prev - 1);
     }
 
-    // TODO: API 연동
+    // TODO: API 연동 to remove wish
 
-    alert(`찜 취소: ${wishId}\n(목록에서 제거되었습니다)`);
+    // 찜 해제되었으므로 false 반환
+    return false;
   };
 
   /**
@@ -134,8 +136,8 @@ export const BookshelfModal = () => {
               'wishId' in book ? book.wishId : book.readHistoryId
             }
             book={book}
-            // 찜한 책 탭에서만 찜 취소 콜백 전달
-            onRemoveWish={activeTab === 'wished' ? handleRemoveWish : undefined}
+            showWishButton={activeTab === 'wished'}
+            onToggleWish={handleToggleWish}
           />
         ))}
       </div>

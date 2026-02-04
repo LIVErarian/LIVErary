@@ -4,31 +4,29 @@
  * 개별 책 정보를 카드 형태로 표시하는 컴포넌트
  * 찜한 책 / 읽은 책 목록에서 재사용됩니다.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import clsx from 'clsx'; // className 조합 유틸리티
+
+import { HeartButton } from '@/components/common/HeartButton';
 
 import type { Book } from '@/types/book.types';
 import type { ReadBook, WishedBook } from '@/types/bookshelf.types';
 
 import * as styles from './BookCard.css';
 
-// ============================================
-// Props 타입 정의
-// ============================================
-
 /**
  * BookCard 컴포넌트 Props
  * - book: WishedBook, ReadBook 또는 Book (검색 결과용)
- * - onRemoveWish: 찜 취소 콜백 (찜한 책에서만 사용)
+ * - showWishButton: 찜 버튼 표시 여부
+ * - onToggleWish: 찜 토글 콜백
  */
 interface BookCardProps {
   book: WishedBook | ReadBook | Book;
-  onRemoveWish?: (id: string) => void; // Optional: 찜한 책에서만 필요
+  showWishButton?: boolean; // Optional: 찜 버튼 표시 여부
+  onToggleWish?: (isbn: string) => Promise<boolean>; // Optional: 찜 토글
+  // Force update
+  onClick?: () => void; // Optional: 카드 클릭 이벤트
 }
-
-// ============================================
-// 타입 가드 함수
-// ============================================
 
 /**
  * ReadBook 타입인지 확인하는 타입 가드
@@ -38,26 +36,29 @@ const isReadBook = (book: WishedBook | ReadBook | Book): book is ReadBook => {
   return 'readStatus' in book;
 };
 
-/**
- * WishedBook 타입인지 확인하는 타입 가드
- */
-const isWishedBook = (
-  book: WishedBook | ReadBook | Book,
-): book is WishedBook => {
-  return 'wishId' in book && !('readStatus' in book);
-};
-
-// ============================================
-// BookCard 컴포넌트
-// ============================================
-
-export const BookCard = ({ book, onRemoveWish }: BookCardProps) => {
+export const BookCard = ({
+  book,
+  showWishButton,
+  onToggleWish,
+  onClick,
+}: BookCardProps) => {
   // 이미지 로딩 실패 상태
   const [imageError, setImageError] = useState(false);
 
-  // ============================================
-  // 이벤트 핸들러
-  // ============================================
+  // 찜 상태 (검색 결과용)
+  const [isWished, setIsWished] = useState<boolean>(
+    'isWished' in book ? (book.isWished ?? false) : false,
+  );
+
+  // 찜 토글 로딩 상태
+  const [isTogglingWish, setIsTogglingWish] = useState(false);
+
+  // book.isWished가 변경되면 로컬 상태도 동기화
+  useEffect(() => {
+    if ('isWished' in book && book.isWished !== undefined) {
+      setIsWished(book.isWished);
+    }
+  }, [book]);
 
   /**
    * 이미지 로딩 실패 시 플레이스홀더 표시
@@ -68,21 +69,20 @@ export const BookCard = ({ book, onRemoveWish }: BookCardProps) => {
 
   /**
    * 찜 하트 버튼 클릭 핸들러
-   * - 이벤트 버블링 방지 (카드 클릭 이벤트와 분리)
-   * - WishedBook인 경우에만 wishId 전달
    */
-  const handleHeartClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 카드 클릭 이벤트 전파 방지
-
-    if (onRemoveWish && isWishedBook(book)) {
-      // WishedBook인 경우 wishId 전달
-      onRemoveWish(book.wishId);
+  const handleHeartClick = async () => {
+    if (onToggleWish && !isTogglingWish) {
+      setIsTogglingWish(true);
+      try {
+        const newWishStatus = await onToggleWish(book.isbn);
+        setIsWished(newWishStatus);
+      } catch (error) {
+        console.error('[BookCard] Failed to toggle wishlist:', error);
+      } finally {
+        setIsTogglingWish(false);
+      }
     }
   };
-
-  // ============================================
-  // 렌더링
-  // ============================================
 
   return (
     <div
@@ -93,6 +93,8 @@ export const BookCard = ({ book, onRemoveWish }: BookCardProps) => {
           book.readStatus === 'COMPLETED' &&
           styles.completedCard,
       )}
+      onClick={onClick}
+      style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
       {/* 책 표지 이미지 */}
       <div className={styles.coverWrapper}>
@@ -108,19 +110,6 @@ export const BookCard = ({ book, onRemoveWish }: BookCardProps) => {
             onError={handleImageError}
             loading="lazy" // 지연 로딩
           />
-        )}
-
-        {/* 찜 하트 버튼 (찜한 책에서만 표시 - 이미지 하단에 겹침) */}
-        {onRemoveWish && isWishedBook(book) && (
-          <button
-            className={styles.heartButton}
-            onClick={handleHeartClick}
-            title="찜 취소"
-            type="button"
-          >
-            {/* 픽셀 아트 하트 */}
-            <div className={styles.pixelHeart} />
-          </button>
         )}
 
         {/* 읽기 상태 배지 (읽은 책만 - 이미지 위에 오버레이) */}
@@ -159,6 +148,17 @@ export const BookCard = ({ book, onRemoveWish }: BookCardProps) => {
           </div>
         )}
       </div>
+
+      {/* 찜 하트 버튼 */}
+      {showWishButton && onToggleWish && (
+        <div className={styles.heartOverlayWrapper}>
+          <HeartButton
+            isWished={isWished}
+            onClick={handleHeartClick}
+            disabled={isTogglingWish}
+          />
+        </div>
+      )}
     </div>
   );
 };
