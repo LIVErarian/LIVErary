@@ -14,7 +14,7 @@ model = SentenceTransformer(MODEL_NAME, device=device)
 
 @app.post("/recommend")
 def recommend_rooms(data: dict = Body(...)):
-    catagories = data.get('categories', [])     # 선호 카테고리
+    categories = data.get('categories', [])     # 선호 카테고리
     read_books = data.get('read_books', [])     # 읽은 책
     liked_books = data.get('liked_books', [])   # 찜한 책
     room_history = data.get('room_history', []) # 참여 히스토리
@@ -46,8 +46,8 @@ def recommend_rooms(data: dict = Body(...)):
     user_context_parts = []
 
     # 선호 카테고리 정보 반영
-    if catagories:
-        user_context_parts.append(f"선호하는 도서 카테고리는 {', '.join(catagories)}입니다.")
+    if categories:
+        user_context_parts.append(f"선호하는 도서 카테고리는 {', '.join(categories)}입니다.")
 
     # 책 정보 반영 (읽은 책 + 찜한 책)
     all_books = read_books + liked_books
@@ -91,7 +91,7 @@ def recommend_rooms(data: dict = Body(...)):
     scores = util.cos_sim(user_embedding, room_embeddings)[0]
 
     # 상위권 추출
-    top_k = min(4, len(room_texts))
+    top_k = min(3, len(room_texts))
     top_results = torch.topk(scores, k=top_k)
     result_indices = top_results.indices.tolist()
     final_ids = [room_ids[idx] for idx in result_indices]
