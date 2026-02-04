@@ -219,6 +219,21 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
           modalType: 'bookSearch',
         },
       },
+      {
+        id: 'lobby-exit',
+        label: '로비 퇴장 - 마이룸',
+        x: 0.35,
+        y: 0.9,
+        width: 0.3,
+        height: 0.1,
+        trigger: 'interact',
+        action: {
+          type: 'moveConfirm',
+          title: '장소 이동',
+          message: '내 서재로 이동하시겠습니까?',
+          targetFloor: 'myRoom',
+        },
+      },
     ],
   },
   readingFloor: {
@@ -413,7 +428,7 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         width: 0.06,
         height: 0.09,
         trigger: 'interact',
-       action: {
+        action: {
           type: 'moveConfirm',
           title: '장소 이동',
           message: '내 서재로 이동하시겠습니까?',
