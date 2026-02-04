@@ -5,10 +5,12 @@ import type {
   EmailCodeVerifyResponse,
   EmailVerifyRequest,
   EmailVerifyResponse,
+  FindPasswordRequest,
   LoginRequest,
   LoginResponse,
   LoginResponseData,
   LogoutResponse,
+  ResetPasswordRequest,
   SignupRequest,
   SignupResponse,
 } from '@/types/auth.types';
@@ -64,5 +66,19 @@ export const authApi = {
       '/auth/email/verification/confirm',
       req,
     );
+  },
+
+  /**
+   * 비밀번호 찾기 (이메일로 임시 비밀번호 전송)
+   */
+  findPassword: async (req: FindPasswordRequest): Promise<void> => {
+    await api.post('/auth/password/find', req);
+  },
+
+  /**
+   * 비밀번호 재설정 (로그인 후 변경)
+   */
+  resetPassword: async (req: ResetPasswordRequest): Promise<void> => {
+    await api.patch('/auth/password/reset', req);
   },
 };

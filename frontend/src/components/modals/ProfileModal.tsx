@@ -12,6 +12,7 @@ import {
   useOtherProfile,
   useUpdateProfile,
 } from '@/hooks/queries/useUser';
+import { useModalStore } from '@/store/useModalStore';
 import { BaseModal } from '../common/BaseModal';
 import { PixelButton } from '../common/PixelButton';
 
@@ -276,9 +277,18 @@ export const ProfileModal = ({
     <>
       <span className={styles.nicknameText}>{profile?.nickname}</span>
       {!isOtherProfile && (
-        <PixelButton size="sm" variant="beige" onClick={startEdit}>
-          수정
-        </PixelButton>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <PixelButton
+            size="sm"
+            variant="beige"
+            onClick={() => useModalStore.getState().openModal('passwordReset')}
+          >
+            비밀번호 변경
+          </PixelButton>
+          <PixelButton size="sm" variant="beige" onClick={startEdit}>
+            수정
+          </PixelButton>
+        </div>
       )}
     </>
   );

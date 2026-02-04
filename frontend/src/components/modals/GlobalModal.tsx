@@ -14,6 +14,7 @@ import { ElevatorModal } from './ElevatorModal';
 import { ErrorModal } from './ErrorModal';
 import { FriendListModal } from './FriendListModal';
 import { NotificationModal } from './NotificationModal';
+import { PasswordResetModal } from './PasswordResetModal';
 import { PreferencesModal } from './PreferencesModal';
 import { ProfileModal } from './ProfileModal';
 
@@ -273,6 +274,9 @@ export const GlobalModal = () => {
 
       {/* 알림 모달 */}
       {currentModal === 'notification' && <NotificationModal />}
+
+      {/* 비밀번호 변경 모달 */}
+      <PasswordResetModal />
     </>
   );
 };

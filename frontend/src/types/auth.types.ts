@@ -56,3 +56,15 @@ export interface ReissueResponseData {
 
 // 토큰 재발급 전체 응답
 export type ReissueResponse = CommonResponse<ReissueResponseData>;
+
+// 비밀번호 찾기 (이메일 발송)
+export interface FindPasswordRequest {
+  email: string;
+}
+
+// 비밀번호 재설정
+export interface ResetPasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
