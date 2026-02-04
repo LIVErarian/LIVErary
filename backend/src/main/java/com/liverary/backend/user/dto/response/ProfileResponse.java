@@ -5,8 +5,8 @@ import com.liverary.backend.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -22,6 +22,7 @@ public class ProfileResponse {
     private String nickname;
     private Role role;
     private Long totalReadingTime;
+    private List<String> preferences;
     private BookCounts bookCounts;
 
     @Getter
@@ -41,13 +42,14 @@ public class ProfileResponse {
      * @param completed 다 읽은 도서의 수
      * @return 프로필 정보와 상태별 도서 목록이 통합된 ProfileResponse 객체
      */
-    public static ProfileResponse of(User user, long wish, long reading, long completed) {
+    public static ProfileResponse of(User user, long wish, long reading, long completed, List<String> preferences) {
         return ProfileResponse.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .role(user.getRole())
                 .totalReadingTime(user.getTotalReadingTime())
+                .preferences(preferences)
                 .bookCounts(new BookCounts(wish, reading, completed))
                 .build();
     }
