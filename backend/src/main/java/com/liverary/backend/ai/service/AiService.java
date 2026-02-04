@@ -6,23 +6,27 @@ import com.liverary.backend.ai.dto.response.AiRecommendResponse;
 import com.liverary.backend.bookHistory.domain.BookHistory;
 import com.liverary.backend.bookHistory.domain.BookStatus;
 import com.liverary.backend.bookHistory.repository.BookHistoryRepository;
+import com.liverary.backend.category.domain.Category;
+import com.liverary.backend.category.repository.CategoryRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.room.domain.AccessType;
 import com.liverary.backend.room.domain.Room;
+import com.liverary.backend.room.domain.RoomStatus;
+import com.liverary.backend.room.dto.response.RoomListResponse;
 import com.liverary.backend.room.repository.RoomRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.domain.UserPreference;
 import com.liverary.backend.user.repository.UserPreferenceRepository;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * AI 기반 추천 서비스를 담당하는 비즈니스 로직 클래스입니다.
@@ -40,6 +44,7 @@ public class AiService {
     private final UserRepository userRepository;
     private final UserPreferenceRepository userPreferenceRepository;
     private final BookHistoryRepository bookHistoryRepository;
+    private final CategoryRepository categoryRepository;
 
     /**
      * 사용자의 활동 이력을 기반으로 맞춤형 독서 모임 방을 추천합니다.
@@ -48,37 +53,48 @@ public class AiService {
      * AI가 추천한 방 ID 목록을 필터링하여 반환합니다.</p>
      *
      * @param userId 추천을 요청한 사용자의 UUID 문자열
+     * @param categoryId 추천할 방 카테고리 UUID
      * @return AI가 추천한 Room 엔티티 리스트
      * @throws RuntimeException 유효하지 않은 사용자일 경우 발생
      */
-    public List<Room> getRecommendedRooms(UUID userId) {
+    public List<RoomListResponse> getRecommendedRooms(UUID userId, UUID categoryId) {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
 
-        // 추천 대상이 될 후보 방 목록 조회 (현재 열려있는 모든 방)
-        List<Room> allRooms = roomRepository.findAll();
+        // 후보 방 최대 20개
+        Pageable pageable = PageRequest.of(0, 20);
+        List<Room> candidateRooms;
 
-        // 유저 선호 카테고리 조회
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        candidateRooms = roomRepository.findAllByCategoryAndStatusAndAccessTypeOrderByStartAtDesc(
+                category,
+                RoomStatus.LIVE,
+                AccessType.PUBLIC,
+                pageable
+        );
+
+        // 후보 방이 없으면 빈 리스트 반환
+        if (candidateRooms.isEmpty()) {
+            return List.of();
+        }
+
+        // 유저 데이터 조회 (선호 카테고리, 읽은 책, 찜한 책)
         List<UserPreference> preferences = userPreferenceRepository.findByUser(user);
-
-        // 읽은 책 목록 조회
         List<BookHistory> readHistories = bookHistoryRepository.findByUserAndStatus(user, BookStatus.COMPLETED, Pageable.unpaged()).getContent();
-
-        // 찜한 책 목록 조회
         List<BookHistory> likedHistories = bookHistoryRepository.findByUserAndStatus(user, BookStatus.WISH, Pageable.unpaged()).getContent();
 
-        // 수집된 데이터를 AI 서버 요청 전용 DTO로 변환
-        AiRecommendRequest request = createAiRequest(preferences, readHistories, likedHistories, allRooms);
-
-        // AI 서버에 추천 요청 전송 및 응답 수신
+        // AI 서버 요청
+        AiRecommendRequest request = createAiRequest(preferences, readHistories, likedHistories, candidateRooms);
         AiRecommendResponse response = aiServingClient.sendRecommendationRequest(request);
-
-        // AI가 추천한 방 ID 리스트 추출
         List<String> recommendedRoomIds = response.getTopIndices();
 
-        // 전체 방 목록 중 AI가 추천한 ID에 해당하는 방만 필터링하여 반환
-        return allRooms.stream().filter(r -> recommendedRoomIds.contains(r.getRoomId().toString())).toList();
-
+        // 방 목록 중 AI가 추천한 ID에 해당하는 방만 필터링하여 반환
+        return candidateRooms.stream()
+                .filter(r -> recommendedRoomIds.contains(r.getRoomId().toString()))
+                .map(RoomListResponse::from)
+                .toList();
     }
 
     /**

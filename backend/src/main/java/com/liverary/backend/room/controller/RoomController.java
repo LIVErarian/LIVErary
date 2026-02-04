@@ -61,29 +61,6 @@ public class RoomController {
         return BaseResponse.success(response);
     }
 
-
-    /**
-     * 사용자에게 추천 방 목록을 제공합니다.
-     *
-     * <p>카테고리 필터가 있을 경우 해당 카테고리의 LIVE 방을 우선 조회하며,
-     * 없을 경우 전체 LIVE 방 중 최신 시작 시간 순으로 반환합니다.</p>
-     *
-     * @param user       Spring Security를 통해 인증된 사용자 정보
-     * @param categoryId 추천 기준이 되는 카테고리 ID (선택)
-     * @return 추천 방 목록을 포함한 공통 응답 객체
-     */
-    @GetMapping("/recommend")
-    public BaseResponse<List<RoomListResponse>> getRecommendRooms(
-            @AuthenticationPrincipal UserDetails user,
-            @RequestParam(required = false) UUID categoryId
-    ){
-        UUID userId = getUserId(user);
-
-        List<RoomListResponse> responses = roomService.getRecommendRooms(userId, categoryId, 3);
-        return BaseResponse.success(responses);
-    }
-
-
     /**
      * 특정 방에 참여(입장) 요청을 처리합니다.
      *
