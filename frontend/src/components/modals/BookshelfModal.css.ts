@@ -8,28 +8,22 @@ import { theme } from '@/styles/theme.css';
 export const modalContainer = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: '20px',
-  backgroundColor: theme.colors.paper,
-  border: `4px solid ${theme.colors.woodDeep}`,
-  borderRadius: '12px',
-  padding: '24px',
-  width: '800px',
-  maxWidth: '90vw',
-  maxHeight: '80vh', // 화면의 80% 높이로 제한
-  boxShadow: '8px 8px 0px rgba(0, 0, 0, 0.3)',
-  position: 'relative',
-  overflow: 'hidden', // 스크롤
+  gap: '1rem',
+  width: '100%',
+  height: '100%',
+  boxSizing: 'border-box',
+  padding: '0.5rem',
 });
 
 /**
  * 탭 버튼 컨테이너
- * - 찜한 책 / 읽은 책 탭 전환
  */
 export const tabContainer = style({
   display: 'flex',
   gap: '8px',
-  borderBottom: `3px solid ${theme.colors.beigeMain}`,
-  paddingBottom: '8px',
+  width: '100%',
+  marginBottom: '0.5rem',
+  alignItems: 'center',
 });
 
 /**
@@ -37,26 +31,22 @@ export const tabContainer = style({
  */
 export const tabButton = style({
   flex: 1,
-  padding: '12px 20px',
-  fontSize: '1rem',
-  fontWeight: 'bold',
-  fontFamily: 'inherit',
-  border: `3px solid ${theme.colors.woodDeep}`,
-  borderRadius: '8px 8px 0 0',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease-in-out',
-
-  // 기본 상태: 비활성 탭
-  backgroundColor: theme.colors.beigeMain,
+  height: '40px',
+  transition: 'all 0.2s',
+  border: 'none',
+  borderRadius: '6px',
+  backgroundColor: theme.colors.beigeLight,
   color: theme.colors.beigeText,
-  boxShadow: `
-    inset 2px 2px 0px ${theme.colors.beigeLight},
-    inset -2px -2px 0px ${theme.colors.beigeDark}
-  `,
+  fontFamily: 'inherit',
+  fontWeight: 'bold',
+  fontSize: '1rem',
+  cursor: 'pointer',
+  opacity: 0.8,
 
-  ':hover': {
-    backgroundColor: theme.colors.beigeLight,
-    transform: 'translateY(-2px)',
+  selectors: {
+    '&:hover': {
+      opacity: 1,
+    },
   },
 });
 
@@ -64,27 +54,26 @@ export const tabButton = style({
  * 활성 탭 스타일
  */
 export const tabActive = style({
-  backgroundColor: theme.colors.woodMedium,
+  backgroundColor: theme.colors.primary,
   color: theme.colors.white,
-  boxShadow: `
-    inset 2px 2px 0px ${theme.colors.woodLight},
-    inset -2px -2px 0px ${theme.colors.woodDark}
-  `,
-  borderBottom: 'none',
-
-  ':hover': {
-    backgroundColor: theme.colors.woodMedium,
-    transform: 'none',
-  },
+  opacity: 1,
 });
 
 /**
  * 책 목록 컨텐츠 영역 (스크롤 영역)
  */
 export const contentArea = style({
+  width: '100%',
   height: '500px', // 고정 높이
   overflowY: 'auto', // 세로 스크롤
   paddingRight: '8px',
+  boxSizing: 'border-box',
+
+  // Paper 스타일 적용
+  backgroundColor: theme.colors.paper,
+  border: `1px solid ${theme.colors.beigeLight}`,
+  borderRadius: '8px',
+  padding: '16px',
 
   // 커스텀 스크롤바
   '::-webkit-scrollbar': {
@@ -121,7 +110,9 @@ export const emptyState = style({
   alignItems: 'center',
   justifyContent: 'center',
   gap: '16px',
-  padding: '60px 20px',
+  width: '100%',
+  height: '100%', // 부모(contentArea) 높이 가득 채우기
+  // padding: '60px 20px', // 중앙 정렬이므로 padding 불필요할 수 있음, 필요하면 유지
   color: theme.colors.beigeText,
   textAlign: 'center',
 });
@@ -171,6 +162,8 @@ export const loadingContainer = style({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '60px 20px',
+  width: '100%',
+  height: '100%',
   fontSize: '2rem',
+  color: theme.colors.beigeText,
 });

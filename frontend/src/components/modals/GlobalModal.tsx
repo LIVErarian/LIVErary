@@ -222,10 +222,14 @@ export const GlobalModal = () => {
       </PixelModal>
 
       {/* 나의 서재 모달 */}
-      <BookshelfModal
+      <PixelModal
         isOpen={currentModal === 'bookshelf'}
         onClose={closeModal}
-      />
+        title="나의 서재"
+        width="800px"
+      >
+        <BookshelfModal />
+      </PixelModal>
     </>
   );
 };
