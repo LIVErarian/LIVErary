@@ -8,6 +8,7 @@ import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.friend.domain.Friend;
 import com.liverary.backend.friend.repository.FriendRepository;
+import com.liverary.backend.ranking.service.RankingService;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.domain.UserPreference;
 import com.liverary.backend.user.dto.request.UserUpdateRequest;
@@ -39,6 +40,7 @@ public class UserService {
     private final BookHistoryRepository bookHistoryRepository;
     private final CategoryRepository categoryRepository;
     private final FriendRepository friendRepository;
+    private final RankingService rankingService;
 
     /**
      * 사용자의 프로필 정보와 상태별 도서 활동 내역 조회
@@ -111,6 +113,9 @@ public class UserService {
 
         // TotalReadingTime 업데이트
         user.updateTotalReadingTime(minutes);
+
+        // Redis 랭킹 추가
+        rankingService.updateRanking(userId, minutes);
     }
 
     /**

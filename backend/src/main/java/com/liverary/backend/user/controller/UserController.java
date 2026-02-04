@@ -171,4 +171,18 @@ public class UserController {
         return BaseResponse.success(response);
     }
 
+    /**
+     * 독서 시간 기록
+     */
+    @PostMapping("/reading-time")
+    public BaseResponse<Void> recordReadingTime(
+            @AuthenticationPrincipal UserDetails user,
+            @RequestParam Long readingTime) {
+
+        UUID userId = getUserId(user);
+
+        userService.updateTotalReadingTime(userId, readingTime);
+
+        return BaseResponse.success();
+    }
 }
