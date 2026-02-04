@@ -84,13 +84,13 @@ public class BookService {
     public Page<BookListResponse> searchBooks(String keyword, Pageable pageable) {
 
         // 1. Redis 검색 (검색 결과 리스트 조회)
-        // Key format: SEARCH::Keyword::[keyword]::[page]::[size}
+        // Key format: SEARCH::Keyword::[keyword]::[page]::[size]
         String redisKey = SEARCH_KEY_PREFIX + "Keyword::" + keyword + "::" + pageable.getPageNumber() + "::" + pageable.getPageSize();
         String cachedJson = redisTemplate.opsForValue().get(redisKey);
-        // 캐시가 있으면 바로 반환ㄴ
+        // 캐시가 있으면 바로 반환
         if (cachedJson != null) {
             try {
-                // JSON 문자열을 List<BookDto>로 역질렬화
+                // JSON 문자열을 List<BookDto>로 역직렬화
                 List<BookDto> cachedList = objectMapper.readValue(cachedJson, new TypeReference<List<BookDto>>() {
                 });
                 // BookDto -> BookListResponse 변환
@@ -203,7 +203,7 @@ public class BookService {
             return dbBook.get();
         }
 
-        // 2. DB에 없는 경우 -> Reids 캐시 확인
+        // 2. DB에 없는 경우 -> Redis 캐시 확인
         String bookKey = "BOOK::" + isbn;
         String cachedJson = redisTemplate.opsForValue().get(bookKey);
 
