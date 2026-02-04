@@ -17,3 +17,11 @@ export interface UserProfile {
 
 // ======================= API =======================
 export type getUserResponse = CommonResponse<UserProfile>;
+
+// POST /api/user/preferences 요청 바디
+export interface UserPreferencesRequest {
+  categoryIds: string[];
+}
+
+// 공통 응답 포맷(status/code/message/data)을 그대로 사용
+export type UserPreferencesResponse = CommonResponse<null>;

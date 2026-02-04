@@ -15,6 +15,8 @@ export type ModalType =
   | 'error'
   | 'bookshelf'
   | 'friendList'
+  // 최초 로그인 온보딩 모달
+  | 'preferences'
   | 'error'
   | 'createRoom'
   | 'entrance'

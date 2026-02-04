@@ -12,6 +12,7 @@ import { CreateRoomModal } from './CreateRoomModal';
 import { ElevatorModal } from './ElevatorModal';
 import { ErrorModal } from './ErrorModal';
 import { FriendListModal } from './FriendListModal';
+import { PreferencesModal } from './PreferencesModal';
 import { ProfileModal } from './ProfileModal';
 
 import * as styles from './GlobalModal.css';
@@ -220,6 +221,9 @@ export const GlobalModal = () => {
       >
         <FriendListModal />
       </PixelModal>
+
+      {/* 최초 로그인 시점에 GamePage에서 openModal('preferences')로 연다. */}
+      {currentModal === 'preferences' && <PreferencesModal />}
 
       {/* 나의 서재 모달 */}
       <PixelModal
