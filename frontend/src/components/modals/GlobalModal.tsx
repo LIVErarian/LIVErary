@@ -6,6 +6,7 @@ import { BoardList } from '../board/BoardList';
 import { BoardUpdate } from '../board/BoardUpdate';
 import { PixelButton } from '../common/PixelButton';
 import { PixelModal } from '../common/PixelModal';
+import { BookSearchModal } from './BookSearchModal';
 import { BookshelfModal } from './BookshelfModal';
 import { ConfirmModal } from './ConfirmModal';
 import { CreateRoomModal } from './CreateRoomModal';
@@ -229,6 +230,16 @@ export const GlobalModal = () => {
         width="800px"
       >
         <BookshelfModal />
+      </PixelModal>
+
+      {/* 책 검색 모달 */}
+      <PixelModal
+        isOpen={currentModal === 'bookSearch'}
+        onClose={closeModal}
+        title="책 검색"
+        width="800px"
+      >
+        <BookSearchModal />
       </PixelModal>
     </>
   );

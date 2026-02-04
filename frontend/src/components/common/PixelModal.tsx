@@ -29,7 +29,11 @@ export const PixelModal = ({
           <button className={styles.closeButton} onClick={onClose}>
             ×
           </button>
-          <div style={{ padding: '16px' }}>{children}</div>
+          <div
+            style={{ padding: '16px', width: '100%', boxSizing: 'border-box' }}
+          >
+            {children}
+          </div>
           {footer && <div className={styles.modalFooter}>{footer}</div>}
         </PixelContainer>
       </div>

@@ -14,6 +14,7 @@ export type ModalType =
   | 'rank'
   | 'error'
   | 'bookshelf'
+  | 'bookSearch'
   | 'friendList'
   | 'error'
   | 'createRoom'
