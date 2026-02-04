@@ -222,7 +222,7 @@ export const GlobalModal = () => {
         <FriendListModal />
       </PixelModal>
 
-      {/* 최초 로그인 시점에 GamePage에서 openModal('preferences')로 연다. */}
+      {/* GamePage에서 user.preferences가 null 또는 빈 배열일 때 openModal('preferences')로 연다. */}
       {currentModal === 'preferences' && <PreferencesModal />}
 
       {/* 나의 서재 모달 */}

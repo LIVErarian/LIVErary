@@ -8,7 +8,6 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
-import { hasPreferenceCompleted } from '@/utils/preferences';
 
 export const GamePage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,7 +18,7 @@ export const GamePage = () => {
 
   const { connect, disconnect } = useSocketStore();
   const { openModal } = useModalStore();
-  const userId = useAuthStore((state) => state.user?.userId);
+  const user = useAuthStore((state) => state.user);
 
   /**
    * 게임 화면에서 연결 유지
@@ -30,12 +29,12 @@ export const GamePage = () => {
     return () => disconnect();
   }, [connect, disconnect]);
 
-  // 유저별 localStorage 플래그가 없을 때만 선호 카테고리 모달을 노출한다.
+  // 로그인 후 받은 유저 preferences 값이 null이거나 빈 배열이면 선호 카테고리 모달을 노출한다.
   useEffect(() => {
-    if (!userId) return;
-    if (hasPreferenceCompleted(userId)) return;
+    if (!user) return;
+    if (user.preferences !== null && user.preferences.length > 0) return;
     openModal('preferences');
-  }, [openModal, userId]);
+  }, [openModal, user]);
 
   /**
    * PixiJS가 준비된 후 층 변경 감지

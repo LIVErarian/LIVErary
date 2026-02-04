@@ -6,7 +6,6 @@ import { useCategoryList } from '@/hooks/queries/useCategory';
 import { useSavePreferences } from '@/hooks/queries/useUserPreferences';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
-import { setPreferenceCompleted } from '@/utils/preferences';
 
 import * as styles from './PreferencesModal.css';
 
@@ -19,12 +18,27 @@ export const PreferencesModal = () => {
   const { mutate: savePreferences, isPending } = useSavePreferences();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  // "나중에"를 눌러도 같은 디바이스에서는 다시 뜨지 않도록 완료 플래그를 남긴다.
   const handleClose = () => {
-    if (userId) {
-      setPreferenceCompleted(userId);
+    if (isPending) return;
+    if (!userId) {
+      closeModal();
+      return;
     }
-    closeModal();
+
+    const allCategoryIds = categories.map((category) => category.categoryId);
+    if (allCategoryIds.length === 0) {
+      closeModal();
+      return;
+    }
+
+    savePreferences(
+      { categoryIds: allCategoryIds },
+      {
+        onSuccess: () => {
+          closeModal();
+        },
+      },
+    );
   };
 
   const toggleCategory = (categoryId: string) => {
@@ -42,8 +56,6 @@ export const PreferencesModal = () => {
       { categoryIds: selectedIds },
       {
         onSuccess: () => {
-          // 서버 저장 성공 시 최초 온보딩 완료로 간주한다.
-          setPreferenceCompleted(userId);
           closeModal();
         },
       },

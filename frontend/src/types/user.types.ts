@@ -7,6 +7,7 @@ export interface UserProfile {
   email: string;
   nickname: string;
   role: UserRole;
+  preferences: string[] | null;
   totalReadingTime: number; // 분 단위
   bookCounts: {
     wish: number;
