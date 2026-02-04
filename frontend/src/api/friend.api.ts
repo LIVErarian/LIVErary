@@ -70,4 +70,28 @@ export const friendApi = {
     );
     return data.data;
   },
+
+  blockUser: async (email: string): Promise<FriendActionResponse['data']> => {
+    const { data } = await api.post<FriendActionResponse>('/friend/block', {
+      email,
+    });
+    return data.data;
+  },
+
+  unblockUser: async (email: string): Promise<FriendActionResponse['data']> => {
+    const { data } = await api.post<FriendActionResponse>('/friend/unblock', {
+      email,
+    });
+    return data.data;
+  },
+
+  getBlockedList: async (
+    page = 0,
+    size = 10,
+  ): Promise<FriendListResponse['data']> => {
+    const { data } = await api.get<FriendListResponse>('/friend/blocks', {
+      params: { page, size },
+    });
+    return data.data;
+  },
 };
