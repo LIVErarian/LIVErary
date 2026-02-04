@@ -34,8 +34,13 @@ public class BoardListResponse {
 
         String categoryName = null;
 
-        if(board.getType() == Type.PROMOTION) {
-            categoryName = board.getRoom().getCategory().getName();
+        if (board.getType() == Type.PROMOTION) {
+            if (board.getRoom() != null && board.getRoom().getCategory() != null) {
+                categoryName = board.getRoom().getCategory().getName();
+            } else {
+                // Room이 없거나 카테고리가 없는 경우 기본값 처리
+                categoryName = "기타";
+            }
         }
 
         return BoardListResponse.builder()
