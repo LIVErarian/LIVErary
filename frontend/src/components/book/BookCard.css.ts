@@ -63,7 +63,7 @@ export const coverWrapper = style({
 export const coverImage = style({
   width: '100%',
   height: '100%',
-  objectFit: 'cover', // 비율 유지 & 영역 채우기 (큰 이미지는 잘림)
+  objectFit: 'cover', // 비율 유지 & 영역 채우기
   objectPosition: 'center', // 중앙에서 잘라내기
   display: 'block',
 });
@@ -195,7 +195,7 @@ export const completedStamp = style({
 /**
  * 찜 하트 버튼 (책 표지 하단에 겹침)
  */
-export const heartButton = style({
+export const heartOverlayWrapper = style({
   position: 'absolute',
   bottom: '8px',
   right: '8px',

@@ -18,7 +18,10 @@ import type { FriendListTabType } from '@/types/friend.types';
 import * as styles from './FriendListModal.css';
 
 export const FriendListModal = () => {
-  const [activeTab, setActiveTab] = useState<FriendListTabType>('FRIENDS');
+  const { modalProps } = useModalStore();
+  const [activeTab, setActiveTab] = useState<FriendListTabType>(
+    (modalProps.initialTab as FriendListTabType) || 'FRIENDS',
+  );
   const [searchEmail, setSearchEmail] = useState('');
   const [isSearchMode, setIsSearchMode] = useState(false);
 

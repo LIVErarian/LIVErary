@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import {
@@ -20,6 +21,9 @@ const formatDate = (dateString: string) =>
   new Date(dateString).toLocaleString();
 
 const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+
   const { mutate: applyRoom, isPending: isApplying } = useApplyScheduledRoom();
   const { mutate: cancelApply, isPending: isCanceling } =
     useDeleteApplyScheduledRoom();
@@ -31,14 +35,6 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
   const [localJoined, setLocalJoined] = useState<boolean | null>(null);
 
   const room = post.roomDetail;
-  if (!room) return null;
-
-  // 렌더링 시 사용할 최종 참여 상태 계산 (Local State 우선, 없으면 Server Data)
-  const isJoined = localJoined ?? room.joined ?? false;
-
-  // 책 정보가 있는지 확인
-  const hasBook = !!room.bookTitle && room.bookTitle.trim() !== '';
-
   // 방 정보가 없을 경우 (삭제된 방 등) 처리
   if (!room) {
     return (
@@ -59,6 +55,15 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
     );
   }
 
+  // 본인 글(방장) 여부 확인
+  const isHost = user?.userId === room.hostId;
+
+  // 렌더링 시 사용할 최종 참여 상태 계산 (Local State 우선, 없으면 Server Data)
+  const isJoined = localJoined ?? room.joined ?? false;
+
+  // 책 정보가 있는지 확인
+  const hasBook = !!room.bookTitle && room.bookTitle.trim() !== '';
+
   const handleJoin = () => {
     if (confirm(`'${room.title}' 방에 참여 신청하시겠습니까?`)) {
       applyRoom(
@@ -67,6 +72,10 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
           onSuccess: (data) => {
             setReservationCode(data.code);
             setLocalJoined(true);
+            // 서버에서 최신 게시글(방) 상세를 다시 조회하여 방 정보를 갱신
+            queryClient.invalidateQueries({
+              queryKey: ['boards', 'detail', post.boardId],
+            });
             setError(null);
           },
           onError: (e: AxiosError<CommonResponse<null>>) => {
@@ -87,6 +96,10 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
           onSuccess: () => {
             setLocalJoined(false);
             setReservationCode(null);
+            // 서버에서 최신 게시글(방) 상세를 다시 조회하여 방 정보를 갱신
+            queryClient.invalidateQueries({
+              queryKey: ['boards', 'detail', post.boardId],
+            });
           },
         },
       );
@@ -145,30 +158,31 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
           </div>
 
           {/* 버튼 영역 (항상 하단에 위치) */}
-          {!isJoined ? (
-            <PixelButton
-              onClick={handleJoin}
-              disabled={isApplying}
-              style={{
-                backgroundColor: theme.colors.primary,
-                color: 'white',
-                marginTop: 'auto',
-              }}
-            >
-              {isApplying ? '처리 중...' : '참여하기'}
-            </PixelButton>
-          ) : (
-            <PixelButton
-              onClick={handleCancel}
-              disabled={isCanceling}
-              style={{
-                marginTop: 'auto',
-                backgroundColor: theme.colors.disabledBg,
-              }}
-            >
-              {isCanceling ? '처리 중...' : '참여 취소'}
-            </PixelButton>
-          )}
+          {!isHost &&
+            (!isJoined ? (
+              <PixelButton
+                onClick={handleJoin}
+                disabled={isApplying}
+                style={{
+                  backgroundColor: theme.colors.primary,
+                  color: 'white',
+                  marginTop: 'auto',
+                }}
+              >
+                {isApplying ? '처리 중...' : '참여하기'}
+              </PixelButton>
+            ) : (
+              <PixelButton
+                onClick={handleCancel}
+                disabled={isCanceling}
+                style={{
+                  marginTop: 'auto',
+                  backgroundColor: theme.colors.disabledBg,
+                }}
+              >
+                {isCanceling ? '처리 중...' : '참여 취소'}
+              </PixelButton>
+            ))}
         </div>
       </div>
 
@@ -240,8 +254,8 @@ export const BoardDetail = ({ boardId }: { boardId: string }) => {
       </header>
 
       <main className={styles.content}>
-        {post.type === 'PROMOTION' && <PromotionDetails post={post} />}
         <p>{post.content}</p>
+        {post.type === 'PROMOTION' && <PromotionDetails post={post} />}
       </main>
 
       <footer className={styles.footer}>

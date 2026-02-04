@@ -106,3 +106,36 @@ export const loadingContainer = style({
   fontSize: '2rem',
   color: theme.colors.beigeText,
 });
+
+/**
+ * 닫기 버튼 (모든 모달 공통)
+ */
+export const closeButton = style({
+  position: 'absolute',
+  top: '16px',
+  right: '16px',
+  width: '32px',
+  height: '32px',
+  border: `2px solid ${theme.colors.woodDeep}`,
+  backgroundColor: theme.colors.beigeMain,
+  borderRadius: '4px',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '20px',
+  fontWeight: 'bold',
+  color: theme.colors.woodDeep,
+  transition: 'all 0.1s ease-in-out',
+
+  ':hover': {
+    backgroundColor: theme.colors.beigeDark,
+    transform: 'translate(-1px, -1px)',
+    boxShadow: `2px 2px 0px ${theme.colors.woodDeep}`,
+  },
+
+  ':active': {
+    transform: 'translate(1px, 1px)',
+    boxShadow: 'none',
+  },
+});

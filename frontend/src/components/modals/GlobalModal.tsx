@@ -13,6 +13,8 @@ import { CreateRoomModal } from './CreateRoomModal';
 import { ElevatorModal } from './ElevatorModal';
 import { ErrorModal } from './ErrorModal';
 import { FriendListModal } from './FriendListModal';
+import { NotificationModal } from './NotificationModal';
+import { PreferencesModal } from './PreferencesModal';
 import { ProfileModal } from './ProfileModal';
 
 import * as styles from './GlobalModal.css';
@@ -236,6 +238,9 @@ export const GlobalModal = () => {
         <FriendListModal />
       </PixelModal>
 
+      {/* GamePage에서 user.preferences가 null 또는 빈 배열일 때 openModal('preferences')로 연다. */}
+      {currentModal === 'preferences' && <PreferencesModal />}
+
       {/* 나의 서재 모달 */}
       <PixelModal
         isOpen={currentModal === 'bookshelf'}
@@ -265,6 +270,9 @@ export const GlobalModal = () => {
           friendId={userProfile.friendId}
         />
       )}
+
+      {/* 알림 모달 */}
+      {currentModal === 'notification' && <NotificationModal />}
     </>
   );
 };

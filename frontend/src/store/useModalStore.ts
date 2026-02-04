@@ -17,9 +17,13 @@ export type ModalType =
   | 'bookshelf'
   | 'bookSearch'
   | 'friendList'
+  // 최초 로그인 온보딩 모달
+  | 'preferences'
   | 'error'
   | 'createRoom'
   | 'entrance'
+  | 'bookDetail'
+  | 'notification'
   | null;
 
 interface ModalProps {
@@ -30,6 +34,9 @@ interface ModalProps {
   boardId?: string;
   userId?: string; // 타인 프로필 조회용
   friendId?: string; // 친구 요청 수락/거절용
+  isbn?: string;
+  from?: ModalType; // 모달이 어디서 열렸는지
+  initialTab?: 'FRIENDS' | 'REQUESTS' | 'BLOCKED';
 }
 
 interface ErrorState {

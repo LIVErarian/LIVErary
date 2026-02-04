@@ -4,13 +4,20 @@ import {
   Container,
   Graphics,
   Sprite,
+  Text,
   Ticker,
 } from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 
 import { roomApi } from '@/api/room.api';
 import playerMSheetImg from '@/assets/characters/basic_male.png';
+import { findRecommendedRoomByZone } from '@/features/room/bookTalkRoomMatcher';
+import {
+  BOOK_TALK_ZONE_IDS,
+  isBookTalkZone,
+} from '@/features/room/bookTalkRoomSlots';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
@@ -31,6 +38,7 @@ import type {
   MoveRequest,
 } from '@/types/socket.types';
 
+import { contentFont } from '@/styles/global.css';
 import { palette } from '@/styles/theme.css';
 
 export class GameApp {
@@ -47,6 +55,9 @@ export class GameApp {
   private _suppressZoneTriggers: Map<string, Set<'enter' | 'exit'>> = new Map();
   private _bgSprite: Sprite | null = null;
   private _mapButtonsContainer: Container | null = null;
+  private _bookTalkRoomInfoContainer: Container | null = null;
+  private _bookTalkRoomInfoTextMap: Map<string, Text> = new Map();
+  private _bookTalkRoomInfoSnapshot: string = '';
   private _mapZones: Array<
     MapZoneConfig & { absX: number; absY: number; absW: number; absH: number }
   > = [];
@@ -232,6 +243,7 @@ export class GameApp {
 
     this.updateMapButtons(mapConfig);
     this.updateMapZones(mapConfig);
+    this.updateBookTalkRoomInfoOverlay(floor);
     this.updateCollision(mapConfig);
 
     // 중앙 정렬 로직
@@ -308,6 +320,107 @@ export class GameApp {
       absW: zone.width * this._worldWidth,
       absH: zone.height * this._worldHeight,
     }));
+  }
+
+  /**
+   * 3층 독서 모임 공간에서만 Pixi 레이어에 룸 정보 라벨을 생성한다.
+   * (요구사항: React UI 오버레이가 아니라 맵 위에 직접 표시)
+   */
+  private updateBookTalkRoomInfoOverlay(floor: FloorType) {
+    if (this._bookTalkRoomInfoContainer) {
+      this._viewport.removeChild(this._bookTalkRoomInfoContainer);
+      this._bookTalkRoomInfoContainer.destroy({ children: true });
+      this._bookTalkRoomInfoContainer = null;
+      this._bookTalkRoomInfoTextMap.clear();
+      this._bookTalkRoomInfoSnapshot = '';
+    }
+
+    if (floor !== 'bookTalkFloor') return;
+
+    const container = new Container();
+    this._bookTalkRoomInfoContainer = container;
+    this._viewport.addChild(container);
+
+    BOOK_TALK_ZONE_IDS.forEach((zoneId) => {
+      const zone = this._mapZones.find((entry) => entry.id === zoneId);
+      if (!zone) return;
+
+      // 각 zone의 좌상단 기준으로 약간 오른쪽/아래에 고정 배치
+      const labelLeftX = Math.round(zone.absX + 20);
+      const labelTopY = Math.round(zone.absY + 20);
+      const cardWidth = 176;
+      const cardHeight = 40;
+
+      const labelBackground = new Graphics();
+      labelBackground.roundRect(0, 0, cardWidth, cardHeight, 7).fill({
+        color: 0x4a2619,
+        alpha: 0.9,
+      });
+      labelBackground.stroke({
+        width: 1.5,
+        color: 0xc58346,
+        alpha: 0.95,
+      });
+      labelBackground.x = labelLeftX;
+      labelBackground.y = labelTopY;
+
+      const labelText = new Text({
+        text: '',
+        style: {
+          fill: 0xddd3b9,
+          fontFamily: contentFont,
+          fontSize: 11,
+          fontWeight: 'normal',
+          lineHeight: 14,
+          align: 'left',
+        },
+      });
+      labelText.anchor.set(0, 0.5);
+      labelText.x = labelLeftX + 8;
+      labelText.y = labelTopY + cardHeight / 2;
+
+      this._bookTalkRoomInfoTextMap.set(zoneId, labelText);
+      container.addChild(labelBackground);
+      container.addChild(labelText);
+    });
+
+    this.refreshBookTalkRoomInfoOverlay();
+  }
+
+  /**
+   * 추천 룸 배열 값이 변경될 때만 라벨 텍스트를 갱신한다.
+   * 매 프레임 호출하지만 스냅샷 비교로 실제 변경 시에만 repaint 한다.
+   */
+  private refreshBookTalkRoomInfoOverlay() {
+    if (!this._bookTalkRoomInfoContainer) return;
+
+    const { recommendedRooms } = useBookTalkRoomStore.getState();
+    const snapshot = JSON.stringify(
+      recommendedRooms.map((room) => ({
+        roomId: room.roomId,
+        title: room.title,
+        currentCount: room.currentCount,
+        maxUser: room.maxUser,
+      })),
+    );
+
+    if (snapshot === this._bookTalkRoomInfoSnapshot) return;
+    this._bookTalkRoomInfoSnapshot = snapshot;
+
+    BOOK_TALK_ZONE_IDS.forEach((zoneId, index) => {
+      const labelText = this._bookTalkRoomInfoTextMap.get(zoneId);
+      if (!labelText) return;
+
+      const room = recommendedRooms[index];
+      if (!room) {
+        labelText.text = '배정된 방 없음';
+        return;
+      }
+
+      const title =
+        room.title.length > 12 ? `${room.title.slice(0, 12)}...` : room.title;
+      labelText.text = `${title}\n${room.currentCount} / ${room.maxUser}`;
+    });
   }
 
   private updateCollision(mapConfig: { collision?: MapCollisionConfig }) {
@@ -392,8 +505,20 @@ export class GameApp {
       const offsetY = this._worldHeight * 0.05;
 
       if (position === 'zoneCenter') {
-        this._player.x = centerX;
-        this._player.y = centerY;
+        /**
+         * 독서모임 4개 룸은 중앙 스폰 시 충돌 타일에 걸릴 수 있어
+         * 룸 내부 이동 가능한 지점으로 하드코딩 스폰한다.
+         */
+        const hardcodedEntryByZone: Record<string, { x: number; y: number }> = {
+          'room-1': { x: zoneX + zoneW * 0.5, y: zoneY + zoneH * 0.78 },
+          'room-2': { x: zoneX + zoneW * 0.5, y: zoneY + zoneH * 0.78 },
+          'room-3': { x: zoneX + zoneW * 0.5, y: zoneY + zoneH * 0.68 },
+          'room-4': { x: zoneX + zoneW * 0.5, y: zoneY + zoneH * 0.68 },
+        };
+
+        const hardcoded = hardcodedEntryByZone[zone.id];
+        this._player.x = hardcoded?.x ?? centerX;
+        this._player.y = hardcoded?.y ?? centerY;
       } else if (position === 'zoneFrontBelow') {
         this._player.x = centerX;
         this._player.y = zoneY + zoneH + offsetY;
@@ -434,9 +559,7 @@ export class GameApp {
     }
 
     if (action.type === 'openModal') {
-      if (action.modalType === 'elevator') {
-        useModalStore.getState().openModal('elevator');
-      }
+      useModalStore.getState().openModal(action.modalType);
     }
 
     if (action.type === 'confirmReposition') {
@@ -471,39 +594,77 @@ export class GameApp {
           if (action.confirmPosition === 'zoneCenter') {
             console.log(`🚪 [${zone?.id}] 방 입장 로직 실행`);
 
+            /**
+             * 서버가 입장을 거절하거나(room full / 권한 없음 등),
+             * 타겟 roomId를 찾지 못한 경우에는 사용자를 즉시 zone 바깥으로 되돌린다.
+             */
+            const bounceOutFromZone = () => {
+              this.movePlayerToPosition(
+                action.cancelPosition,
+                zone,
+                suppressFor(action.cancelPosition, 'confirm'),
+              );
+            };
+
             try {
-              // 구역별 방 타입 매핑
-              let targetType: 'TALK' | 'READING' | 'CONCERT' | undefined;
-              if (zone?.id?.includes('room-')) targetType = 'TALK';
-              else if (zone?.id?.includes('concert')) targetType = 'CONCERT';
-              else if (zone?.id?.includes('reading')) targetType = 'READING';
+              let targetRoomId: string | null = null;
 
-              // 방 목록 조회 API 호출
-              const response = await roomApi.getRoomList({
-                size: 50,
-                roomType: targetType,
-              });
+              /**
+               * 독서 모임 공간(room-1 ~ room-4)은
+               * 이미 프론트에서 받아둔 추천 방 배열을 인덱스 기준으로 사용한다.
+               * - room-1 -> recommendedRooms[0]
+               * - room-2 -> recommendedRooms[1]
+               * - room-3 -> recommendedRooms[2]
+               * - room-4 -> recommendedRooms[3]
+               */
+              if (zone?.id && isBookTalkZone(zone.id)) {
+                /**
+                 * 독서모임 4개 존은 "추천 배열 인덱스"로만 방을 결정한다.
+                 * 서버에서 받은 추천 순서를 곧 화면 배치 순서로 취급한다.
+                 * (요구사항: category 기반 recommend 배열을 4개 존에 배정)
+                 */
+                const { recommendedRooms } = useBookTalkRoomStore.getState();
+                const targetRoom = findRecommendedRoomByZone(
+                  zone.id,
+                  recommendedRooms,
+                );
+                targetRoomId = targetRoom?.roomId ?? null;
+              } else {
+                // 기존 흐름 유지: 북콘서트/독서실 등은 roomType 기반으로 첫 방 1개 선택
+                let targetType: 'TALK' | 'READING' | 'CONCERT' | undefined;
+                if (zone?.id?.includes('room-')) targetType = 'TALK';
+                else if (zone?.id?.includes('concert')) targetType = 'CONCERT';
+                else if (zone?.id?.includes('reading')) targetType = 'READING';
 
-              // 방 데이터 파싱
-              const data =
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (response as any).result || (response as any).data || response;
-              const roomList = data.content || [];
+                const response = await roomApi.getRoomList({
+                  size: 50,
+                  roomType: targetType,
+                });
+                const roomList = response.content || [];
+                /**
+                 * 비-독서모임 존은 기존 정책을 유지한다.
+                 * 같은 타입 방 중 첫 번째 roomId를 사용한다.
+                 */
+                targetRoomId = roomList[0]?.roomId ?? null;
+              }
 
-              // 방 매칭 로직
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const targetRoom = roomList.find((room: any) => {
-                // room-4 구역이고 TALK 타입 방이면 매칭 (임시 로직)
-                if (zone?.id === 'room-4' && room.roomType === 'TALK')
-                  return true;
-                return room.roomType === targetType;
-              });
+              if (targetRoomId) {
+                console.log('접속할 방 ID:', targetRoomId);
 
-              if (targetRoom) {
-                console.log('접속할 방 ID:', targetRoom.roomId);
+                /**
+                 * 1) REST 입장 API 호출 (/api/room/{roomId}/join)
+                 * 2) 성공 시 roomId 저장
+                 * 3) GameSidebar의 useWebRTC가 roomId 변화를 감지하여
+                 *    STOMP joinRoom + 시그널링 절차를 시작한다.
+                 */
+                await roomApi.joinRoom({ roomId: targetRoomId });
 
-                // WebRTC 연결
-                useGameStore.getState().setRoomId(targetRoom.roomId);
+                /**
+                 * roomId 저장은 "RTC 연결 시작 스위치" 역할이다.
+                 * GameSidebar의 useWebRTC(roomId, userId)가 이 변화를 감지해
+                 * STOMP /app/joinRoom -> offer/answer 교환을 시작한다.
+                 */
+                useGameStore.getState().setRoomId(targetRoomId);
 
                 // 물리적 이동
                 this.movePlayerToPosition(
@@ -513,11 +674,22 @@ export class GameApp {
                 );
               } else {
                 alert('현재 입장 가능한 방이 없습니다.');
-                // 이동하지 않음 (입장 취소 효과)
+                bounceOutFromZone();
               }
-            } catch (error) {
+            } catch (error: unknown) {
               console.error('방 입장 처리 중 오류:', error);
-              alert('방 정보를 불러오지 못했습니다.');
+              /**
+               * Axios 에러 응답(message)이 있으면 우선 노출하고,
+               * 없으면 공통 메시지로 폴백한다.
+               */
+              const apiError = error as {
+                response?: { data?: { message?: string } };
+              };
+              const message =
+                apiError?.response?.data?.message ??
+                '방에 입장하지 못했습니다.';
+              alert(message);
+              bounceOutFromZone();
             }
           }
 
@@ -525,11 +697,37 @@ export class GameApp {
           else {
             console.log('🏃 방 퇴장 로직 실행');
 
-            // 현재 층의 기본 채널(로비/복도) ID 가져오기
-            const defaultId = null;
+            /**
+             * 현재 플레이어가 실제로 참여 중인 roomId를 조회한다.
+             * null이면 이미 방 미참여 상태이므로 leave API 호출은 생략한다.
+             */
+            const currentRoomId = useGameStore.getState().roomId;
 
-            // WebRTC 채널 변경 (null)
-            useGameStore.getState().setRoomId(defaultId);
+            try {
+              /**
+               * 서버에 먼저 퇴장을 알린 뒤 프론트 자원을 정리한다.
+               * 요구사항: POST /api/room/{roomId}/leave 호출 이후 cleanup
+               */
+              if (currentRoomId) {
+                await roomApi.leaveRoom({ roomId: currentRoomId });
+              }
+            } catch (error: unknown) {
+              console.error('방 퇴장 처리 중 오류:', error);
+              const apiError = error as {
+                response?: { data?: { message?: string } };
+              };
+              const message =
+                apiError?.response?.data?.message ??
+                '방 퇴장에 실패했습니다. 잠시 후 다시 시도해주세요.';
+              alert(message);
+              return;
+            }
+
+            /**
+             * roomId를 null로 바꾸면 useWebRTC effect가 정리(cleanup)되면서
+             * peer connection/remote stream이 함께 해제된다.
+             */
+            useGameStore.getState().setRoomId(null);
 
             // 물리적 이동 (밖으로 내보내기)
             this.movePlayerToPosition(
@@ -602,6 +800,10 @@ export class GameApp {
 
   private update(ticker: Ticker) {
     if (!this._player) return;
+
+    if (this._currentFloorId === MAP_DATA.bookTalkFloor.floorId) {
+      this.refreshBookTalkRoomInfoOverlay();
+    }
 
     const isModalOpen = useModalStore.getState().currentModal !== null;
     if (isModalOpen) {

@@ -7,6 +7,7 @@ export const DUMMY_USER: UserProfile = {
   email: 'test@example.com',
   nickname: '테스트',
   role: 'USER',
+  preferences: null,
   totalReadingTime: 0,
   bookCounts: {
     wish: 0,
