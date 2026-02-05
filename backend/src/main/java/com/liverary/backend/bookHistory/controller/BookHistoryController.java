@@ -1,6 +1,7 @@
 package com.liverary.backend.bookHistory.controller;
 
 import com.liverary.backend.bookHistory.DTO.response.WishStatusResponse;
+import com.liverary.backend.bookHistory.domain.BookStatus;
 import com.liverary.backend.bookHistory.service.BookHistoryService;
 import com.liverary.backend.common.dto.BaseResponse;
 import com.liverary.backend.exception.BaseException;
@@ -98,7 +99,7 @@ public class BookHistoryController {
     @PatchMapping("/{isbn}")
     public BaseResponse<Void> updateBookStatus(
             @PathVariable String isbn,
-            @RequestParam com.liverary.backend.bookHistory.domain.BookStatus status,
+            @RequestParam BookStatus status,
             @AuthenticationPrincipal UserDetails user
     ) {
         UUID userId = getUserId(user);
