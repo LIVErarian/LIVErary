@@ -15,8 +15,6 @@ export const inputGroup = style({
   gap: '12px',
 });
 
-// PixelInput을 사용하므로 input, inputWrapper, label 스타일 삭제
-
 export const errorMessage = style({
   color: theme.colors.red,
   fontSize: '0.8rem',
@@ -26,7 +24,15 @@ export const errorMessage = style({
 
 export const buttonGroup = style({
   display: 'flex',
-  justifyContent: 'flex-end',
-  gap: '8px',
+  justifyContent: 'center',
+  gap: '24px',
   marginTop: '8px',
+});
+
+export const button = style({
+  width: '155px',
+  transition: 'transform 0.2s',
+  ':hover': {
+    transform: 'scale(1.05)',
+  },
 });

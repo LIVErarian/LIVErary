@@ -14,25 +14,30 @@ export const PasswordResetModal = () => {
 
   const { mutate: resetPassword, isPending } = useResetPassword();
 
+  // 비밀번호 변경 폼 상태
   const [form, setForm] = useState({
     oldPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
+
   const [errorMessage, setErrorMessage] = useState('');
 
+  // 모달 닫기
   const handleClose = () => {
     setForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
     setErrorMessage('');
     closeModal();
   };
 
+  // 비밀번호 변경 폼 입력값 변경
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrorMessage('');
   };
 
+  // 비밀번호 변경 폼 제출
   const handleSubmit = () => {
     const { oldPassword, newPassword, confirmPassword } = form;
 
@@ -55,6 +60,7 @@ export const PasswordResetModal = () => {
       return;
     }
 
+    // 비밀번호 변경 API 호출
     resetPassword(
       { oldPassword, newPassword, confirmPassword },
       {
@@ -71,8 +77,10 @@ export const PasswordResetModal = () => {
     );
   };
 
+  // 비밀번호 변경 모달 렌더링
   if (!isOpen) return null;
 
+  // 비밀번호 변경 모달
   return (
     <PixelModal
       isOpen={isOpen}
@@ -80,7 +88,9 @@ export const PasswordResetModal = () => {
       title="비밀번호 변경"
       width="400px"
     >
+      {/* 비밀번호 변경 모달 */}
       <div className={styles.container}>
+        {/* 비밀번호 변경 폼 */}
         <div className={styles.inputGroup}>
           <PixelInput
             label="현재 비밀번호"
@@ -111,24 +121,35 @@ export const PasswordResetModal = () => {
           />
         </div>
 
+        {/* 에러 메시지 */}
         {errorMessage && (
           <span className={styles.errorMessage}>{errorMessage}</span>
         )}
 
         <div className={styles.buttonGroup}>
+          {/* 취소 버튼 */}
           <PixelButton
             variant="beige"
             onClick={handleClose}
             disabled={isPending}
             size="sm"
+            className={styles.button}
           >
             취소
           </PixelButton>
+
+          {/* 변경하기 버튼 */}
           <PixelButton
             variant="primary"
             onClick={handleSubmit}
-            disabled={isPending}
+            disabled={
+              isPending ||
+              !form.oldPassword ||
+              !form.newPassword ||
+              !form.confirmPassword
+            }
             size="sm"
+            className={styles.button}
           >
             {isPending ? '변경 중...' : '변경하기'}
           </PixelButton>
