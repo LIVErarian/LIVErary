@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelInput } from '@/components/common/PixelInput';
 import { PixelPagination } from '@/components/common/PixelPagination';
 import { useSearchBook, useToggleWishlist } from '@/hooks/queries/useBook';
+import { type ModalType, useModalStore } from '@/store/useModalStore';
 import { BookCard } from '../book/BookCard';
-import { BookDetailModal } from './BookDetailModal';
 
 import type { Book } from '@/types/book.types';
 
@@ -15,13 +15,15 @@ const ITEMS_PER_PAGE = 6;
 const FETCH_SIZE = 20;
 
 interface BookSearchModalProps {
-  onSelectBook?: (book: Book) => void;
+  onSelectBook?: (book: Book) => void | Promise<void>;
   // If provided, the modal acts as a selector
+  from?: ModalType;
 }
 
 export const BookSearchModal = ({
   onSelectBook,
-}: BookSearchModalProps = {}) => {
+  from = 'bookSearch',
+}: BookSearchModalProps) => {
   // 검색어 입력 상태
   const [searchQuery, setSearchQuery] = useState('');
   // 실제 검색 키워드
@@ -39,7 +41,8 @@ export const BookSearchModal = ({
   const { mutateAsync: toggleWishlist } = useToggleWishlist();
 
   // 상세 보기 모달 상태 (ISBN 저장)
-  const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
+  // const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
+  const { openModal } = useModalStore();
 
   // 검색 결과 데이터
   const books = searchResult?.content || [];
@@ -117,7 +120,11 @@ export const BookSearchModal = ({
     if (onSelectBook) {
       onSelectBook(book);
     } else {
-      setSelectedIsbn(book.isbn);
+      openModal('bookDetail', {
+        isbn: book.isbn,
+        initialIsWished: book.isWished,
+        from,
+      });
     }
   };
 
@@ -234,17 +241,6 @@ export const BookSearchModal = ({
 
       {/* 페이지네이션 */}
       {renderPagination()}
-
-      {/* 상세 보기 모달 (오버레이) */}
-      {selectedIsbn && (
-        <BookDetailModal
-          isbn={selectedIsbn}
-          onClose={() => setSelectedIsbn(null)}
-          initialIsWished={
-            currentBooks.find((book) => book.isbn === selectedIsbn)?.isWished
-          }
-        />
-      )}
     </div>
   );
 };

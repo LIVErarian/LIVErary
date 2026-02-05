@@ -26,6 +26,7 @@ interface BookCardProps {
   onToggleWish?: (id: string) => Promise<boolean>; // Optional: 찜 토글 (isbn or bookId)
   // Force update
   onClick?: () => void; // Optional: 카드 클릭 이벤트
+  onComplete?: (id: string, e: React.MouseEvent) => void; // 완독 처리 핸들러
 }
 
 /**
@@ -40,6 +41,7 @@ export const BookCard = ({
   showWishButton,
   onToggleWish,
   onClick,
+  onComplete,
 }: BookCardProps) => {
   // 이미지 로딩 실패 상태
   const [imageError, setImageError] = useState(false);
@@ -137,9 +139,26 @@ export const BookCard = ({
         {/* 읽기 상태 배지 (읽은 책만 - 이미지 위에 오버레이) */}
         {isUserBook(book) && (
           <>
-            {book.status === 'PENDING' ? (
-              // 읽는 중: 상단에 배지
-              <div className={styles.readingBadge}>📖 읽는 중</div>
+            {book.status === 'READING' ? (
+              // 읽는 중: 상단에 배지 + 호버 시 완독 버튼
+              <>
+                <div className={styles.readingBadge}>📖 읽는 중</div>
+                {onComplete && (
+                  <div className={styles.completeOverlay}>
+                    <button
+                      className={styles.completeButton}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // isbn이 있으면 isbn, 없으면 bookId 사용
+                        const id = book.isbn || book.bookId;
+                        onComplete(id, e);
+                      }}
+                    >
+                      완독하기
+                    </button>
+                  </div>
+                )}
+              </>
             ) : book.status === 'COMPLETED' ? (
               // 완독: 중앙에 도장 스타일
               <div className={styles.completedStamp}>

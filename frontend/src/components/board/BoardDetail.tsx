@@ -10,6 +10,7 @@ import { useDeleteBoard, useGetBoardDetail } from '@/hooks/queries/useBoard';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
 import { PixelButton } from '../common/PixelButton';
+import { ReviewList } from './ReviewList';
 
 import type { CommonResponse } from '@/types/api.types';
 import type { BoardDetail as BoardDetailData } from '@/types/board.types';
@@ -209,7 +210,18 @@ export const BoardDetail = ({ boardId }: { boardId: string }) => {
   const handleDelete = () => {
     if (confirm('정말 삭제하시겠습니까?')) {
       deleteBoard(boardId, {
-        onSuccess: () => openModal('boardList'),
+        onSuccess: () => {
+          const boardType = post?.type;
+          if (boardType === 'INQUIRY') {
+            openModal('boardList', { initialBoardTab: 'INQUIRY' });
+          } else if (boardType === 'PROMOTION') {
+            openModal('boardList', { initialBoardTab: 'PROMOTION' });
+          } else if (boardType === 'NOTICE') {
+            openModal('boardList', { initialBoardTab: 'NOTICE' });
+          } else {
+            openModal('boardList');
+          }
+        },
       });
     }
   };
@@ -256,10 +268,24 @@ export const BoardDetail = ({ boardId }: { boardId: string }) => {
       <main className={styles.content}>
         <p>{post.content}</p>
         {post.type === 'PROMOTION' && <PromotionDetails post={post} />}
+        <ReviewList boardId={boardId} boardType={post.type} />
       </main>
 
       <footer className={styles.footer}>
-        <PixelButton onClick={() => openModal('boardList')}>
+        <PixelButton
+          onClick={() => {
+            const boardType = post?.type;
+            if (boardType === 'INQUIRY') {
+              openModal('boardList', { initialBoardTab: 'INQUIRY' });
+            } else if (boardType === 'PROMOTION') {
+              openModal('boardList', { initialBoardTab: 'PROMOTION' });
+            } else if (boardType === 'NOTICE') {
+              openModal('boardList', { initialBoardTab: 'NOTICE' });
+            } else {
+              openModal('boardList');
+            }
+          }}
+        >
           목록으로
         </PixelButton>
         {isMyPost && (

@@ -14,7 +14,7 @@ export interface UserBook {
 }
 
 // 책 상태 Enum
-export type UserBookStatus = 'WISH' | 'PENDING' | 'COMPLETED';
+export type UserBookStatus = 'WISH' | 'READING' | 'COMPLETED';
 
 // page 응답 구조
 export interface PageResponse<T> {
