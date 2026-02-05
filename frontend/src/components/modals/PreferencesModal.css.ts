@@ -2,7 +2,6 @@ import { style } from '@vanilla-extract/css';
 
 import { theme } from '@/styles/theme.css';
 
-// 기존 PixelModal 톤을 유지하면서 카테고리 다중 선택용 레이아웃만 추가한다.
 export const container = style({
   display: 'flex',
   flexDirection: 'column',
@@ -11,21 +10,24 @@ export const container = style({
 });
 
 export const description = style({
-  fontSize: '0.9rem',
-  lineHeight: 1.5,
-  color: theme.colors.beigeText,
+  fontSize: '1rem',
+  fontWeight: 'bold',
+  lineHeight: 1.2,
+  margin: 0,
+  color: theme.colors.boardText,
+  textAlign: 'center',
 });
 
 export const list = style({
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
-  gap: '8px',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
+  gap: '12px',
   padding: '6px',
-  maxHeight: '240px',
+  maxHeight: '400px',
   overflowY: 'auto',
-  border: `2px solid ${theme.colors.beigeMain}`,
-  borderRadius: '8px',
-  backgroundColor: theme.colors.paper,
+  // border: `2px solid ${theme.colors.beigeMain}`, // 테두리도 원하면 제거 가능하지만 일단 배경만
+  // borderRadius: '8px',
+  // backgroundColor: theme.colors.paper, // 흰색(종이색) 배경 제거
 
   '::-webkit-scrollbar': {
     width: '10px',
@@ -50,12 +52,31 @@ export const emptyState = style({
 
 export const footer = style({
   display: 'flex',
-  justifyContent: 'flex-end',
+  justifyContent: 'center',
   gap: '12px',
   marginTop: '4px',
 });
 
-export const helper = style({
+const messageBase = style({
   fontSize: '0.8rem',
-  color: theme.colors.beigeText,
+  textAlign: 'center',
+  display: 'block',
+  width: '100%',
+  marginTop: '4px',
+  minHeight: '1.2em',
+  lineHeight: '1.2em',
 });
+
+export const helper = style([
+  messageBase,
+  {
+    color: theme.colors.beigeText,
+  },
+]);
+
+export const warning = style([
+  messageBase,
+  {
+    color: theme.colors.red,
+  },
+]);

@@ -118,6 +118,17 @@ export const categoryRow = style({
   color: theme.colors.boardText,
   wordBreak: 'keep-all',
   overflowWrap: 'break-word',
+  padding: '4px',
+  borderRadius: '4px',
+});
+
+// 클릭 가능한 카테고리 행 스타일 (hover 효과)
+export const categoryRowInteractive = style({
+  cursor: 'pointer',
+  transition: 'background-color 0.2s',
+  ':hover': {
+    backgroundColor: theme.colors.beigeLight,
+  },
 });
 
 // 독서 시간 섹션
@@ -223,4 +234,25 @@ export const loadingWrapper = style({
 // 입력창 컨테이너 (flex: 1 적용)
 export const inputContainer = style({
   flex: 1,
+});
+
+// 카테고리 추가 버튼 (점선 타원)
+export const addCategoryButton = style({
+  border: `2px dashed ${theme.colors.beigeDark}`,
+  borderRadius: '20px',
+  padding: '4px 12px', // 타원이 더 잘 보이도록 패딩 조정
+  fontSize: '0.8rem',
+  color: theme.colors.beigeText,
+  background: 'transparent',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '4px',
+  transition: 'all 0.2s',
+  ':hover': {
+    backgroundColor: theme.colors.beigeLight,
+    borderColor: theme.colors.woodLight,
+    color: theme.colors.woodDeep,
+  },
 });
