@@ -1,6 +1,6 @@
 import type { CommonResponse } from './api.types';
 
-export type RoomType = 'READING' | 'TALK' | 'CONCERT';
+export type RoomType = 'READING' | 'TALK' | 'CONCERT' | 'STABLE';
 export type AccessType = 'PUBLIC' | 'PRIVATE';
 export type RoomStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED'; // LIVE가 default
 export type RoomRole = 'GUEST' | 'MANAGER' | 'AUTHOR'; // GUEST가 default
@@ -19,6 +19,7 @@ export interface ROOM_DETAIL extends ROOM_INFO {
   status: RoomStatus;
   categoryName: string;
   currentCount: number; // 현재 참여 인원
+  startAt?: string; // 예약 방일 경우 시작 시간
 }
 
 // 추천 방 정보
@@ -33,29 +34,48 @@ export interface RECOMMENDED_ROOM {
   maxUser: number;
 }
 
+// Pagination Wrapepr
+export interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number; // 현재 페이지 번호 (0부터 시작)
+  first: boolean; // 첫 페이지 여부
+  last: boolean; // 마지막 페이지 여부
+  empty: boolean;
+}
+
 // ======================= API =======================
-// 방 검색 요청
-export interface GetRoomListRequest {
-  roomType?: RoomType;
+// 라이브 방 목록 요청
+export interface GetLiveRoomListRequest {
+  categoryId?: string;
+  accessType?: AccessType;
   keyword?: string;
   page?: number;
   size?: number;
   sort?: string[];
 }
 
-// Pagination Wrapepr
-export interface PageResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-  first: boolean;
-  last: boolean;
-  empty: boolean;
+// 예약 방 목록 요청
+export interface GetReservationRoomListRequest {
+  categoryId?: string;
+  keyword?: string;
+  page?: number;
+  size?: number;
+  sort?: string[];
 }
 
 export type GetRoomListResponse = CommonResponse<PageResponse<ROOM_DETAIL>>;
+
+// 내가 예약한 방 목록 요청
+export interface MyScheduledRoomResponseData {
+  roomId: string;
+  title: string;
+}
+
+export type MyScheduledRoomResponse =
+  CommonResponse<MyScheduledRoomResponseData>;
 
 // 방 상세 검색 요청
 export interface GetRoomDetailRequest {
