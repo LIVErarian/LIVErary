@@ -105,7 +105,8 @@ export const useToggleWishlist = () => {
       // 쿼리 무효화 (최신 데이터 갱신)
       queryClient.invalidateQueries({ queryKey: ['books', 'search'] });
       queryClient.invalidateQueries({ queryKey: ['books', 'detail', isbn] });
-      queryClient.invalidateQueries({ queryKey: ['bookshelf', 'wished'] });
+      queryClient.invalidateQueries({ queryKey: ['books', 'detail', isbn] });
+      queryClient.invalidateQueries({ queryKey: ['user', 'books', 'WISH'] });
     },
   });
 };
@@ -124,7 +125,9 @@ export const useRegisterReadingBook = () => {
   return useMutation({
     mutationFn: (isbn: string) => registerReadingBook(isbn),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookshelf', 'reading'] });
+      queryClient.invalidateQueries({
+        queryKey: ['user', 'books', 'READING'],
+      });
     },
   });
 };
@@ -134,7 +137,9 @@ export const useRegisterCompletedBook = () => {
   return useMutation({
     mutationFn: (isbn: string) => registerCompletedBook(isbn),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookshelf', 'read'] });
+      queryClient.invalidateQueries({
+        queryKey: ['user', 'books'],
+      });
     },
   });
 };

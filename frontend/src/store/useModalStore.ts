@@ -38,7 +38,8 @@ interface ModalProps {
   isbn?: string;
   from?: ModalType; // 모달이 어디서 열렸는지
   initialTab?: 'FRIENDS' | 'REQUESTS' | 'BLOCKED';
-  initialBoardTab?: 'INQUIRY' | 'PROMOTION' | 'NOTICE'; // 게시판 탭 및 게시글 작성 시 초기 타입
+  initialBoardTab?: 'INQUIRY' | 'PROMOTION' | 'NOTICE';
+  initialIsWished?: boolean;
 }
 
 interface ErrorState {

@@ -6,6 +6,7 @@ import { BoardList } from '../board/BoardList';
 import { BoardUpdate } from '../board/BoardUpdate';
 import { PixelButton } from '../common/PixelButton';
 import { PixelModal } from '../common/PixelModal';
+import { BookDetailModal } from './BookDetailModal';
 import { BookSearchModal } from './BookSearchModal';
 import { BookshelfModal } from './BookshelfModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -74,7 +75,9 @@ export const GlobalModal = () => {
     closeModal,
     userProfile,
     closeUserProfile,
+    openModal,
   } = useModalStore();
+
   const { mutate: logout } = useLogout();
 
   if (!currentModal && !userProfile) return null;
@@ -244,7 +247,10 @@ export const GlobalModal = () => {
 
       {/* 나의 서재 모달 */}
       <PixelModal
-        isOpen={currentModal === 'bookshelf'}
+        isOpen={
+          currentModal === 'bookshelf' ||
+          (currentModal === 'bookDetail' && modalProps.from === 'bookshelf')
+        }
         onClose={closeModal}
         title="나의 서재"
         width="800px"
@@ -254,7 +260,10 @@ export const GlobalModal = () => {
 
       {/* 책 검색 모달 */}
       <PixelModal
-        isOpen={currentModal === 'bookSearch'}
+        isOpen={
+          currentModal === 'bookSearch' ||
+          (currentModal === 'bookDetail' && modalProps.from === 'bookSearch')
+        }
         onClose={closeModal}
         title="책 검색"
         width="800px"
@@ -277,6 +286,23 @@ export const GlobalModal = () => {
 
       {/* 비밀번호 변경 모달 */}
       <PasswordResetModal />
+
+      {/* 책 상세 모달 */}
+      {currentModal === 'bookDetail' && modalProps.isbn && (
+        <BookDetailModal
+          isbn={modalProps.isbn}
+          onClose={() => {
+            if (modalProps.from === 'bookSearch') {
+              openModal('bookSearch');
+            } else if (modalProps.from === 'bookshelf') {
+              openModal('bookshelf');
+            } else {
+              closeModal();
+            }
+          }}
+          initialIsWished={modalProps.initialIsWished}
+        />
+      )}
     </>
   );
 };
