@@ -89,6 +89,13 @@ public class AiService {
         List<BookHistory> readHistories = bookHistoryRepository.findByUserAndStatus(user, BookStatus.COMPLETED, Pageable.unpaged()).getContent();
         List<BookHistory> likedHistories = bookHistoryRepository.findByUserAndStatus(user, BookStatus.WISH, Pageable.unpaged()).getContent();
 
+        if (preferences.isEmpty() && readHistories.isEmpty() && likedHistories.isEmpty()) {
+            return candidateRooms.stream()
+                    .limit(RECOMMEND_LIMIT)
+                    .map(RoomListResponse::from)
+                    .toList();
+        }
+
         // AI 서버 요청
         AiRecommendRequest request = createAiRequest(preferences, readHistories, likedHistories, candidateRooms);
         AiRecommendResponse response = aiServingClient.sendRecommendationRequest(request);
@@ -116,16 +123,41 @@ public class AiService {
     private AiRecommendRequest createAiRequest(List<UserPreference> preferences, List<BookHistory> readHistories, List<BookHistory> likedHistories, List<Room> rooms) {
 
         // 유저 선호 카테고리 추출
-        List<String> categoryNames = preferences.stream().map(p -> p.getCategory().getName()).toList();
+        List<String> categoryNames = (preferences != null ? preferences : List.<UserPreference>of()).stream()
+                .filter(p -> p.getCategory() != null)
+                .map(p -> p.getCategory().getName())
+                .toList();
 
         // 읽은 책
-        List<AiRecommendRequest.BookInfo> readBooks = readHistories.stream().filter(h -> h.getStatus() == BookStatus.COMPLETED).map(h -> AiRecommendRequest.BookInfo.builder().title(h.getBook().getTitle()).category(h.getBook().getCategory().getName()).build()).toList();
+        List<AiRecommendRequest.BookInfo> readBooks = readHistories.stream()
+                .filter(h -> h.getStatus() == BookStatus.COMPLETED)
+                .filter(h -> h.getBook() != null) // 책 정보 없으면 제외
+                .map(h -> AiRecommendRequest.BookInfo.builder()
+                        .title(h.getBook().getTitle())
+                        .category(h.getBook().getCategory() != null ? h.getBook().getCategory().getName() : "")
+                        .build())
+                .toList();
 
         // 찜한 책
-        List<AiRecommendRequest.BookInfo> likedBooks = likedHistories.stream().filter(h -> h.getStatus() == BookStatus.WISH).map(h -> AiRecommendRequest.BookInfo.builder().title(h.getBook().getTitle()).category(h.getBook().getCategory().getName()).build()).toList();
+        List<AiRecommendRequest.BookInfo> likedBooks = likedHistories.stream()
+                .filter(h -> h.getStatus() == BookStatus.WISH)
+                .filter(h -> h.getBook() != null)
+                .map(h -> AiRecommendRequest.BookInfo.builder()
+                        .title(h.getBook().getTitle())
+                        .category(h.getBook().getCategory() != null ? h.getBook().getCategory().getName() : "")
+                        .build())
+                .toList();
 
         // 방 목록 변환
-        List<AiRecommendRequest.RoomInfo> roomInfos = rooms.stream().map(r -> AiRecommendRequest.RoomInfo.builder().roomId(r.getRoomId()).category(r.getCategory().getName()).title(r.getTitle()).bookTitle(r.getBook() != null ? r.getBook().getTitle() : null).bookCategory(r.getBook() != null ? r.getBook().getCategory().getName() : null).build()).toList();
+        List<AiRecommendRequest.RoomInfo> roomInfos = rooms.stream()
+                .map(r -> AiRecommendRequest.RoomInfo.builder()
+                        .roomId(r.getRoomId())
+                        .category(r.getCategory() != null ? r.getCategory().getName() : "")
+                        .title(r.getTitle() != null ? r.getTitle() : "")
+                        .bookTitle(r.getBook() != null ? r.getBook().getTitle() : "")
+                        .bookCategory(r.getBook() != null && r.getBook().getCategory() != null ? r.getBook().getCategory().getName() : "")
+                        .build())
+                .toList();
 
         return AiRecommendRequest.builder().categories(categoryNames).readBooks(readBooks).likedBooks(likedBooks).roomHistory(List.of()).roomList(roomInfos).build();
 
