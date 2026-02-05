@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { GameLayout } from '@/components/layout/GameLayout';
 import { useGame } from '@/features/core/useGame';
 import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown';
+import { ConferenceRoomInfoPanel } from '@/features/ui/ConferenceRoomInfoPanel';
 import { GameSidebar } from '@/features/ui/GameSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useGameStore } from '@/store/useGameStore';
@@ -85,6 +86,7 @@ export const GamePage = () => {
   return (
     <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />}>
       <BookTalkCategoryDropdown />
+      <ConferenceRoomInfoPanel />
     </GameLayout>
   );
 };

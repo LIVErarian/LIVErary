@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { roomApi } from '@/api/room.api';
 import { PixelButton } from '@/components/common/PixelButton';
 import { RemoteAudio } from '@/hooks/webrtc/RemoteAudio'; // 경로 확인 필요
 import { useWebRTC } from '@/hooks/webrtc/useWebRTC';
@@ -21,13 +22,15 @@ const FLOOR_TITLES: Record<string, string> = {
 };
 
 export const GameSidebar = () => {
-  const { currentFloor, setCurrentFloor } = useGameStore();
+  const { currentFloor, setCurrentFloor, setRoomId, setSpawnPoint } =
+    useGameStore();
   const user = useAuthStore((state) => state.user);
   const openModal = useModalStore((state) => state.openModal);
 
   const roomId = useGameStore((state) => state.roomId);
 
   const [isMicOn, setIsMicOn] = useState(false);
+  const [isLeavingRoom, setIsLeavingRoom] = useState(false);
 
   // TODO: api 연결하면 roomId로 수정 필요
   const { toggleMic, remoteStreams } = useWebRTC(
@@ -53,6 +56,32 @@ export const GameSidebar = () => {
         setCurrentFloor(targetFloor);
       },
     });
+  };
+
+  const handleLeaveConferenceRoom = async () => {
+    if (isLeavingRoom) return;
+    setIsLeavingRoom(true);
+
+    try {
+      if (roomId) {
+        await roomApi.leaveRoom({ roomId });
+      }
+
+      setRoomId(null);
+      setSpawnPoint({ x: 0.5, y: 0.5 });
+      setCurrentFloor('bookTalkFloor');
+    } catch (error: unknown) {
+      console.error('회의실 퇴장 실패:', error);
+      const apiError = error as {
+        response?: { data?: { message?: string } };
+      };
+      alert(
+        apiError?.response?.data?.message ??
+          '퇴장 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      );
+    } finally {
+      setIsLeavingRoom(false);
+    }
   };
 
   // 내 서재 사이드바
@@ -130,9 +159,20 @@ export const GameSidebar = () => {
       );
     }
 
-    // 회의실에서는 방 목록 필요 없음
+    // 회의실에서는 "나가기"로 방 퇴장
     if (currentFloor === 'conferenceFloor') {
-      return null;
+      return (
+        <PixelButton
+          variant="danger"
+          shape="square"
+          size="lg"
+          onClick={handleLeaveConferenceRoom}
+          title="회의실 나가기"
+          disabled={isLeavingRoom}
+        >
+          {isLeavingRoom ? '...' : '🚪'}
+        </PixelButton>
+      );
     }
 
     // 그 외에서는 방 목록

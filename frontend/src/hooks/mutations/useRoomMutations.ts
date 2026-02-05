@@ -27,6 +27,7 @@ export const useCreateRoom = () => {
   const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
   const setRoomId = useGameStore((state) => state.setRoomId);
   const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
+  const conferenceEntrySpawn = { x: 0.88, y: 0.5 };
 
   return useMutation<
     CreateRoomResponseData,
@@ -50,7 +51,7 @@ export const useCreateRoom = () => {
           if (variables.accessType === 'PRIVATE') {
             // Private인 경우 회의실로 이동
             setCurrentFloor('conferenceFloor');
-            setSpawnPoint(null); // 오른쪽 입구쪽으로 이동 필요
+            setSpawnPoint(conferenceEntrySpawn);
           } else {
             // Public인 경우 bookTalkFloor로 보내고 네번째 방으로
             setSpawnPoint({ x: 0.82, y: 0.78 }); // room4 spawnpoint
@@ -80,6 +81,9 @@ export const useCreateRoom = () => {
 export const useJoinRoom = () => {
   const queryClient = useQueryClient();
   const setRoomId = useGameStore((state) => state.setRoomId);
+  const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
+  const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
+  const conferenceEntrySpawn = { x: 0.88, y: 0.5 };
 
   return useMutation<
     JoinRoomResponseData,
@@ -93,6 +97,8 @@ export const useJoinRoom = () => {
 
       alert('방에 참여하였습니다.');
       setRoomId(data.roomId);
+      setSpawnPoint(conferenceEntrySpawn);
+      setCurrentFloor('conferenceFloor');
     },
     onError: (error) => {
       // 리스트 강제 갱신

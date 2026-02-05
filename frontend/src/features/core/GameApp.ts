@@ -70,6 +70,8 @@ export class GameApp {
   private _worldWidth: number = 960;
   private _worldHeight: number = 640;
   private _currentFloorId: string = '';
+  // 이동 브로드캐스트 채널 ID (회의실은 roomId, 그 외는 floorId)
+  private _movementChannelId: string = '';
   private _sendMoveThrottled: (payload: MoveRequest) => void;
 
   private readonly MOVE_SPEED = 4;
@@ -78,6 +80,7 @@ export class GameApp {
   private readonly DEFAULT_PLAYER_SCALE = 2;
   private readonly MY_ROOM_PLAYER_SCALE = 5;
   private readonly MY_ROOM_SPEED_MULTIPLIER = 2;
+  private readonly CONFERENCE_ENTRY_SPAWN = { x: 0.88, y: 0.5 };
 
   constructor() {
     this._app = new Application();
@@ -148,9 +151,17 @@ export class GameApp {
     const mapConfig = MAP_DATA[floor];
     if (!mapConfig) return;
 
+    // 이전 채널 ID를 보관해 exit 전송에 사용한다.
+    const prevMovementChannelId = this._movementChannelId;
+    const prevFloorId = this._currentFloorId;
     this._worldWidth = mapConfig.width ?? this.DEFAULT_WIDTH;
     this._worldHeight = mapConfig.height ?? this.DEFAULT_HEIGHT;
     this._currentFloorId = mapConfig.floorId;
+    // 회의실은 roomId 채널로, 나머지는 floorId 채널로 구독한다.
+    this._movementChannelId = this.getMovementChannelId(
+      floor,
+      mapConfig.floorId,
+    );
 
     // 플레이어 위치 설정
     const spawnPoint = useGameStore.getState().spawnPoint;
@@ -191,25 +202,32 @@ export class GameApp {
       useSocketStore.getState();
 
     // 기존 데이터 정리 및 구독 해제
-    unsubscribeMove();
+    // 기존 채널을 정리하면서 이전 채널 ID로 exit를 보낸다.
+    unsubscribeMove({
+      sendExit: true,
+      exitFloorId: prevMovementChannelId || prevFloorId,
+    });
     this.clearOtherPlayers();
 
     // 내 방이 아니고 연결되어 있을 때만 구독
     if (floor !== 'myRoom' && isConnected) {
+      const movementChannelId = this._movementChannelId;
+      if (!movementChannelId) return;
       // 구독 시작 로그를 실제 로직 호출 직전에 남기기
       console.log(
-        `[GameApp] ${floor}(${this._currentFloorId}) 구독 프로세스 시작`,
+        `[GameApp] ${floor}(${movementChannelId}) 구독 프로세스 시작`,
       );
 
       // await를 사용하여 순서 보장
-      await subscribeMove(this._currentFloorId, (moves) => {
+      await subscribeMove(movementChannelId, (moves) => {
         this.updateOtherPlayers(moves);
       });
 
       // 플레이어가 존재할 때만 위치 전송
       if (useSocketStore.getState().isConnected && this._player) {
+        // 서버에는 floorId 필드에 "채널 ID"를 전달한다.
         sendEnter({
-          floorId: this._currentFloorId,
+          floorId: movementChannelId,
           x: this._player.x,
           y: this._player.y,
           direction: this._lookingDirection,
@@ -665,13 +683,14 @@ export class GameApp {
                  * STOMP /app/joinRoom -> offer/answer 교환을 시작한다.
                  */
                 useGameStore.getState().setRoomId(targetRoomId);
-
-                // 물리적 이동
-                this.movePlayerToPosition(
-                  action.confirmPosition,
-                  zone,
-                  suppressFor(action.confirmPosition, 'confirm'),
-                );
+                /**
+                 * 방 입장 성공 시에는 룸 내부 화면(회의실)로 전환한다.
+                 * 실제 맵 변경은 GamePage의 floor 변경 effect가 담당한다.
+                 */
+                useGameStore
+                  .getState()
+                  .setSpawnPoint(this.CONFERENCE_ENTRY_SPAWN);
+                useGameStore.getState().setCurrentFloor('conferenceFloor');
               } else {
                 alert('현재 입장 가능한 방이 없습니다.');
                 bounceOutFromZone();
@@ -693,43 +712,8 @@ export class GameApp {
             }
           }
 
-          // 방 퇴장 로직 (목적지가 center가 아닌 경우 = 밖으로 나감)
+          // 방에서의 zone 이동 확인 (퇴장 API는 사이드바 "나가기" 버튼에서 처리)
           else {
-            console.log('🏃 방 퇴장 로직 실행');
-
-            /**
-             * 현재 플레이어가 실제로 참여 중인 roomId를 조회한다.
-             * null이면 이미 방 미참여 상태이므로 leave API 호출은 생략한다.
-             */
-            const currentRoomId = useGameStore.getState().roomId;
-
-            try {
-              /**
-               * 서버에 먼저 퇴장을 알린 뒤 프론트 자원을 정리한다.
-               * 요구사항: POST /api/room/{roomId}/leave 호출 이후 cleanup
-               */
-              if (currentRoomId) {
-                await roomApi.leaveRoom({ roomId: currentRoomId });
-              }
-            } catch (error: unknown) {
-              console.error('방 퇴장 처리 중 오류:', error);
-              const apiError = error as {
-                response?: { data?: { message?: string } };
-              };
-              const message =
-                apiError?.response?.data?.message ??
-                '방 퇴장에 실패했습니다. 잠시 후 다시 시도해주세요.';
-              alert(message);
-              return;
-            }
-
-            /**
-             * roomId를 null로 바꾸면 useWebRTC effect가 정리(cleanup)되면서
-             * peer connection/remote stream이 함께 해제된다.
-             */
-            useGameStore.getState().setRoomId(null);
-
-            // 물리적 이동 (밖으로 내보내기)
             this.movePlayerToPosition(
               action.confirmPosition,
               zone,
@@ -865,8 +849,9 @@ export class GameApp {
         Math.min(this._player.y, this._worldHeight),
       );
 
+      // 이동 브로드캐스트도 채널 ID(roomId/floorId)에 맞춘다.
       const payload: MoveRequest = {
-        floorId: this._currentFloorId,
+        floorId: this._movementChannelId,
         x: this._player.x,
         y: this._player.y,
         direction: this._lookingDirection,
@@ -947,9 +932,11 @@ export class GameApp {
   // 위치 전송 헬퍼
   private sendMyPosition(isMoving: boolean) {
     if (this._currentFloorId === MAP_DATA.myRoom.floorId) return;
+    if (!this._movementChannelId) return;
 
+    // 정지 상태도 채널 ID(roomId/floorId) 기준으로 보낸다.
     const payload: MoveRequest = {
-      floorId: this._currentFloorId,
+      floorId: this._movementChannelId,
       x: this._player.x,
       y: this._player.y,
       direction: this._lookingDirection,
@@ -1008,7 +995,11 @@ export class GameApp {
   }
 
   public destroy() {
-    useSocketStore.getState().unsubscribeMove();
+    useSocketStore.getState().unsubscribeMove({
+      sendExit: true,
+      // 현재 채널 ID(roomId 우선)로 exit 전송
+      exitFloorId: this._movementChannelId || this._currentFloorId,
+    });
     if (this._app?.renderer) {
       this._app.ticker.remove(this.update, this);
       this._app.destroy({ removeView: true }, { children: true });
@@ -1025,5 +1016,14 @@ export class GameApp {
     return floorId === MAP_DATA.myRoom.floorId
       ? this.MOVE_SPEED * this.MY_ROOM_SPEED_MULTIPLIER
       : this.MOVE_SPEED;
+  }
+
+  // 회의실은 roomId, 그 외는 floorId를 이동 채널로 사용한다.
+  private getMovementChannelId(floor: FloorType, floorId: string) {
+    if (floor === 'conferenceFloor') {
+      const roomId = useGameStore.getState().roomId;
+      return roomId ?? floorId;
+    }
+    return floorId;
   }
 }
