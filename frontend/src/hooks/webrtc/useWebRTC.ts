@@ -17,6 +17,34 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
   const subscriberPCs = useRef<Map<string, RTCPeerConnection>>(new Map()); // 남의 소리를 듣는 통로
   const localStream = useRef<MediaStream | null>(null); // 내 목소리
   const joinReady = useRef(false);
+  const isCleaningUp = useRef(false);
+
+  // pagehide/언마운트에서도 마이크/PC를 확실히 정리한다.
+  const cleanupResources = useCallback(() => {
+    if (isCleaningUp.current) return;
+    isCleaningUp.current = true;
+
+    joinReady.current = false;
+
+    if (publisherPC.current) {
+      publisherPC.current.close();
+      publisherPC.current = null;
+    }
+
+    subscriberPCs.current.forEach((pc) => {
+      if (pc) pc.close();
+    });
+    subscriberPCs.current.clear();
+
+    if (localStream.current) {
+      localStream.current.getTracks().forEach((track) => track.stop());
+      localStream.current = null;
+    }
+
+    setRemoteStreams(new Map());
+
+    isCleaningUp.current = false;
+  }, [setRemoteStreams]);
 
   // 마이크 초기화 (useCallback을 이용해서 함수 저장)
   const initLocalStream = useCallback(async () => {
@@ -183,7 +211,7 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
     if (!client || !isConnected || !roomId || !myUserId) return;
 
     // Ref 값 복사
-    const currentSubscriberPCs = subscriberPCs.current;
+    // const currentSubscriberPCs = subscriberPCs.current; // unused variable removed
 
     // 안전장치
     let isMounted = true;
@@ -313,22 +341,6 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
 
     return () => {
       isMounted = false;
-      joinReady.current = false;
-
-      /**
-       * effect 시작 시점에는 publisherPC가 null이어도,
-       * 비동기 시그널링 이후 publisher가 생성될 수 있다.
-       * cleanup 시점의 최신 ref를 기준으로 항상 정리해야 누수가 없다.
-       */
-      if (publisherPC.current) {
-        publisherPC.current.close();
-        publisherPC.current = null;
-      }
-
-      currentSubscriberPCs.forEach((pc) => {
-        if (pc) pc.close();
-      });
-      currentSubscriberPCs.clear();
 
       setupPromise
         .then((sub) => sub?.unsubscribe())
@@ -336,16 +348,7 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
           console.warn('시그널링 구독 해제 중 경고:', error);
         });
 
-      /**
-       * 방 이탈 시 마이크 트랙까지 정리해서 돌발 상황(빠른 재입장/연속 실패)에서
-       * 장치 점유가 남지 않도록 한다.
-       */
-      if (localStream.current) {
-        localStream.current.getTracks().forEach((track) => track.stop());
-        localStream.current = null;
-      }
-
-      setRemoteStreams(new Map());
+      cleanupResources();
     };
   }, [
     client,
@@ -355,7 +358,20 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
     initLocalStream,
     createPublisher,
     createSubscriber,
+    cleanupResources,
   ]);
+
+  useEffect(() => {
+    const handlePageHide = () => cleanupResources();
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('beforeunload', handlePageHide);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('beforeunload', handlePageHide);
+      cleanupResources();
+    };
+  }, [cleanupResources]);
 
   return { initLocalStream, toggleMic, remoteStreams };
 };
