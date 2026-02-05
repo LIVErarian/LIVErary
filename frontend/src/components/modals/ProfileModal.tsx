@@ -308,6 +308,7 @@ export const ProfileModal = ({
                 if (!isOtherProfile) {
                   useModalStore.getState().openModal('preferences', {
                     preferences: myProfile?.preferences ?? undefined,
+                    from: 'profile',
                   });
                 }
               }}
@@ -329,7 +330,9 @@ export const ProfileModal = ({
                     className={styles.addCategoryButton}
                     onClick={(e) => {
                       e.stopPropagation();
-                      useModalStore.getState().openModal('preferences');
+                      useModalStore.getState().openModal('preferences', {
+                        from: 'profile',
+                      });
                     }}
                   >
                     + 선호 카테고리 추가

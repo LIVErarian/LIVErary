@@ -43,6 +43,15 @@ export const PreferencesModal = () => {
     setWarningMessage('');
   }, [isOpen, categories, initialPreferences]);
 
+  const closeOrReturn = () => {
+    if (modalProps?.from === 'profile') {
+      // 프로필에서 왔으면 프로필 모달 다시 열기 (내 프로필)
+      useModalStore.getState().openModal('profile');
+    } else {
+      closeModal();
+    }
+  };
+
   const handleClose = () => {
     if (isPending) return;
 
@@ -53,11 +62,11 @@ export const PreferencesModal = () => {
       savePreferences(
         { categoryIds: allCategoryIds },
         {
-          onSuccess: () => closeModal(),
+          onSuccess: () => closeOrReturn(),
         },
       );
     } else {
-      closeModal();
+      closeOrReturn();
     }
   };
 
@@ -78,12 +87,18 @@ export const PreferencesModal = () => {
   const handleSubmit = () => {
     if (!userId) return;
 
-    // 선택된 게 없으면 그대로 저장 (빈 배열 전송)
+    // 선택된 게 없으면 전체 저장 (사용자 요구사항: 아무것도 안 누르면 전체 선택으로 간주)
+    // 프론트에서는 전체 선택 시 초기화되어 아무것도 선택되지 않은 것처럼 보임.
+    const finalSelectedIds =
+      selectedIds.length === 0
+        ? categories.map((c) => c.categoryId)
+        : selectedIds;
+
     savePreferences(
-      { categoryIds: selectedIds },
+      { categoryIds: finalSelectedIds },
       {
         onSuccess: () => {
-          closeModal();
+          closeOrReturn();
         },
       },
     );
