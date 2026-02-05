@@ -4,6 +4,7 @@ import { GameLayout } from '@/components/layout/GameLayout';
 import { useGame } from '@/features/core/useGame';
 import { CATEGORY_MAP } from '@/features/map/mapAssets';
 import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown';
+import { ConferenceRoomInfoPanel } from '@/features/ui/ConferenceRoomInfoPanel';
 import { GameSidebar } from '@/features/ui/GameSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
@@ -20,6 +21,9 @@ export const GamePage = () => {
   const currentFloor = useGameStore((state) => state.currentFloor);
   const spawnPoint = useGameStore((state) => state.spawnPoint);
   const setRoomId = useGameStore((state) => state.setRoomId);
+  const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
+  const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
+  const clearRoom4Room = useBookTalkRoomStore((state) => state.clearRoom4Room);
 
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -41,6 +45,18 @@ export const GamePage = () => {
     if (!accessToken) return;
     connect();
   }, [accessToken, connect]);
+
+  useEffect(() => {
+    const navEntry = performance.getEntriesByType('navigation')[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    if (navEntry?.type === 'reload') {
+      // 새로고침 시 bookTalkFloor 기본 입장 위치로 복귀
+      setRoomId(null);
+      setSpawnPoint(null);
+      setCurrentFloor('bookTalkFloor');
+    }
+  }, [setCurrentFloor, setRoomId, setSpawnPoint]);
 
   useEffect(() => {
     /**
@@ -79,6 +95,8 @@ export const GamePage = () => {
        */
       if (!isSameFloor && currentFloor === 'bookTalkFloor') {
         setRoomId(null);
+        // bookTalkFloor 재진입 시 room-4는 항상 비움
+        clearRoom4Room();
       }
 
       console.log(
@@ -89,27 +107,31 @@ export const GamePage = () => {
       // 층이 변경되면 lastFloorRef 업데이트
       lastFloorRef.current = currentFloor;
     }
-  }, [currentFloor, spawnPoint, gameAppRef, isReady, setRoomId]);
+  }, [
+    currentFloor,
+    spawnPoint,
+    gameAppRef,
+    isReady,
+    setRoomId,
+    clearRoom4Room,
+  ]);
 
   /**
    * 카테고리 변경 감지
    */
   useEffect(() => {
     if (isReady && gameAppRef.current) {
-      // [2] 여기서 UUID를 'science'나 'comic'으로 변환합니다.
-      // 맵에 없는 ID라면(전체보기 등) 빈 문자열이나 원래 ID를 사용하도록 처리
       const mappedKey = CATEGORY_MAP[selectedCategoryId] || '';
 
-      console.log(`[GamePage] 변환: ${selectedCategoryId} -> ${mappedKey}`); // 확인용 로그
-
-      // [3] 변환된 키('science')를 GameApp에 전달합니다.
+      console.log(`[GamePage] 변환: ${selectedCategoryId} -> ${mappedKey}`);
       gameAppRef.current.updateBackground(mappedKey);
     }
-  }, [selectedCategoryId, isReady]);
+  }, [selectedCategoryId, isReady, gameAppRef]);
 
   return (
     <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />}>
       <BookTalkCategoryDropdown />
+      <ConferenceRoomInfoPanel />
     </GameLayout>
   );
 };

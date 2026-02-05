@@ -1,17 +1,29 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelInput } from '@/components/common/PixelInput';
+import { PixelPagination } from '@/components/common/PixelPagination';
 import { useSearchBook, useToggleWishlist } from '@/hooks/queries/useBook';
+import { type ModalType, useModalStore } from '@/store/useModalStore';
 import { BookCard } from '../book/BookCard';
-import { BookDetailModal } from './BookDetailModal';
+
+import type { Book } from '@/types/book.types';
 
 import * as styles from './BookSearchModal.css';
 
 const ITEMS_PER_PAGE = 6;
 const FETCH_SIZE = 20;
 
-export const BookSearchModal = () => {
+interface BookSearchModalProps {
+  onSelectBook?: (book: Book) => void | Promise<void>;
+  // If provided, the modal acts as a selector
+  from?: ModalType;
+}
+
+export const BookSearchModal = ({
+  onSelectBook,
+  from = 'bookSearch',
+}: BookSearchModalProps) => {
   // 검색어 입력 상태
   const [searchQuery, setSearchQuery] = useState('');
   // 실제 검색 키워드
@@ -29,7 +41,8 @@ export const BookSearchModal = () => {
   const { mutateAsync: toggleWishlist } = useToggleWishlist();
 
   // 상세 보기 모달 상태 (ISBN 저장)
-  const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
+  // const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
+  const { openModal } = useModalStore();
 
   // 검색 결과 데이터
   const books = searchResult?.content || [];
@@ -101,10 +114,18 @@ export const BookSearchModal = () => {
   };
 
   /**
-   * 책 클릭 핸들러 (상세 모달 열기)
+   * 책 클릭 핸들러 (상세 모달 열기 또는 선택)
    */
-  const handleBookClick = (isbn: string) => {
-    setSelectedIsbn(isbn);
+  const handleBookClick = (book: Book) => {
+    if (onSelectBook) {
+      onSelectBook(book);
+    } else {
+      openModal('bookDetail', {
+        isbn: book.isbn,
+        initialIsWished: book.isWished,
+        from,
+      });
+    }
   };
 
   const currentBooks = getCurrentPageBooks();
@@ -159,7 +180,7 @@ export const BookSearchModal = () => {
             book={book}
             showWishButton={true}
             onToggleWish={handleToggleWish}
-            onClick={() => handleBookClick(book.isbn)}
+            onClick={() => handleBookClick(book)}
           />
         ))}
       </div>
@@ -169,33 +190,19 @@ export const BookSearchModal = () => {
   /**
    * 페이지네이션 렌더링
    */
+  /**
+   * 페이지네이션 렌더링
+   */
   const renderPagination = () => {
     if (!isSearchMode || totalBooks === 0 || isLoading) return null;
 
     return (
-      <div className={styles.paginationContainer}>
-        <PixelButton
-          size="sm"
-          variant={currentPage === 0 ? 'disabled' : 'beige'}
-          onClick={handlePrevPage}
-          disabled={currentPage === 0}
-        >
-          ◀ 이전
-        </PixelButton>
-
-        <div className={styles.pageInfo}>
-          {currentPage + 1} / {totalPages}
-        </div>
-
-        <PixelButton
-          size="sm"
-          variant={currentPage >= totalPages - 1 ? 'disabled' : 'beige'}
-          onClick={handleNextPage}
-          disabled={currentPage >= totalPages - 1}
-        >
-          다음 ▶
-        </PixelButton>
-      </div>
+      <PixelPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPrevPage={handlePrevPage}
+        onNextPage={handleNextPage}
+      />
     );
   };
 
@@ -214,6 +221,7 @@ export const BookSearchModal = () => {
           className={styles.searchButton}
           variant="primary"
           onClick={handleSearch}
+          disabled={!searchQuery.trim()}
         >
           검색
         </PixelButton>
@@ -233,17 +241,6 @@ export const BookSearchModal = () => {
 
       {/* 페이지네이션 */}
       {renderPagination()}
-
-      {/* 상세 보기 모달 (오버레이) */}
-      {selectedIsbn && (
-        <BookDetailModal
-          isbn={selectedIsbn}
-          onClose={() => setSelectedIsbn(null)}
-          initialIsWished={
-            currentBooks.find((book) => book.isbn === selectedIsbn)?.isWished
-          }
-        />
-      )}
     </div>
   );
 };

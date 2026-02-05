@@ -19,6 +19,7 @@
     "@vanilla-extract/recipes": "^0.5.7",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
+    "event-source-polyfill": "^1.0.31",
     "pixi-viewport": "^6.0.3",
     "pixi.js": "^8.15.0",
     "react": "^19.2.0",

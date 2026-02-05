@@ -5,21 +5,23 @@ import { PixelInput } from '@/components/common/PixelInput';
 import {
   useAcceptFriend,
   useBlockedList,
-  useBlockUser,
   useFriendList,
   usePendingFriendList,
   useRejectFriend,
-  useRequestFriend,
   useSearchUser,
   useUnblockUser,
 } from '@/hooks/queries/useFriend';
+import { useModalStore } from '@/store/useModalStore';
+
+import type { FriendListTabType } from '@/types/friend.types';
 
 import * as styles from './FriendListModal.css';
 
-type TabType = 'FRIENDS' | 'REQUESTS' | 'BLOCKED';
-
 export const FriendListModal = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('FRIENDS');
+  const { modalProps } = useModalStore();
+  const [activeTab, setActiveTab] = useState<FriendListTabType>(
+    (modalProps.initialTab as FriendListTabType) || 'FRIENDS',
+  );
   const [searchEmail, setSearchEmail] = useState('');
   const [isSearchMode, setIsSearchMode] = useState(false);
 
@@ -36,16 +38,15 @@ export const FriendListModal = () => {
 
   const { mutate: acceptFriend } = useAcceptFriend();
   const { mutate: rejectFriend } = useRejectFriend();
-  const { mutate: blockUser, isPending: isBlocking } = useBlockUser();
   const { mutate: unblockUser, isPending: isUnblocking } = useUnblockUser();
 
+  // 검색 관련 훅
   const {
     mutate: searchUser,
     data: searchResult,
     isPending: isSearching,
     reset: resetSearch,
   } = useSearchUser();
-  const { mutate: requestFriend, isPending: isRequesting } = useRequestFriend();
 
   /**
    * 친구 요청 수락
@@ -66,16 +67,6 @@ export const FriendListModal = () => {
   };
 
   /**
-   * 사용자 차단
-   * @param email - 차단할 사용자 이메일
-   */
-  const handleBlock = (email: string) => {
-    if (confirm('정말 차단하시겠습니까?')) {
-      blockUser(email);
-    }
-  };
-
-  /**
    * 사용자 차단 해제
    * @param email - 차단 해제할 사용자 이메일
    */
@@ -86,6 +77,15 @@ export const FriendListModal = () => {
   };
 
   /**
+   * 프로필 보기
+   * @param userId - 조회할 사용자 ID
+   * @param friendId - 친구 요청 ID (선택적, 수락/거절용)
+   */
+  const handleViewProfile = (userId: string, friendId?: string) => {
+    useModalStore.getState().openUserProfile(userId, friendId);
+  };
+
+  /**
    * 사용자 검색 실행
    * 입력된 이메일로 사용자를 검색하고 검색 모드로 전환
    */
@@ -93,14 +93,6 @@ export const FriendListModal = () => {
     if (!searchEmail.trim()) return;
     setIsSearchMode(true);
     searchUser({ email: searchEmail });
-  };
-
-  /**
-   * 검색된 사용자에게 친구 요청 전송
-   */
-  const handleRequest = () => {
-    if (!searchResult) return;
-    requestFriend({ receiverEmail: searchResult.email });
   };
 
   /**
@@ -127,7 +119,7 @@ export const FriendListModal = () => {
    * 탭 전환 처리
    * @param tab - 전환할 탭 타입
    */
-  const handleTabClick = (tab: TabType) => {
+  const handleTabClick = (tab: FriendListTabType) => {
     setIsSearchMode(false);
     setActiveTab(tab);
     setSearchEmail('');
@@ -166,76 +158,20 @@ export const FriendListModal = () => {
 
   /**
    * 검색 결과의 액션 버튼 렌더링
-   * 관계 상태(NONE, FRIEND, PENDING 등)에 따라 적절한 버튼 표시
-   * @returns 관계 상태에 따른 액션 버튼 또는 상태 태그
+   * 모든 관계 상태에서 프로필 보기 버튼 표시
+   * @returns 프로필 보기 버튼
    */
   const renderSearchResultActions = () => {
     if (!searchResult) return null;
 
-    const { relationStatus, email } = searchResult;
-
-    if (relationStatus === 'NONE') {
-      return (
-        <>
-          <PixelButton
-            variant="primary"
-            onClick={handleRequest}
-            disabled={isRequesting}
-          >
-            친구 요청
-          </PixelButton>
-          <PixelButton
-            variant="danger"
-            onClick={() => handleBlock(email)}
-            disabled={isBlocking}
-          >
-            차단
-          </PixelButton>
-        </>
-      );
-    }
-
-    if (relationStatus === 'FRIEND') {
-      return (
-        <>
-          <span className={styles.statusTag}>이미 친구</span>
-          <PixelButton
-            size="sm"
-            variant="danger"
-            onClick={() => handleBlock(email)}
-            disabled={isBlocking}
-          >
-            차단
-          </PixelButton>
-        </>
-      );
-    }
-
-    if (relationStatus === 'PENDING_SENT') {
-      return <span className={styles.statusTag}>요청 보냄</span>;
-    }
-
-    if (relationStatus === 'PENDING_RECEIVED') {
-      return <span className={styles.statusTag}>요청 받음</span>;
-    }
-
-    if (relationStatus === 'MYSELF') {
-      return <span className={styles.statusTag}>나 자신</span>;
-    }
-
-    if (relationStatus === 'BLOCKED_BY_ME') {
-      return (
-        <PixelButton
-          variant="beige"
-          onClick={() => handleUnblock(email)}
-          disabled={isUnblocking}
-        >
-          차단 해제
-        </PixelButton>
-      );
-    }
-
-    return null;
+    return (
+      <PixelButton
+        variant="primary"
+        onClick={() => handleViewProfile(searchResult.userId)}
+      >
+        프로필 보기
+      </PixelButton>
+    );
   };
 
   /**
@@ -280,22 +216,24 @@ export const FriendListModal = () => {
       );
     }
 
-    return friendList?.content.map((friend) => (
-      <div key={friend.friendId} className={styles.listItem}>
-        <div className={styles.nickname}>{friend.nickname}</div>
-        <div className={styles.email}>{friend.email}</div>
-        <div className={styles.actionButtons}>
-          <PixelButton
-            size="sm"
-            variant="danger"
-            onClick={() => handleBlock(friend.email)}
-            disabled={isBlocking}
-          >
-            차단
-          </PixelButton>
+    return friendList?.content.map((friend) => {
+      console.log('👥 Friend item:', friend); // 디버깅: friend 객체 확인
+      return (
+        <div key={friend.friendId} className={styles.listItem}>
+          <div className={styles.nickname}>{friend.nickname}</div>
+          <div className={styles.email}>{friend.email}</div>
+          <div className={styles.actionButtons}>
+            <PixelButton
+              size="sm"
+              variant="primary"
+              onClick={() => handleViewProfile(friend.userId)}
+            >
+              프로필 보기
+            </PixelButton>
+          </div>
         </div>
-      </div>
-    ));
+      );
+    });
   };
 
   /**
@@ -316,6 +254,13 @@ export const FriendListModal = () => {
         <div className={styles.nickname}>{request.nickname}</div>
         <div className={styles.email}>{request.email}</div>
         <div className={styles.actionButtons}>
+          <PixelButton
+            size="sm"
+            variant="beige"
+            onClick={() => handleViewProfile(request.userId, request.friendId)}
+          >
+            프로필 보기
+          </PixelButton>
           <PixelButton
             size="sm"
             variant="primary"

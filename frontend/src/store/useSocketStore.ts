@@ -8,6 +8,7 @@ import { create } from 'zustand';
 import { useAuthStore } from './useAuthStore';
 
 import type {
+  LeaveRoomRequest,
   MoveBroadcast,
   MoveEnterRequest,
   MoveExitRequest,
@@ -29,11 +30,16 @@ interface SocketState {
     floorId: string,
     onMoveReceive: (moves: MoveBroadcast[]) => void,
   ) => void;
-  unsubscribeMove: () => void;
+  // exit 대상 floorId를 외부에서 지정할 수 있게 확장
+  unsubscribeMove: (options?: {
+    sendExit?: boolean;
+    exitFloorId?: string;
+  }) => void;
 
   sendEnter: (req: MoveEnterRequest) => void;
   sendMove: (req: MoveRequest) => void;
   sendExit: (req: MoveExitRequest) => void;
+  sendLeaveRoom: (req: LeaveRoomRequest) => void;
 }
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
@@ -121,7 +127,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     }
 
     try {
-      unsubscribeMove();
+      unsubscribeMove({ sendExit: false });
       // 해제 패킷이 먼저 처리되도록 미세 지연
       await new Promise((resolve) => setTimeout(resolve, 50));
 
@@ -151,13 +157,17 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     }
   },
 
-  unsubscribeMove: () => {
+  unsubscribeMove: (options) => {
+    const shouldSendExit = options?.sendExit ?? true;
+    const exitFloorId = options?.exitFloorId;
     const { sendExit, moveSubscription, client, subscribedFloorId } = get();
     if (client?.connected) {
       // 구독 해제 전에 백엔드에 퇴장 메시지 전송
-      if (subscribedFloorId) {
-        sendExit({ floorId: subscribedFloorId });
-        console.log(`[Store] ${subscribedFloorId} 퇴장 메시지 전송`);
+      // exitFloorId가 주어지면 그 값을 우선 사용한다.
+      const resolvedExitFloorId = exitFloorId ?? subscribedFloorId;
+      if (resolvedExitFloorId && shouldSendExit) {
+        sendExit({ floorId: resolvedExitFloorId });
+        console.log(`[Store] ${resolvedExitFloorId} 퇴장 메시지 전송`);
       }
 
       if (moveSubscription) {
@@ -201,6 +211,17 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     if (client?.active) {
       client.publish({
         destination: '/app/move/exit',
+        headers: getHeaders(),
+        body: JSON.stringify(req),
+      });
+    }
+  },
+  sendLeaveRoom: (req) => {
+    const { client } = get();
+    if (client?.active) {
+      // 방 퇴장용 STOMP 메시지 전송
+      client.publish({
+        destination: '/app/leaveRoom',
         headers: getHeaders(),
         body: JSON.stringify(req),
       });

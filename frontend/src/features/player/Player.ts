@@ -9,6 +9,7 @@ import { palette } from '@/styles/theme.css';
 export class Player extends Container {
   private _character: AnimatedSprite;
   private _nicknameText: Text;
+  private _userId: string; // 사용자 ID (프로필 조회용)
 
   // 텍스쳐를 잘라내서 보관
   private _textures: Record<Direction, Texture[]> = {
@@ -26,12 +27,20 @@ export class Player extends Container {
   private readonly ACTUAL_HEIGHT = 24;
   private _scaleFactor = this.DEFAULT_SCALE_FACTOR;
 
-  constructor(x: number, y: number, nickname: string, sheetTexture: Texture) {
+  constructor(
+    x: number,
+    y: number,
+    nickname: string,
+    sheetTexture: Texture,
+    userId: string,
+    onClickCallback?: (userId: string) => void,
+  ) {
     super();
 
     // 초기 좌표 설정
     this.x = x;
     this.y = y;
+    this._userId = userId;
 
     // 텍스처 자르기
     this.sliceTextures(sheetTexture);
@@ -47,6 +56,26 @@ export class Player extends Container {
 
     this._character.x = 0;
     this._character.y = 0;
+
+    // 캐릭터를 클릭 가능하게 설정
+    this._character.eventMode = 'static';
+    this._character.cursor = 'pointer';
+
+    // 히트 영역 설정 (투명 영역 제외하고 실제 캐릭터 크기에 맞춤)
+    // anchor(0.5, 0.7) 기준 오프셋 계산
+    this._character.hitArea = new Rectangle(
+      -this.ACTUAL_WIDTH / 2,
+      -this.ACTUAL_HEIGHT * 0.7,
+      this.ACTUAL_WIDTH,
+      this.ACTUAL_HEIGHT,
+    );
+
+    // 클릭 이벤트 핸들러 추가
+    if (onClickCallback) {
+      this._character.on('pointerdown', () => {
+        onClickCallback(this._userId);
+      });
+    }
 
     this.addChild(this._character);
 
@@ -137,6 +166,10 @@ export class Player extends Container {
 
   public get playerHeight() {
     return this.ACTUAL_HEIGHT * this._scaleFactor;
+  }
+
+  public get userId() {
+    return this._userId;
   }
 
   public setScaleFactor(scaleFactor: number) {

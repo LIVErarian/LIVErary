@@ -1,4 +1,5 @@
 import type { CommonResponse } from './api.types';
+import type { FriendRelationStatus } from './friend.types';
 
 export type UserRole = 'USER' | 'ADMIN';
 
@@ -16,12 +17,33 @@ export interface UserProfile {
   };
 }
 
+// 타인 프로필 응답 데이터
+export interface OtherProfile {
+  userId: string;
+  email: string;
+  nickname: string;
+  role: UserRole;
+  totalReadingTime: number;
+  bookCounts: {
+    wish: number;
+    reading: number;
+    completed: number;
+  };
+  relationStatus: FriendRelationStatus; // 관계 상태
+}
+
 // ======================= API =======================
 export type getUserResponse = CommonResponse<UserProfile>;
+export type OtherProfileResponse = CommonResponse<OtherProfile>;
 
 // POST /api/user/preferences 요청 바디
 export interface UserPreferencesRequest {
   categoryIds: string[];
+}
+
+// 회원 정보 수정 요청 바디 (확장 가능)
+export interface UserUpdateRequest {
+  nickname: string;
 }
 
 // 공통 응답 포맷(status/code/message/data)을 그대로 사용

@@ -31,6 +31,9 @@ export type FriendRelationStatus =
   | 'BLOCKED_BY_ME' // 내가 차단함
   | 'MYSELF'; // 나 자신
 
+// 친구 목록 모달 탭 타입
+export type FriendListTabType = 'FRIENDS' | 'REQUESTS' | 'BLOCKED';
+
 // 친구 요청/수락 상태
 export type FriendStatus =
   | 'PENDING' // 대기 중
@@ -56,6 +59,7 @@ export type UserSearchResponse = CommonResponse<UserSearchData>;
 // 친구 정보 데이터 (Backend FriendResponse 대응)
 export interface FriendData {
   friendId: string;
+  userId: string; // 사용자 ID (프로필 조회용)
   email: string;
   nickname: string;
   status: FriendStatus;

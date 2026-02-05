@@ -38,6 +38,11 @@ export interface JoinRoomRequest {
   roomId: string;
 }
 
+// [요청] 방 퇴장 (/app/leaveRoom)
+export interface LeaveRoomRequest {
+  roomId: string;
+}
+
 // [요청] SDP Offer 전달 (/app/receiveDataFrom)
 export interface ReceiveDataFromRequest {
   senderId: string;

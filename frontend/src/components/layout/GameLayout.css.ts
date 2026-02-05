@@ -97,6 +97,7 @@ export const playerName = style({
 // 미디어 컨트롤 (마이크 버튼)
 export const mediaRow = style({
   display: 'flex',
+  gap: '16px',
 });
 
 // 오른쪽 게임 영역
