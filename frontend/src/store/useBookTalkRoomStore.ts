@@ -11,7 +11,7 @@ interface BookTalkRoomState {
   selectedCategoryId: string;
 
   /**
-   * /room/recommend 응답 원본 배열.
+   * /ai/recommend 응답 원본 배열.
    * room-1~4 배정은 배열 인덱스를 그대로 사용한다.
    */
   recommendedRooms: RECOMMENDED_ROOM[];
@@ -28,7 +28,7 @@ interface BookTalkRoomState {
   setSelectedCategoryId: (categoryId: string) => void;
 
   /**
-   * /room/recommend 응답 원본 배열을 그대로 저장한다.
+   * /ai/recommend 응답 원본 배열을 그대로 저장한다.
    * zone과 room 매핑은 별도 유틸에서 인덱스 기반으로 처리한다.
    */
   setRecommendedRooms: (rooms: RECOMMENDED_ROOM[]) => void;
@@ -49,7 +49,8 @@ export const useBookTalkRoomStore = create<BookTalkRoomState>((set) => ({
   room4Room: null,
 
   // 드롭다운에서 선택한 카테고리를 그대로 저장한다.
-  setSelectedCategoryId: (categoryId) => set({ selectedCategoryId: categoryId }),
+  setSelectedCategoryId: (categoryId) =>
+    set({ selectedCategoryId: categoryId }),
   // 최신 추천 방 배열 전체를 교체 저장한다.
   setRecommendedRooms: (rooms) => set({ recommendedRooms: rooms }),
   setRoom4Room: (room) => set({ room4Room: room }),

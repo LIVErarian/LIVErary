@@ -205,7 +205,7 @@ export const roomApi = {
   ): Promise<RECOMMENDED_ROOM[]> => {
     const params = categoryId ? { categoryId } : undefined;
     const { data } = await api.get<GetRecommendedRoomResponse>(
-      '/room/recommend',
+      '/ai/recommend',
       { params },
     );
 
