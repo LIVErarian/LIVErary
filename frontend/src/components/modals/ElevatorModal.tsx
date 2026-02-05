@@ -1,16 +1,37 @@
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelModal } from '@/components/common/PixelModal';
+import { roomApi } from '@/api/room.api';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
+import { useSocketStore } from '@/store/useSocketStore';
 
 import type { FloorType } from '@/types/map.types';
 
 export const ElevatorModal = () => {
   const { closeModal } = useModalStore();
-  const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
+  const { currentFloor, roomId, setCurrentFloor, setRoomId } = useGameStore();
+  const sendLeaveRoom = useSocketStore((state) => state.sendLeaveRoom);
 
   // 층 이동
-  const handleMove = (floor: FloorType) => {
+  const handleMove = async (floor: FloorType) => {
+    if (currentFloor === 'conferenceFloor' && roomId) {
+      try {
+        // 회의실 퇴장: STOMP + HTTP 동시 전송
+        sendLeaveRoom({ roomId });
+        await roomApi.leaveRoom({ roomId });
+        setRoomId(null);
+      } catch (error: unknown) {
+        console.error('회의실 퇴장 실패:', error);
+        const apiError = error as {
+          response?: { data?: { message?: string } };
+        };
+        alert(
+          apiError?.response?.data?.message ??
+            '퇴장 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        );
+        return;
+      }
+    }
     setCurrentFloor(floor);
     closeModal();
   };
