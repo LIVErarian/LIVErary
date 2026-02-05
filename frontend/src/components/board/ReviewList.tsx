@@ -26,14 +26,34 @@ export const ReviewList = ({ boardId, boardType }: ReviewListProps) => {
     size: 5,
   }); // 한 페이지당 5개
 
+  if (boardType === 'NOTICE') {
+    return null;
+  }
+
   if (isLoading) return <div>리뷰 로딩 중...</div>;
 
   const totalPages = reviewData?.totalPages || 0;
   const currentPage = reviewData?.number || 0;
 
-  // 문의 게시판(INQUIRY)은 관리자(ADMIN)만 댓글 작성 가능
-  const canWriteReview =
-    !!user && (user.role === 'ADMIN' || boardType !== 'INQUIRY');
+  // 권한 체크 로직
+  const checkPermission = () => {
+    // 1. 로그인이 안 되어 있다면 무조건 불가
+    if (!user) return false;
+
+    if (boardType === 'INQUIRY') {
+      // 2. 문의 게시판일 경우: 관리자만 작성 가능
+      if (user.role === 'ADMIN') {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      // 3. 그 외 게시판: 로그인한 유저는 모두 작성 가능
+      return true;
+    }
+  };
+
+  const canWriteReview = checkPermission();
 
   return (
     <div className={styles.container}>
