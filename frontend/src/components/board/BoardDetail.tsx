@@ -16,6 +16,7 @@ import type { BoardDetail as BoardDetailData } from '@/types/board.types';
 
 import * as styles from './BoardDetail.css';
 import { theme } from '@/styles/theme.css';
+import { ReviewList } from './ReviewList';
 
 const formatDate = (dateString: string) =>
   new Date(dateString).toLocaleString();
@@ -256,6 +257,7 @@ export const BoardDetail = ({ boardId }: { boardId: string }) => {
       <main className={styles.content}>
         <p>{post.content}</p>
         {post.type === 'PROMOTION' && <PromotionDetails post={post} />}
+        <ReviewList boardId={boardId} boardType={post.type} />
       </main>
 
       <footer className={styles.footer}>
