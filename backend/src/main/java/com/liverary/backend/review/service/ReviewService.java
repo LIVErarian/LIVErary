@@ -54,6 +54,11 @@ public class ReviewService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new BaseException(ErrorCode.BOARD_NOT_FOUND));
 
+        // 공지 게시판 댓글 작성 불가
+        if (board.getType() == Type.NOTICE) {
+            throw new BaseException(ErrorCode.REVIEW_NOT_ALLOWED);
+        }
+
         // 문의 게시판 관리자 권한 확인 및 상태 변경
         board.validateAndCompleteInquiry(user);
 
@@ -64,16 +69,6 @@ public class ReviewService {
                 .build();
 
         Review savedReview = reviewRepository.save(review);
-
-        // 댓글 작성자가 게시판 작성자와 다른 경우에만 알림 발송
-        if(!user.getUserId().equals(board.getUser().getUserId())) {
-            notificationService.send(
-                    board.getUser(),
-                    NotificationType.BOARD_REPLY,
-                    "작성하신 글에 답글이 등록되었습니다."
-            );
-        }
-
 
         return ReviewResponse.from(savedReview);
     }

@@ -70,6 +70,7 @@ public enum ErrorCode {
     NOT_FRIEND_RECEIVER(HttpStatus.FORBIDDEN, "F002", "친구 요청 수락 권한이 없습니다."),
     NOT_FRIEND_RELATION(HttpStatus.FORBIDDEN, "F003", "해당 친구 관계에 대한 접근 권한이 없습니다."),
 
+    REVIEW_NOT_ALLOWED(HttpStatus.FORBIDDEN, "RV003", "공지 게시판에는 댓글을 작성할 수 없습니다."),
 
     // 404 NOT_FOUND: 리소스를 찾을 수 없음
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "요청한 리소스를 찾을 수 없습니다."),
