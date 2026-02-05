@@ -90,4 +90,20 @@ public class BookHistoryController {
         return BaseResponse.success();
     }
 
+    /**
+     * 책 상태 일괄 업데이트 API
+     * - PATCH /api/book-history/{isbn}
+     * - query param: status (WISH / READING / COMPLETED)
+     */
+    @PatchMapping("/{isbn}")
+    public BaseResponse<Void> updateBookStatus(
+            @PathVariable String isbn,
+            @RequestParam com.liverary.backend.bookHistory.domain.BookStatus status,
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        UUID userId = getUserId(user);
+        bookHistoryService.updateBookStatus(isbn, userId, status);
+        return BaseResponse.success();
+    }
+
 }

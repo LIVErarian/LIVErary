@@ -129,4 +129,29 @@ public class BookHistoryService {
 
         bookHistoryRepository.save(history);
     }
+    /**
+     * 책 상태 일괄 업데이트 (WISH, READING, COMPLETED)
+     * - 기존 기록이 존재하면 상태 변경
+     * - 없으면 새로 생성
+     */
+    @Transactional
+    public void updateBookStatus(String isbn, UUID userId, BookStatus status) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        Book book = bookService.getOrSaveBook(isbn);
+
+        bookHistoryRepository.findByUserAndBook(user, book)
+                .ifPresentOrElse(
+                        history -> history.updateStatus(status),
+                        () -> {
+                            BookHistory newHistory = BookHistory.builder()
+                                    .user(user)
+                                    .book(book)
+                                    .status(status)
+                                    .build();
+                            bookHistoryRepository.save(newHistory);
+                        }
+                );
+    }
 }

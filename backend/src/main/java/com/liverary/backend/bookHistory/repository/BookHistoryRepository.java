@@ -21,6 +21,9 @@ public interface BookHistoryRepository extends JpaRepository<BookHistory, UUID> 
     // 찜 내역 조회 (Entity 기반)
     Optional<BookHistory> findByUserAndBookAndStatus(User user, Book book, BookStatus status);
 
+    // 사용자와 책으로 독서 기록 조회 (상태 무관)
+    Optional<BookHistory> findByUserAndBook(User user, Book book);
+
     // 찜 여부 확인 (Entity 기반)
     boolean existsByUserAndBookAndStatus(User user, Book book, BookStatus status);
 
