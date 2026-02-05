@@ -458,7 +458,7 @@ public class RoomService {
         room.decreaseCurrentCount();
 
         // LIVE 상태이면서 인원이 0명인 경우 방 종료
-        if (room.getStatus() == RoomStatus.LIVE && room.getCurrentCount() <= 0) {
+        if (room.getStatus() == RoomStatus.LIVE && room.getCurrentCount() <= 0 && room.getRoomType() == RoomType.TALK) {
             room.updateStatus(RoomStatus.FINISHED);
         }
 
