@@ -69,12 +69,13 @@ public interface RoomRepository extends JpaRepository<Room, UUID> {
     );
 
     // 카테고리별 LIVE 방을 최신 시작 시간순으로 조회 (추천용)
-    List<Room> findAllByCategoryAndStatusOrderByStartAtDesc(
+    List<Room> findAllByCategoryAndStatusAndAccessTypeOrderByStartAtDesc(
             Category category,
             RoomStatus status,
+            AccessType accessType,
             Pageable pageable
     );
 
     // LIVE 방 전체를 최신 시작 시간순으로 조회 (추천용)
-    List<Room> findAllByStatusOrderByStartAtDesc(RoomStatus roomStatus, Pageable pageable);
+    List<Room> findAllByStatusAndAccessTypeOrderByStartAtDesc(RoomStatus roomStatus, AccessType accessType, Pageable pageable);
 }
