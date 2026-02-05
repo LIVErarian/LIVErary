@@ -5,12 +5,9 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 
 import { HeartButton } from '@/components/common/HeartButton';
 import { useBookDetail, useToggleWishlist } from '@/hooks/queries/useBook';
-
-import type { BookSearchResponse } from '@/types/book.types';
 
 import * as styles from './BookDetailModal.css';
 import { closeButton } from '@/components/common/PixelModal.css';

@@ -62,3 +62,13 @@ export const getBookDetail = async (isbn: string): Promise<BookDetail> => {
     throw error;
   }
 };
+
+// 읽고 있는 책 등록
+export const registerReadingBook = async (isbn: string): Promise<void> => {
+  await api.post(`/book-history/reading/${isbn}`);
+};
+
+// 다 읽은 책 등록
+export const registerCompletedBook = async (isbn: string): Promise<void> => {
+  await api.post(`/book-history/completed/${isbn}`);
+};
