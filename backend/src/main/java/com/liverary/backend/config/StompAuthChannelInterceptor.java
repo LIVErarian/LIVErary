@@ -38,6 +38,11 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
 
         String token = resolveToken(accessor);
         if (!StringUtils.hasText(token)) {
+            if (command == StompCommand.SUBSCRIBE || command == StompCommand.UNSUBSCRIBE) {
+                if (accessor.getUser() != null) {
+                    return message;
+                }
+            }
             throw new BaseException(ErrorCode.UNAUTHORIZED);
         }
 
