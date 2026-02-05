@@ -59,7 +59,7 @@ public class ReviewService {
             throw new BaseException(ErrorCode.REVIEW_NOT_ALLOWED);
         }
 
-        // 문의 게시판 관리자 권한 확인 및 상태 변경
+        // 문의 게시판 관리자 권한 확인 및 상태 변경 (PENDING -> DONE)
         board.validateAndCompleteInquiry(user);
 
         Review review = Review.builder()
@@ -69,6 +69,27 @@ public class ReviewService {
                 .build();
 
         Review savedReview = reviewRepository.save(review);
+
+        // 알림 전송 로직 (자문자답 알림 X)
+        if(!board.getUser().getUserId().equals(user.getUserId())){
+            NotificationType notificationType;
+            String notificationContent;
+
+            // 게시판 타입에 따라 알림 종류 분기
+            // 문의 게시판 -> INQUIRY_REVIEW 타입
+            if(board.getType()== Type.INQUIRY){
+                notificationType = NotificationType.INQUIRY_REVIEW;
+                notificationContent = "회원님의 문의글에 답변이 등록되었습니다.";
+            }
+            // 홍보 게시판 -> BOARD_REVIEW 타입
+            else{
+                notificationType = NotificationType.BOARD_REVIEW;
+                notificationContent = String.format("회원님의 '%s' 게시글에 새로운 댓글이 달렸습니다.", board.getTitle());
+            }
+
+            // 게시글 작성자에게 알림 전송
+            notificationService.send(board.getUser(), notificationType, notificationContent);
+        }
 
         return ReviewResponse.from(savedReview);
     }
