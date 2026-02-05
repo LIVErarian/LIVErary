@@ -3,6 +3,7 @@ import { AxiosError } from 'axios';
 
 import { roomApi } from '@/api/room.api';
 import { useGameStore } from '@/store/useGameStore';
+import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { roomKeys } from '../queries/useRoomQueries';
 
 import type { CommonResponse } from '@/types/api.types';
@@ -27,6 +28,8 @@ export const useCreateRoom = () => {
   const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
   const setRoomId = useGameStore((state) => state.setRoomId);
   const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
+  // room-4 칩 렌더링을 위한 전용 상태 업데이트
+  const setRoom4Room = useBookTalkRoomStore((state) => state.setRoom4Room);
   const conferenceEntrySpawn = { x: 0.88, y: 0.5 };
 
   return useMutation<
@@ -35,26 +38,27 @@ export const useCreateRoom = () => {
     CreateRoomRequest
   >({
     mutationFn: roomApi.createRoom,
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       // 라이브면 즉시 방으로 이동
       if (variables.status === 'LIVE') {
         console.log('방 생성 완료:', data.roomId);
-        setRoomId(data.roomId);
 
-        // concert인 경우 콘서트 홀로 이동
+        // concert인 경우 콘서트 홀로 이동 + 즉시 join
         if (variables.roomType === 'CONCERT') {
+          setRoomId(data.roomId);
           setCurrentFloor('bookConcert');
           setSpawnPoint(null);
         }
         // booktalk인 경우 분기 필요
         else if (variables.roomType === 'TALK')
           if (variables.accessType === 'PRIVATE') {
-            // Private인 경우 회의실로 이동
+            // Private인 경우 회의실로 이동 + 즉시 join
+            setRoomId(data.roomId);
             setCurrentFloor('conferenceFloor');
             setSpawnPoint(conferenceEntrySpawn);
           } else {
-            // Public인 경우 bookTalkFloor로 보내고 네번째 방으로
-            setSpawnPoint({ x: 0.82, y: 0.78 }); // room4 spawnpoint
+            // Public인 경우 bookTalkFloor로 보내되 roomId는 세팅하지 않음 (존 입장 시 join)
+            setSpawnPoint({ x: 0.83, y: 0.65 }); // room4 zoneFrontAbove
             setCurrentFloor('bookTalkFloor');
           }
       }
@@ -63,6 +67,29 @@ export const useCreateRoom = () => {
         queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
         queryClient.invalidateQueries({ queryKey: roomKeys.lists() });
         alert('예약이 완료되었습니다.');
+      }
+
+      try {
+        const detail = await roomApi.getRoomDetail({ roomId: data.roomId });
+        if (
+          variables.status === 'LIVE' &&
+          variables.roomType === 'TALK' &&
+          variables.accessType === 'PUBLIC'
+        ) {
+          // room-4 표시용 데이터만 저장 (추천 배열과 분리)
+          setRoom4Room({
+            roomId: detail.roomId,
+            title: detail.title,
+            roomType: detail.roomType,
+            accessType: detail.accessType,
+            status: detail.status,
+            categoryName: detail.categoryName,
+            currentCount: detail.currentCount,
+            maxUser: detail.maxUser,
+          });
+        }
+      } catch (error) {
+        console.error('방 상세 정보 조회 실패:', error);
       }
 
       // 방 목록 강제 갱신

@@ -53,6 +53,11 @@ export type MapZoneAction =
         | 'screenCenter'
         | 'zoneFrontAbove'
         | 'zoneFrontBelow';
+    }
+  | {
+      type: 'leaveRoomConfirm';
+      title?: string;
+      message: string;
     };
 
 export interface MapZoneConfig {

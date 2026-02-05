@@ -7,6 +7,7 @@ import { useWebRTC } from '@/hooks/webrtc/useWebRTC';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
+import { useSocketStore } from '@/store/useSocketStore';
 
 import type { FloorType } from '@/types/map.types';
 
@@ -26,6 +27,7 @@ export const GameSidebar = () => {
     useGameStore();
   const user = useAuthStore((state) => state.user);
   const openModal = useModalStore((state) => state.openModal);
+  const sendLeaveRoom = useSocketStore((state) => state.sendLeaveRoom);
 
   const roomId = useGameStore((state) => state.roomId);
 
@@ -52,7 +54,30 @@ export const GameSidebar = () => {
     openModal('move', {
       title: '장소 이동',
       message: `${floorTitle}로 이동하시겠습니까?`,
-      onConfirm: () => {
+      onConfirm: async () => {
+        if (isLeavingRoom) return;
+        setIsLeavingRoom(true);
+        try {
+          if (currentFloor === 'conferenceFloor' && roomId) {
+            // 회의실 이동 시 반드시 leaveRoom(STOMP + HTTP) 처리
+            sendLeaveRoom({ roomId });
+            await roomApi.leaveRoom({ roomId });
+            setRoomId(null);
+          }
+        } catch (error: unknown) {
+          console.error('회의실 퇴장 실패:', error);
+          const apiError = error as {
+            response?: { data?: { message?: string } };
+          };
+          alert(
+            apiError?.response?.data?.message ??
+              '퇴장 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
+          );
+          return;
+        } finally {
+          setIsLeavingRoom(false);
+        }
+
         setCurrentFloor(targetFloor);
       },
     });
@@ -64,6 +89,8 @@ export const GameSidebar = () => {
 
     try {
       if (roomId) {
+        // 사이드바 "나가기"도 STOMP + HTTP 모두 호출
+        sendLeaveRoom({ roomId });
         await roomApi.leaveRoom({ roomId });
       }
 

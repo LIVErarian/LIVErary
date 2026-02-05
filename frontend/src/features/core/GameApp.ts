@@ -51,6 +51,8 @@ export class GameApp {
   private _myId: string = '';
   private _isPrevMoving: boolean = false;
   private _isDestroyed: boolean = false;
+  // leaveRoom 중복 호출 방지용 플래그
+  private _isLeavingRoom: boolean = false;
   private _isInteractPressed: boolean = false;
   private _suppressZoneTriggers: Map<string, Set<'enter' | 'exit'>> = new Map();
   private _bgSprite: Sprite | null = null;
@@ -412,14 +414,25 @@ export class GameApp {
   private refreshBookTalkRoomInfoOverlay() {
     if (!this._bookTalkRoomInfoContainer) return;
 
-    const { recommendedRooms } = useBookTalkRoomStore.getState();
+    const { recommendedRooms, room4Room } = useBookTalkRoomStore.getState();
     const snapshot = JSON.stringify(
-      recommendedRooms.map((room) => ({
-        roomId: room.roomId,
-        title: room.title,
-        currentCount: room.currentCount,
-        maxUser: room.maxUser,
-      })),
+      [
+        ...recommendedRooms.map((room) => ({
+          roomId: room.roomId,
+          title: room.title,
+          currentCount: room.currentCount,
+          maxUser: room.maxUser,
+        })),
+        // room-4 전용 정보도 스냅샷에 포함해 갱신을 감지한다.
+        room4Room
+          ? {
+              roomId: room4Room.roomId,
+              title: room4Room.title,
+              currentCount: room4Room.currentCount,
+              maxUser: room4Room.maxUser,
+            }
+          : null,
+      ],
     );
 
     if (snapshot === this._bookTalkRoomInfoSnapshot) return;
@@ -428,6 +441,21 @@ export class GameApp {
     BOOK_TALK_ZONE_IDS.forEach((zoneId, index) => {
       const labelText = this._bookTalkRoomInfoTextMap.get(zoneId);
       if (!labelText) return;
+
+      // room-4는 추천 배열 대신 전용 상태로 표시한다.
+      if (zoneId === 'room-4') {
+        if (!room4Room) {
+          labelText.text = '방 생성하기';
+          return;
+        }
+
+        const title =
+          room4Room.title.length > 12
+            ? `${room4Room.title.slice(0, 12)}...`
+            : room4Room.title;
+        labelText.text = `${title}\n${room4Room.currentCount} / ${room4Room.maxUser}`;
+        return;
+      }
 
       const room = recommendedRooms[index];
       if (!room) {
@@ -569,6 +597,41 @@ export class GameApp {
       });
     }
 
+    // 회의실 출구 인터랙션용: 퇴장 확인 후 STOMP + HTTP 모두 보낸다.
+    if (action.type === 'leaveRoomConfirm') {
+      useModalStore.getState().openModal('entrance', {
+        title: action.title || '퇴장 확인',
+        message: action.message,
+        onConfirm: async () => {
+          if (this._isLeavingRoom) return;
+          this._isLeavingRoom = true;
+
+          try {
+            const roomId = useGameStore.getState().roomId;
+            if (roomId) {
+              useSocketStore.getState().sendLeaveRoom({ roomId });
+              await roomApi.leaveRoom({ roomId });
+            }
+
+            useGameStore.getState().setRoomId(null);
+            useGameStore.getState().setSpawnPoint({ x: 0.5, y: 0.5 });
+            useGameStore.getState().setCurrentFloor('bookTalkFloor');
+          } catch (error: unknown) {
+            console.error('회의실 퇴장 실패:', error);
+            const apiError = error as {
+              response?: { data?: { message?: string } };
+            };
+            alert(
+              apiError?.response?.data?.message ??
+                '퇴장 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
+            );
+          } finally {
+            this._isLeavingRoom = false;
+          }
+        },
+      });
+    }
+
     if (action.type === 'confirm') {
       useModalStore.getState().openModal('entrance', {
         title: action.title,
@@ -598,6 +661,18 @@ export class GameApp {
         }
         return 'exit';
       };
+
+      const { room4Room } = useBookTalkRoomStore.getState();
+      // room-4가 비어있으면 입장 대신 방 생성 모달을 띄운다.
+      if (zone?.id === 'room-4' && !room4Room) {
+        useModalStore.getState().openModal('createRoom');
+        this.movePlayerToPosition(
+          action.cancelPosition,
+          zone,
+          suppressFor(action.cancelPosition, 'confirm'),
+        );
+        return;
+      }
 
       // 모달 열기
       useModalStore.getState().openModal('entrance', {
@@ -641,11 +716,13 @@ export class GameApp {
                  * 서버에서 받은 추천 순서를 곧 화면 배치 순서로 취급한다.
                  * (요구사항: category 기반 recommend 배열을 4개 존에 배정)
                  */
-                const { recommendedRooms } = useBookTalkRoomStore.getState();
-                const targetRoom = findRecommendedRoomByZone(
-                  zone.id,
-                  recommendedRooms,
-                );
+                const { recommendedRooms, room4Room } =
+                  useBookTalkRoomStore.getState();
+                // room-4는 전용 방, 나머지는 추천 배열 인덱스로 매핑한다.
+                const targetRoom =
+                  zone.id === 'room-4' && room4Room
+                    ? room4Room
+                    : findRecommendedRoomByZone(zone.id, recommendedRooms);
                 targetRoomId = targetRoom?.roomId ?? null;
               } else {
                 // 기존 흐름 유지: 북콘서트/독서실 등은 roomType 기반으로 첫 방 1개 선택

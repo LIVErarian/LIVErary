@@ -307,6 +307,22 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     name: '회의실',
     img: conferenceFloorImg,
     ...conferenceMapProps,
+    zones: [
+      {
+        id: 'conference-exit',
+        label: '회의실 퇴장',
+        x: 0.93,
+        y: 0.48,
+        width: 0.07,
+        height: 0.09,
+        trigger: 'interact',
+        action: {
+          type: 'leaveRoomConfirm',
+          title: '퇴장 확인',
+          message: '퇴장하시겠습니까?',
+        },
+      },
+    ],
   },
   bookTalkFloor: {
     floorId: '33333333-3333-3333-3333-333333333333',

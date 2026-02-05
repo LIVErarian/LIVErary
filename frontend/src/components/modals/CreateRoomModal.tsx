@@ -14,7 +14,7 @@ export const CreateRoomModal = () => {
   const { mutate: createRoom, isPending } = useCreateRoom();
 
   const [title, setTitle] = useState('');
-  const [roomType, setRoomType] = useState<RoomType>('READING');
+  const [roomType, setRoomType] = useState<RoomType>('TALK');
   const [accessType, setAccessType] = useState<AccessType>('PUBLIC');
   const [maxUser, setMaxUser] = useState(4);
 

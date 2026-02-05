@@ -12,6 +12,7 @@ import type {
   MoveEnterRequest,
   MoveExitRequest,
   MoveRequest,
+  LeaveRoomRequest,
 } from '@/types/socket.types';
 
 interface SocketState {
@@ -38,6 +39,7 @@ interface SocketState {
   sendEnter: (req: MoveEnterRequest) => void;
   sendMove: (req: MoveRequest) => void;
   sendExit: (req: MoveExitRequest) => void;
+  sendLeaveRoom: (req: LeaveRoomRequest) => void;
 }
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
@@ -209,6 +211,17 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     if (client?.active) {
       client.publish({
         destination: '/app/move/exit',
+        headers: getHeaders(),
+        body: JSON.stringify(req),
+      });
+    }
+  },
+  sendLeaveRoom: (req) => {
+    const { client } = get();
+    if (client?.active) {
+      // 방 퇴장용 STOMP 메시지 전송
+      client.publish({
+        destination: '/app/leaveRoom',
         headers: getHeaders(),
         body: JSON.stringify(req),
       });
