@@ -3,6 +3,7 @@ package com.liverary.backend.room.controller;
 import com.liverary.backend.common.dto.BaseResponse;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.room.domain.AccessType;
 import com.liverary.backend.room.domain.RoomType;
 import com.liverary.backend.room.dto.request.*;
 import com.liverary.backend.room.dto.response.*;
@@ -137,25 +138,47 @@ public class RoomController {
     }
 
     /**
-     * 방 목록을 조회하거나 검색합니다.
+     * 현재 진행 중인 독서 모임(TALK) 목록을 조회하거나 검색합니다.
      *
-     * <p>현재 진행 중(LIVE)이거나 예정된(SCHEDULED) 상태의 방 목록을 페이징하여 반환합니다.
-     * 검색어(keyword)가 존재할 경우 제목으로 검색을 수행합니다.
-     * 쿼리 파라미터로 룸 타입(층)을 지정하여 필터링할 수 있으며, 지정하지 않을 경우 전체 목록을 조회합니다.</p>
+     * <p>검색어(keyword)가 존재할 경우 제목으로 검색을 수행합니다.
+     * 쿼리 파라미터로 카테고리, 공개/비공개 여부를 필터링할 수 있으며, 지정하지 않을 경우 전체 목록을 조회합니다.</p>
      *
-     * @param roomType 조회할 방의 타입. null일 경우 모든 타입의 방을 조회
+     * @param categoryId 카테고리
+     * @param accessType 공개/비공개
      * @param keyword 검색할 키워드.
      * @param pageable 페이징 정보 (page, size, sort). 기본값: 생성일(createdAt) 기준 내림차순, 페이지당 10개
      * @return 필터링 및 페이징 처리된 방 목록({@link RoomListResponse})을 포함한 공통 응답 객체
      */
-    @GetMapping
-    public BaseResponse<Page<RoomListResponse>> getRooms(
-            @RequestParam(required = false) RoomType roomType,
+    @GetMapping("/live")
+    public BaseResponse<Page<RoomListResponse>> getLiveRooms(
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) AccessType accessType,
             @RequestParam(required = false) String keyword,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
-    ){
-        Page<RoomListResponse> responses = roomService.getRooms(roomType, keyword, pageable);
-        return BaseResponse.success(responses);
+            @PageableDefault(size = 10, sort = "startAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Page<RoomListResponse> response = roomService.getLiveRooms(categoryId, accessType, keyword, pageable);
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 예약된 독서 모임(TALK) 목록을 조회하거나 검색합니다.
+     *
+     * <p>검색어(keyword)가 존재할 경우 제목으로 검색을 수행합니다.
+     * 쿼리 파라미터로 카테고리를 필터링할 수 있으며, 지정하지 않을 경우 전체 목록을 조회합니다.</p>
+     *
+     * @param categoryId 카테고리
+     * @param keyword 검색할 키워드.
+     * @param pageable 페이징 정보 (page, size, sort). 기본값: 생성일(createdAt) 기준 내림차순, 페이지당 10개
+     * @return 필터링 및 페이징 처리된 방 목록({@link RoomListResponse})을 포함한 공통 응답 객체
+     */
+    @GetMapping("/reservation")
+    public BaseResponse<Page<RoomListResponse>> getScheduledRooms(
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 10, sort = "startAt", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        Page<RoomListResponse> response = roomService.getScheduledRooms(categoryId, keyword, pageable);
+        return BaseResponse.success(response);
     }
 
     /**

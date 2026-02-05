@@ -1,6 +1,7 @@
 package com.liverary.backend.room.repository;
 
 import com.liverary.backend.category.domain.Category;
+import com.liverary.backend.room.domain.AccessType;
 import com.liverary.backend.room.domain.Room;
 import com.liverary.backend.room.domain.RoomStatus;
 import com.liverary.backend.room.domain.RoomType;
@@ -20,11 +21,28 @@ import java.util.UUID;
  * Room 엔티티에 대한 데이터베이스 접근 기능을 담당하는 Repository 인터페이스입니다.
  */
 public interface RoomRepository extends JpaRepository<Room, UUID> {
-    // 특정 RoomType이면서, Status 목록에 포함된 방들 조회 (페이징 포함)
-    Page<Room>findByRoomTypeAndStatusIn(RoomType roomType, List<RoomStatus> statuses, Pageable pageable);
-
-    // RoomType 상관없이 Status 목록에 포함된 방들 조회 (전체 조회용)
-    Page<Room> findByStatusIn(List<RoomStatus> statuses, Pageable pageable);
+    /**
+     * 통합 검색 쿼리
+     * - Status (LIVE/SCHEDULED)
+     * - RoomType (TALK 고정)
+     * - Category (Nullable)
+     * - AccessType (Nullable)
+     * - Keyword (Nullable)
+     */
+    @Query("SELECT r FROM Room r " +
+            "WHERE r.status = :status " +
+            "AND r.roomType = :roomType " +
+            "AND (:categoryId IS NULL OR r.category.categoryId = :categoryId) " +
+            "AND (:accessType IS NULL OR r.accessType = :accessType) " +
+            "AND (:keyword IS NULL OR r.title LIKE %:keyword%)")
+    Page<Room> findRoomsWithFilters(
+            @Param("status") RoomStatus status,
+            @Param("roomType") RoomType roomType,
+            @Param("categoryId") UUID categoryId,
+            @Param("accessType") AccessType accessType,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 
     // Status 목록에 포함된 방들 중 keyword가 제목에 포함되어 있는 방 검색
     Page<Room> findByStatusInAndTitleContaining(Collection<RoomStatus> statuses, String keyword, Pageable pageable);
