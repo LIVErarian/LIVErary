@@ -12,14 +12,21 @@ import * as styles from './BoardCreate.css';
 import { theme } from '@/styles/theme.css';
 
 export const BoardCreate = () => {
-  const { openModal } = useModalStore();
+  const { openModal, modalProps } = useModalStore();
   const { user } = useAuthStore();
   const { mutate: createBoard, isPending } = useCreateBoard();
 
   // 내 예약 방 목록 조회
   const { data: myRooms } = useMyScheduledRooms();
 
-  const [type, setType] = useState<BoardType>('INQUIRY');
+  // initialBoardTab이 있으면 그걸 기본값으로 사용, 없으면 PROMOTION
+  const initialBoardTab =
+    modalProps?.initialBoardTab &&
+    ['INQUIRY', 'PROMOTION', 'NOTICE'].includes(modalProps.initialBoardTab)
+      ? (modalProps.initialBoardTab as BoardType)
+      : 'PROMOTION';
+
+  const [type, setType] = useState<BoardType>(initialBoardTab);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [roomId, setRoomId] = useState('');
@@ -62,8 +69,8 @@ export const BoardCreate = () => {
               value={type}
               onChange={(e) => setType(e.target.value as BoardType)}
             >
-              <option value="INQUIRY">❓ 문의하기</option>
               <option value="PROMOTION">📣 홍보하기</option>
+              <option value="INQUIRY">❓ 문의하기</option>
               {isAdmin && <option value="NOTICE">📢 공지사항</option>}
             </select>
           </div>
@@ -120,7 +127,11 @@ export const BoardCreate = () => {
       {/* 하단 버튼 */}
       <footer className={styles.footer}>
         <PixelButton
-          onClick={() => openModal('boardList')}
+          onClick={() =>
+            openModal('boardList', {
+              initialBoardTab: modalProps?.initialBoardTab,
+            })
+          }
           style={{
             backgroundColor: theme.colors.disabledBg,
             color: theme.colors.disabledText,

@@ -10,8 +10,16 @@ import type { BoardType } from '@/types/board.types';
 import * as styles from './BoardList.css';
 
 export const BoardList = () => {
-  const { openModal } = useModalStore();
-  const [type, setType] = useState<BoardType>('PROMOTION');
+  const { openModal, modalProps } = useModalStore();
+
+  // initialBoardTab이 있으면 그걸 기본값으로 사용
+  const initialType =
+    modalProps?.initialBoardTab &&
+    ['INQUIRY', 'PROMOTION', 'NOTICE'].includes(modalProps.initialBoardTab)
+      ? (modalProps.initialBoardTab as BoardType)
+      : 'PROMOTION';
+
+  const [type, setType] = useState<BoardType>(initialType);
   const [page, setPage] = useState(0);
   const [keyword, setKeyword] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,7 +50,9 @@ export const BoardList = () => {
       {/* 검색창 및 글쓰기 버튼 */}
       <div className={styles.toolbar}>
         <div>
-          <PixelButton onClick={() => openModal('boardCreate')}>
+          <PixelButton
+            onClick={() => openModal('boardCreate', { initialBoardTab: type })}
+          >
             글쓰기
           </PixelButton>
         </div>
