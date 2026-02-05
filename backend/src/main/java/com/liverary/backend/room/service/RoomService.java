@@ -507,7 +507,10 @@ public class RoomService {
                 keyword,
                 pageable
         );
-        return rooms.map(RoomListResponse::from);
+        return rooms.map(room -> {
+            long reservationCount = roomReservationRepository.countByRoom(room);
+            return RoomListResponse.fromWithReservationCount(room, reservationCount);
+        });
     }
 
     /**
@@ -543,6 +546,11 @@ public class RoomService {
     public RoomDetailResponse getRoomDetail(UUID roomId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+        if (room.getStatus() == RoomStatus.SCHEDULED) {
+            long reservationCount = roomReservationRepository.countByRoom(room);
+            return RoomDetailResponse.from(room, reservationCount);
+        }
 
         return RoomDetailResponse.from(room);
     }

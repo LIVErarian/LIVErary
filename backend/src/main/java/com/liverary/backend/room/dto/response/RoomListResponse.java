@@ -56,4 +56,26 @@ public class RoomListResponse {
                 .maxUser(room.getMaxUser())
                 .build();
     }
+
+    /**
+     * Room 엔티티와 예약 인원 수를 기반으로 목록 조회용 응답 DTO를 생성합니다.
+     *
+     * <p>RESERVED(SCHEDULED) 상태의 방에서 currentCount를 실시간 예약 인원으로 대체합니다.</p>
+     *
+     * @param room 변환할 원본 Room 엔티티
+     * @param reservationCount 예약된 인원 수
+     * @return 방 목록 조회에 필요한 정보를 담은 {@link RoomListResponse} 객체
+     */
+    public static RoomListResponse fromWithReservationCount(Room room, long reservationCount) {
+        return RoomListResponse.builder()
+                .roomId(room.getRoomId())
+                .title(room.getTitle())
+                .roomType(room.getRoomType())
+                .accessType(room.getAccessType())
+                .status(room.getStatus())
+                .categoryName(room.getCategory().getName())
+                .currentCount((int) reservationCount)
+                .maxUser(room.getMaxUser())
+                .build();
+    }
 }
