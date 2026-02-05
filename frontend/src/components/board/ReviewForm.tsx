@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 import { PixelButton } from '@/components/common/PixelButton';
-
 import { useCreateReview } from '@/hooks/queries/useReview';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -25,7 +24,7 @@ export const ReviewForm = ({ boardId }: ReviewFormProps) => {
       { boardId, content },
       {
         onSuccess: () => setContent(''),
-      }
+      },
     );
   };
 

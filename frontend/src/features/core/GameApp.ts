@@ -415,25 +415,23 @@ export class GameApp {
     if (!this._bookTalkRoomInfoContainer) return;
 
     const { recommendedRooms, room4Room } = useBookTalkRoomStore.getState();
-    const snapshot = JSON.stringify(
-      [
-        ...recommendedRooms.map((room) => ({
-          roomId: room.roomId,
-          title: room.title,
-          currentCount: room.currentCount,
-          maxUser: room.maxUser,
-        })),
-        // room-4 전용 정보도 스냅샷에 포함해 갱신을 감지한다.
-        room4Room
-          ? {
-              roomId: room4Room.roomId,
-              title: room4Room.title,
-              currentCount: room4Room.currentCount,
-              maxUser: room4Room.maxUser,
-            }
-          : null,
-      ],
-    );
+    const snapshot = JSON.stringify([
+      ...recommendedRooms.map((room) => ({
+        roomId: room.roomId,
+        title: room.title,
+        currentCount: room.currentCount,
+        maxUser: room.maxUser,
+      })),
+      // room-4 전용 정보도 스냅샷에 포함해 갱신을 감지한다.
+      room4Room
+        ? {
+            roomId: room4Room.roomId,
+            title: room4Room.title,
+            currentCount: room4Room.currentCount,
+            maxUser: room4Room.maxUser,
+          }
+        : null,
+    ]);
 
     if (snapshot === this._bookTalkRoomInfoSnapshot) return;
     this._bookTalkRoomInfoSnapshot = snapshot;

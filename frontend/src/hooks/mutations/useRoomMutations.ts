@@ -2,8 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import { roomApi } from '@/api/room.api';
-import { useGameStore } from '@/store/useGameStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
+import { useGameStore } from '@/store/useGameStore';
 import { roomKeys } from '../queries/useRoomQueries';
 
 import type { CommonResponse } from '@/types/api.types';

@@ -1,13 +1,13 @@
 import { api } from './axios';
 
 import type {
-  GetReviewListRequest,
-  GetReviewListResponse,
   CreateReviewRequest,
   CreateReviewResponse,
+  DeleteReviewResponse,
+  GetReviewListRequest,
+  GetReviewListResponse,
   UpdateReviewRequest,
   UpdateReviewResponse,
-  DeleteReviewResponse,
 } from '@/types/review.types';
 
 /**
@@ -41,7 +41,9 @@ export const reviewApi = {
    * @param req boardId, content
    * @returns 생성된 리뷰 ID
    */
-  createReview: async (req: CreateReviewRequest): Promise<CreateReviewResponse['data']> => {
+  createReview: async (
+    req: CreateReviewRequest,
+  ): Promise<CreateReviewResponse['data']> => {
     const { data } = await api.post<CreateReviewResponse>(
       `/review/${req.boardId}/reviews`,
       {
@@ -57,7 +59,10 @@ export const reviewApi = {
    * @param req reviewId, content
    * @returns 수정된 리뷰 ID
    */
-  updateReview: async ({ reviewId, content }: UpdateReviewRequest): Promise<UpdateReviewResponse['data']> => {
+  updateReview: async ({
+    reviewId,
+    content,
+  }: UpdateReviewRequest): Promise<UpdateReviewResponse['data']> => {
     const { data } = await api.patch<UpdateReviewResponse>(
       `/review/${reviewId}`,
       {
@@ -73,8 +78,6 @@ export const reviewApi = {
    * @param reviewId 삭제할 리뷰 ID
    */
   deleteReview: async (reviewId: string): Promise<void> => {
-    await api.delete<DeleteReviewResponse>(
-      `/review/${reviewId}`,
-    );
+    await api.delete<DeleteReviewResponse>(`/review/${reviewId}`);
   },
 };

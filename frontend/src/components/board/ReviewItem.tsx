@@ -1,8 +1,7 @@
 import { useState } from 'react';
 
-import { useAuthStore } from '@/store/useAuthStore';
-
 import { useDeleteReview, useUpdateReview } from '@/hooks/queries/useReview';
+import { useAuthStore } from '@/store/useAuthStore';
 
 import type { ReviewData } from '@/types/review.types';
 
@@ -30,7 +29,7 @@ export const ReviewItem = ({ review, boardId }: ReviewItemProps) => {
     if (!editContent.trim()) return;
     updateReview(
       { reviewId: review.reviewId, content: editContent },
-      { onSuccess: () => setIsEditing(false) }
+      { onSuccess: () => setIsEditing(false) },
     );
   };
 
@@ -44,7 +43,9 @@ export const ReviewItem = ({ review, boardId }: ReviewItemProps) => {
     <div className={styles.item}>
       <div className={styles.itemHeader}>
         <span className={styles.author}>{review.nickname}</span>
-        <span className={styles.date}>{new Date(review.createdAt).toLocaleString()}</span>
+        <span className={styles.date}>
+          {new Date(review.createdAt).toLocaleString()}
+        </span>
       </div>
 
       {isEditing ? (
@@ -55,8 +56,15 @@ export const ReviewItem = ({ review, boardId }: ReviewItemProps) => {
             onChange={(e) => setEditContent(e.target.value)}
           />
           <div className={styles.actionButtons}>
-            <button onClick={() => setIsEditing(false)} className={styles.actionButton}>취소</button>
-            <button onClick={handleUpdate} className={styles.actionButton}>저장</button>
+            <button
+              onClick={() => setIsEditing(false)}
+              className={styles.actionButton}
+            >
+              취소
+            </button>
+            <button onClick={handleUpdate} className={styles.actionButton}>
+              저장
+            </button>
           </div>
         </div>
       ) : (
@@ -65,8 +73,15 @@ export const ReviewItem = ({ review, boardId }: ReviewItemProps) => {
 
       {!isEditing && isMyReview && (
         <div className={styles.actionButtons}>
-          <button onClick={() => setIsEditing(true)} className={styles.actionButton}>수정</button>
-          <button onClick={handleDelete} className={styles.actionButton}>삭제</button>
+          <button
+            onClick={() => setIsEditing(true)}
+            className={styles.actionButton}
+          >
+            수정
+          </button>
+          <button onClick={handleDelete} className={styles.actionButton}>
+            삭제
+          </button>
         </div>
       )}
     </div>

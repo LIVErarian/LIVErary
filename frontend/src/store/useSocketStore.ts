@@ -8,11 +8,11 @@ import { create } from 'zustand';
 import { useAuthStore } from './useAuthStore';
 
 import type {
+  LeaveRoomRequest,
   MoveBroadcast,
   MoveEnterRequest,
   MoveExitRequest,
   MoveRequest,
-  LeaveRoomRequest,
 } from '@/types/socket.types';
 
 interface SocketState {

@@ -211,7 +211,7 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
     if (!client || !isConnected || !roomId || !myUserId) return;
 
     // Ref 값 복사
-    const currentSubscriberPCs = subscriberPCs.current;
+    // const currentSubscriberPCs = subscriberPCs.current; // unused variable removed
 
     // 안전장치
     let isMounted = true;

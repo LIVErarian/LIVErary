@@ -16,7 +16,7 @@ export const REVIEW_KEYS = {
  */
 export const useGetReviewList = (params: GetReviewListRequest) => {
   return useQuery({
-    queryKey: REVIEW_KEYS.listPage(params.boardId, params.page || 0, params.size || 10),
+    queryKey: [...REVIEW_KEYS.list(params.boardId), params], // params 전체를 키에 포함
     queryFn: () => reviewApi.getReviewList(params),
     enabled: !!params.boardId,
   });

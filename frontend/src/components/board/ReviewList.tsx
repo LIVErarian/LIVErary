@@ -1,14 +1,13 @@
 import { useState } from 'react';
 
+import { useGetReviewList } from '@/hooks/queries/useReview';
+import { useAuthStore } from '@/store/useAuthStore';
 import { ReviewForm } from './ReviewForm';
 import { ReviewItem } from './ReviewItem';
 
-import { useGetReviewList } from '@/hooks/queries/useReview';
+import type { BoardType } from '@/types/board.types';
 
 import * as styles from './Review.css';
-
-import { useAuthStore } from '@/store/useAuthStore';
-import type { BoardType } from '@/types/board.types';
 
 interface ReviewListProps {
   boardId: string;
@@ -21,7 +20,11 @@ interface ReviewListProps {
 export const ReviewList = ({ boardId, boardType }: ReviewListProps) => {
   const [page, setPage] = useState(0);
   const { user } = useAuthStore();
-  const { data: reviewData, isLoading } = useGetReviewList({ boardId, page, size: 5 }); // 한 페이지당 5개
+  const { data: reviewData, isLoading } = useGetReviewList({
+    boardId,
+    page,
+    size: 5,
+  }); // 한 페이지당 5개
 
   if (isLoading) return <div>리뷰 로딩 중...</div>;
 
@@ -30,12 +33,13 @@ export const ReviewList = ({ boardId, boardType }: ReviewListProps) => {
 
   // 문의 게시판(INQUIRY)은 관리자(ADMIN)만 댓글 작성 가능
   const canWriteReview =
-    !!user &&
-    (user.role === 'ADMIN' || boardType !== 'INQUIRY');
+    !!user && (user.role === 'ADMIN' || boardType !== 'INQUIRY');
 
   return (
     <div className={styles.container}>
-      <h3 className={styles.title}>💬 리뷰 ({reviewData?.totalElements || 0})</h3>
+      <h3 className={styles.title}>
+        💬 리뷰 ({reviewData?.totalElements || 0})
+      </h3>
 
       <div className={styles.list}>
         {reviewData?.content.map((review) => (
