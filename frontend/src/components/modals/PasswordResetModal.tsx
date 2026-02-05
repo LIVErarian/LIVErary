@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AxiosError } from 'axios';
 
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelInput } from '@/components/common/PixelInput';
@@ -46,20 +47,6 @@ export const PasswordResetModal = () => {
       return;
     }
 
-    if (newPassword !== confirmPassword) {
-      setErrorMessage('새 비밀번호가 일치하지 않습니다.');
-      return;
-    }
-
-    const passwordRegex =
-      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
-    if (!passwordRegex.test(newPassword)) {
-      setErrorMessage(
-        '비밀번호는 8~16자 영문 대소문자, 숫자, 특수문자를 포함해야 합니다.',
-      );
-      return;
-    }
-
     // 비밀번호 변경 API 호출
     resetPassword(
       { oldPassword, newPassword, confirmPassword },
@@ -68,10 +55,35 @@ export const PasswordResetModal = () => {
           alert('비밀번호가 변경되었습니다.');
           handleClose();
         },
-        onError: () => {
-          setErrorMessage(
-            '비밀번호 변경에 실패했습니다. 기존 비밀번호를 확인해주세요.',
-          );
+        onError: (error: AxiosError) => {
+          const data = error.response?.data as {
+            code?: string;
+            message?: string;
+          };
+          const code = data?.code;
+
+          switch (code) {
+            case 'A007': // PASSWORD_WRONG
+              setErrorMessage('현재 비밀번호가 일치하지 않습니다.');
+              break;
+            case 'C002': // INVALID_INPUT_VALUE
+              setErrorMessage(
+                '비밀번호는 8~16자 영문 대소문자, 숫자, 특수문자를 포함해야 합니다.',
+              );
+              break;
+            case 'A006': // PASSWORD_MISMATCH
+              setErrorMessage(
+                '새 비밀번호와 확인 비밀번호가 일치하지 않습니다.',
+              );
+              break;
+            case 'A008': // SAME_AS_OLD_PASSWORD
+              setErrorMessage(
+                '새 비밀번호는 기존 비밀번호와 다르게 설정해야 합니다.',
+              );
+              break;
+            default:
+              setErrorMessage(data?.message || '비밀번호 변경에 실패했습니다.');
+          }
         },
       },
     );

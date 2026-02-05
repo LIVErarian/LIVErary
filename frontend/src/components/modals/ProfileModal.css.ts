@@ -82,6 +82,7 @@ export const nicknameText = style({
   textUnderlineOffset: '4px',
 });
 
+// 닉네임 편집 입력창
 export const editInput = style({
   width: '85%',
   backgroundColor: 'transparent',
@@ -210,7 +211,7 @@ export const errorMessage = style({
 // 뷰 모드 버튼 래퍼
 export const viewModeButtonWrapper = style({
   display: 'flex',
-  gap: '4px',
+  gap: '12px',
 });
 
 // 로딩 래퍼
