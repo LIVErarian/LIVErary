@@ -63,12 +63,22 @@ export const getBookDetail = async (isbn: string): Promise<BookDetail> => {
   }
 };
 
+// 책 상태 변경
+export const updateBookStatus = async (
+  isbn: string,
+  status: 'WISH' | 'READING' | 'COMPLETED',
+): Promise<void> => {
+  await api.patch(`/book-history/${isbn}`, null, {
+    params: { status },
+  });
+};
+
 // 읽고 있는 책 등록
 export const registerReadingBook = async (isbn: string): Promise<void> => {
-  await api.post(`/book-history/reading/${isbn}`);
+  await updateBookStatus(isbn, 'READING');
 };
 
 // 다 읽은 책 등록
 export const registerCompletedBook = async (isbn: string): Promise<void> => {
-  await api.post(`/book-history/completed/${isbn}`);
+  await updateBookStatus(isbn, 'COMPLETED');
 };
