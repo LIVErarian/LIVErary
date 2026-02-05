@@ -1,9 +1,18 @@
 import { useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import { userApi } from '@/api/user.api';
 import { useAuthStore } from '@/store/useAuthStore';
 
+import type {
+  UserBooksResponse,
+  UserBookStatus,
+} from '@/types/bookshelf.types';
 import type { UserUpdateRequest } from '@/types/user.types';
 
 /**
@@ -62,5 +71,20 @@ export const useUpdateProfile = () => {
         setUser({ ...currentUser, nickname: variables.nickname });
       }
     },
+  });
+};
+
+/**
+ * 유저의 책 목록 조회 Hook
+ */
+export const useUserBooks = (
+  status: UserBookStatus,
+  page: number = 0,
+  size: number = 6,
+) => {
+  return useQuery<UserBooksResponse>({
+    queryKey: ['user', 'books', status, page, size],
+    queryFn: () => userApi.getUserBooks(status, page, size),
+    placeholderData: keepPreviousData, // 페이지 전환 시 이전 데이터 유지
   });
 };

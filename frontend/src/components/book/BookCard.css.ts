@@ -267,3 +267,53 @@ export const pixelHeart = style({
   marginLeft: '-12px',
   marginTop: '-10px',
 });
+
+/**
+ * 완독하기 버튼 오버레이 (읽는 중 상태에서 호버 시 표시)
+ */
+export const completeOverlay = style({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(0, 0, 0, 0.4)', // 반투명 배경
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  opacity: 0,
+  transition: 'opacity 0.2s ease-in-out',
+  zIndex: 10,
+  borderRadius: '4px', // coverWrapper와 동일하게
+
+  selectors: {
+    [`${coverWrapper}:hover &`]: {
+      opacity: 1,
+    },
+  },
+});
+
+/**
+ * 완독 완료 버튼
+ */
+export const completeButton = style({
+  padding: '8px 16px',
+  fontSize: '0.9rem',
+  fontWeight: 'bold',
+  color: theme.colors.woodDeep,
+  backgroundColor: theme.colors.beigeLight,
+  border: `2px solid ${theme.colors.woodDeep}`,
+  borderRadius: '4px',
+  cursor: 'pointer',
+  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+  transition: 'transform 0.1s, background-color 0.1s',
+
+  ':hover': {
+    transform: 'scale(1.05)',
+    backgroundColor: theme.colors.white,
+  },
+
+  ':active': {
+    transform: 'scale(0.95)',
+  },
+});

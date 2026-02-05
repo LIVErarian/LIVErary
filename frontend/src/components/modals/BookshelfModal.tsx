@@ -7,12 +7,16 @@
  * - 책 추가 기능 (검색 후 추가)
  */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import clsx from 'clsx';
 
-import { userApi } from '@/api/user.api';
 import { PixelButton } from '@/components/common/PixelButton';
-import { useToggleWishlist } from '@/hooks/queries/useBook';
+import {
+  useRegisterCompletedBook,
+  useRegisterReadingBook,
+  useToggleWishlist,
+} from '@/hooks/queries/useBook';
+import { useUserBooks } from '@/hooks/queries/useUser';
 import { BookCard } from '../book/BookCard';
 import { BookSearchModal } from './BookSearchModal';
 
@@ -39,49 +43,28 @@ export const BookshelfModal = () => {
   // 현재 페이지 (0부터 시작)
   const [currentPage, setCurrentPage] = useState(0);
 
-  // 데이터 상태
-  const [books, setBooks] = useState<UserBook[]>([]);
-  const [totalBooks, setTotalBooks] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  // 현재 활성 탭에 따른 API status 매핑
+  const currentStatus: UserBookStatus =
+    activeTab === 'wished'
+      ? 'WISH'
+      : activeTab === 'reading'
+        ? 'READING'
+        : 'COMPLETED';
 
-  // API 호출
-  const fetchBooks = async (tab: TabType, page: number) => {
-    setIsLoading(true);
-    try {
-      let status: UserBookStatus;
-      switch (tab) {
-        case 'wished':
-          status = 'WISH';
-          break;
-        case 'reading':
-          status = 'PENDING';
-          break;
-        case 'read':
-          status = 'COMPLETED';
-          break;
-      }
+  // React Query Hook 사용
+  const { data: booksResponse, isLoading } = useUserBooks(
+    currentStatus,
+    currentPage,
+    BOOKS_PER_PAGE,
+  );
 
-      const response = await userApi.getUserBooks(status, page, BOOKS_PER_PAGE);
-      setBooks(response.content);
-      setTotalBooks(response.totalElements);
-      setTotalPages(response.totalPages);
-    } catch (error) {
-      console.error('책 목록을 불러오는데 실패했습니다:', error);
-      setBooks([]);
-      setTotalBooks(0);
-      setTotalPages(0);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const books = booksResponse?.content || [];
+  const totalBooks = booksResponse?.totalElements || 0;
+  const totalPages = booksResponse?.totalPages || 0;
 
-  // 탭이나 페이지, 뷰 모드 변경 시 데이터 로드
-  useEffect(() => {
-    if (viewMode === 'list') {
-      fetchBooks(activeTab, currentPage);
-    }
-  }, [activeTab, currentPage, viewMode]);
+  // 탭이나 뷰 모드 변경 시 페이지 리셋은 useEffect로 처리하지 않고 핸들러에서 처리하거나,
+  // useUserBooks의 keepPreviousData로 자연스럽게 처리됨.
+  // 단, activeTab이 바뀌면 currentPage는 0으로 가는게 맞음 -> handleTabChange에서 처리 중.
 
   // 이벤트 핸들러
   /**
@@ -116,37 +99,35 @@ export const BookshelfModal = () => {
 
   // 찜 토글 훅
   const { mutateAsync: toggleWish } = useToggleWishlist();
+  const { mutateAsync: registerReading } = useRegisterReadingBook();
+  const { mutateAsync: registerCompleted } = useRegisterCompletedBook();
 
   /**
    * 찜 토글 핸들러 (목록 뷰에서 사용)
    */
   const handleToggleWish = async (id: string): Promise<boolean> => {
-    // 찜 목록에서만 삭제 ui 업데이트
-    if (activeTab === 'wished') {
-      try {
-        setBooks((prev) =>
-          prev.filter((book) => {
-            if (book.isbn && book.isbn === id) return false;
-            if (book.bookId === id) return false;
-            return true;
-          }),
-        );
-        setTotalBooks((prev) => Math.max(0, prev - 1));
+    // React Query가 자동으로 데이터를 갱신하므로 로컬 상태 수정 불필요
+    // 낙관적 업데이트는 useToggleWishlist 내부에서 처리됨
+    try {
+      const response = await toggleWish(id);
+      return response.wished;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
 
-        const response = await toggleWish(id);
-        return response.wished;
-      } catch (e) {
-        console.error(e);
-        return true;
-      }
-    } else {
-      // 다른 탭에서는 상태만 변경
+  /**
+   * 완독 처리 핸들러
+   */
+  const handleComplete = async (isbn: string) => {
+    if (confirm('이 책을 완독 처리하시겠습니까?')) {
       try {
-        const response = await toggleWish(id);
-        return response.wished;
-      } catch (e) {
-        console.error(e);
-        return false;
+        await registerCompleted(isbn);
+        alert('완독 처리되었습니다.');
+      } catch (error) {
+        console.error(error);
+        alert('완독 처리에 실패했습니다.');
       }
     }
   };
@@ -165,14 +146,17 @@ export const BookshelfModal = () => {
         }
       } else {
         // 읽고 있는 책 / 읽은 책 추가
-        const status = activeTab === 'reading' ? 'PENDING' : 'COMPLETED';
-        await userApi.addBook(book.isbn, status);
+        if (activeTab === 'reading') {
+          await registerReading(book.isbn);
+        } else {
+          await registerCompleted(book.isbn);
+        }
         alert('책장에 추가되었습니다.');
       }
 
-      // 목록으로 돌아가기 & 새로고침
+      // 목록으로 돌아가기 (데이터는 쿼리 무효화로 자동 갱신됨)
       setViewMode('list');
-      fetchBooks(activeTab, 0); // 첫 페이지로
+      setCurrentPage(0); // 첫 페이지로 이동
     } catch (error) {
       console.error(error);
       alert('책 추가에 실패했습니다.');
@@ -205,6 +189,7 @@ export const BookshelfModal = () => {
           </div>
           <BookSearchModal
             onSelectBook={!isWishTab ? handleSelectBookFromSearch : undefined}
+            from="bookshelf"
           />
         </div>
       );
@@ -248,12 +233,13 @@ export const BookshelfModal = () => {
           </PixelButton>
         </div>
         <div className={styles.booksGrid}>
-          {books.map((book) => (
+          {books.map((book: UserBook) => (
             <BookCard
               key={book.bookId}
               book={book}
               showWishButton={activeTab === 'wished'}
               onToggleWish={handleToggleWish}
+              onComplete={activeTab === 'reading' ? handleComplete : undefined}
             />
           ))}
         </div>

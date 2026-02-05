@@ -25,7 +25,6 @@ export const BookDetailModal = ({
 }: BookDetailModalProps) => {
   const { data: book, isLoading, isError } = useBookDetail(isbn);
   const toggleWishlistMutation = useToggleWishlist();
-  const queryClient = useQueryClient();
 
   // 찜 상태 관리 (검색 결과의 초기 상태 반영)
   const [isWished, setIsWished] = useState(initialIsWished ?? false);
@@ -73,29 +72,9 @@ export const BookDetailModal = ({
     try {
       const result = await toggleWishlistMutation.mutateAsync(book.isbn);
       setIsWished(result.wished);
-
-      // 검색 결과 캐시를 직접 업데이트하여 즉시 동기화
-      const cache = queryClient.getQueryCache();
-      const searchQueries = cache.findAll({ queryKey: ['books', 'search'] });
-
-      searchQueries.forEach((query) => {
-        const data = query.state.data as BookSearchResponse | undefined;
-        if (data) {
-          queryClient.setQueryData(query.queryKey, {
-            ...data,
-            content: data.content.map((b) =>
-              b.isbn === book.isbn ? { ...b, isWished: result.wished } : b,
-            ),
-          });
-        }
-      });
-
-      // 상세 정보 캐시도 무효화하여 최신 데이터 유지
-      await queryClient.invalidateQueries({
-        queryKey: ['books', 'detail', book.isbn],
-      });
     } catch (error) {
       console.error('[BookDetailModal] Failed to toggle wishlist:', error);
+      // 에러 시 원래 상태로 복구 (필요시 구현)
     } finally {
       setIsTogglingWish(false);
     }
