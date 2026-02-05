@@ -60,30 +60,7 @@ export const PasswordResetModal = () => {
             code?: string;
             message?: string;
           };
-          const code = data?.code;
-
-          switch (code) {
-            case 'A007': // PASSWORD_WRONG
-              setErrorMessage('현재 비밀번호가 일치하지 않습니다.');
-              break;
-            case 'C002': // INVALID_INPUT_VALUE
-              setErrorMessage(
-                '비밀번호는 8~16자 영문 대소문자, 숫자, 특수문자를 포함해야 합니다.',
-              );
-              break;
-            case 'A006': // PASSWORD_MISMATCH
-              setErrorMessage(
-                '새 비밀번호와 확인 비밀번호가 일치하지 않습니다.',
-              );
-              break;
-            case 'A008': // SAME_AS_OLD_PASSWORD
-              setErrorMessage(
-                '새 비밀번호는 기존 비밀번호와 다르게 설정해야 합니다.',
-              );
-              break;
-            default:
-              setErrorMessage(data?.message || '비밀번호 변경에 실패했습니다.');
-          }
+          setErrorMessage(data?.message || '비밀번호 변경에 실패했습니다.');
         },
       },
     );
@@ -144,7 +121,6 @@ export const PasswordResetModal = () => {
             variant="beige"
             onClick={handleClose}
             disabled={isPending}
-            size="sm"
             className={styles.button}
           >
             취소
@@ -160,7 +136,6 @@ export const PasswordResetModal = () => {
               !form.newPassword ||
               !form.confirmPassword
             }
-            size="sm"
             className={styles.button}
           >
             {isPending ? '변경 중...' : '변경하기'}
