@@ -3,8 +3,10 @@ import { useEffect, useRef } from 'react';
 import { GameLayout } from '@/components/layout/GameLayout';
 import { useGame } from '@/features/core/useGame';
 import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown';
+import { ConferenceRoomInfoPanel } from '@/features/ui/ConferenceRoomInfoPanel';
 import { GameSidebar } from '@/features/ui/GameSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
@@ -16,6 +18,9 @@ export const GamePage = () => {
   const currentFloor = useGameStore((state) => state.currentFloor);
   const spawnPoint = useGameStore((state) => state.spawnPoint);
   const setRoomId = useGameStore((state) => state.setRoomId);
+  const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
+  const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
+  const clearRoom4Room = useBookTalkRoomStore((state) => state.clearRoom4Room);
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const { connect, disconnect } = useSocketStore();
@@ -32,6 +37,18 @@ export const GamePage = () => {
     if (!accessToken) return;
     connect();
   }, [accessToken, connect]);
+
+  useEffect(() => {
+    const navEntry = performance.getEntriesByType('navigation')[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    if (navEntry?.type === 'reload') {
+      // 새로고침 시 bookTalkFloor 기본 입장 위치로 복귀
+      setRoomId(null);
+      setSpawnPoint(null);
+      setCurrentFloor('bookTalkFloor');
+    }
+  }, [setCurrentFloor, setRoomId, setSpawnPoint]);
 
   useEffect(() => {
     /**
@@ -70,6 +87,8 @@ export const GamePage = () => {
        */
       if (!isSameFloor && currentFloor === 'bookTalkFloor') {
         setRoomId(null);
+        // bookTalkFloor 재진입 시 room-4는 항상 비움
+        clearRoom4Room();
       }
 
       console.log(
@@ -80,11 +99,19 @@ export const GamePage = () => {
       // 층이 변경되면 lastFloorRef 업데이트
       lastFloorRef.current = currentFloor;
     }
-  }, [currentFloor, spawnPoint, gameAppRef, isReady, setRoomId]);
+  }, [
+    currentFloor,
+    spawnPoint,
+    gameAppRef,
+    isReady,
+    setRoomId,
+    clearRoom4Room,
+  ]);
 
   return (
     <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />}>
       <BookTalkCategoryDropdown />
+      <ConferenceRoomInfoPanel />
     </GameLayout>
   );
 };
