@@ -61,6 +61,9 @@ public class BookHistory {
         this.updatedAt = LocalDateTime.now();
     }
 
-
+    public void updateStatus(BookStatus status) {
+        this.status = status;
+        this.updatedAt = LocalDateTime.now();
+    }
 
 }

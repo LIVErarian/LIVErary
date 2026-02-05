@@ -1,6 +1,7 @@
 package com.liverary.backend.bookHistory.controller;
 
 import com.liverary.backend.bookHistory.DTO.response.WishStatusResponse;
+import com.liverary.backend.bookHistory.domain.BookStatus;
 import com.liverary.backend.bookHistory.service.BookHistoryService;
 import com.liverary.backend.common.dto.BaseResponse;
 import com.liverary.backend.exception.BaseException;
@@ -87,6 +88,22 @@ public class BookHistoryController {
     ){
         UUID userId = getUserId(user);
         bookHistoryService.registerCompleted(isbn, userId);
+        return BaseResponse.success();
+    }
+
+    /**
+     * 책 상태 일괄 업데이트 API
+     * - PATCH /api/book-history/{isbn}
+     * - query param: status (WISH / READING / COMPLETED)
+     */
+    @PatchMapping("/{isbn}")
+    public BaseResponse<Void> updateBookStatus(
+            @PathVariable String isbn,
+            @RequestParam BookStatus status,
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        UUID userId = getUserId(user);
+        bookHistoryService.updateBookStatus(isbn, userId, status);
         return BaseResponse.success();
     }
 
