@@ -70,6 +70,7 @@ export class GameApp {
   private _worldWidth: number = 960;
   private _worldHeight: number = 640;
   private _currentFloorId: string = '';
+  private _currentFloorType: FloorType | null = null;
   private _sendMoveThrottled: (payload: MoveRequest) => void;
 
   private readonly MOVE_SPEED = 4;
@@ -151,6 +152,7 @@ export class GameApp {
     this._worldWidth = mapConfig.width ?? this.DEFAULT_WIDTH;
     this._worldHeight = mapConfig.height ?? this.DEFAULT_HEIGHT;
     this._currentFloorId = mapConfig.floorId;
+    this._currentFloorType = floor;
 
     // 플레이어 위치 설정
     const spawnPoint = useGameStore.getState().spawnPoint;
@@ -960,6 +962,33 @@ export class GameApp {
     };
     const { isConnected, sendMove } = useSocketStore.getState();
     if (isConnected) sendMove(payload);
+  }
+
+  // 카테고리에 따라 배경 이미지 교체
+  public async updateBackground(categoryId: string) {
+    // 현재 맵 정보 가져오기
+    if (!this._currentFloorType) return;
+    const mapConfig = MAP_DATA[this._currentFloorType];
+    if (!mapConfig) return;
+
+    console.log('📌 [GameApp] 요청받은 ID:', categoryId);
+
+    // 교체할 이미지 결정 (카테고리 배경화면 있으면 그걸로 아니면 default img)
+    const targetImg =
+      categoryId && mapConfig.categoryImgs?.[categoryId]
+        ? mapConfig.categoryImgs[categoryId]
+        : mapConfig.img;
+
+    try {
+      const texture = await Assets.load(targetImg);
+
+      // 배경 스프라이트 텍스처 교체
+      if (this._bgSprite) {
+        this._bgSprite.texture = texture;
+      }
+    } catch (error) {
+      console.error(`[GameApp] 배경 변경 실패 (${targetImg}):`, error);
+    }
   }
 
   // 다른 플레이어들 위치 업데이트

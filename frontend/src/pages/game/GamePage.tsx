@@ -2,25 +2,34 @@ import { useEffect, useRef } from 'react';
 
 import { GameLayout } from '@/components/layout/GameLayout';
 import { useGame } from '@/features/core/useGame';
+import { CATEGORY_MAP } from '@/features/map/mapAssets';
 import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown';
 import { GameSidebar } from '@/features/ui/GameSidebar';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
 
 export const GamePage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { gameAppRef, isReady } = useGame(containerRef);
   const lastFloorRef = useRef<string | null>(null);
+
+  const { gameAppRef, isReady } = useGame(containerRef);
+
   const currentFloor = useGameStore((state) => state.currentFloor);
   const spawnPoint = useGameStore((state) => state.spawnPoint);
   const setRoomId = useGameStore((state) => state.setRoomId);
+
+  const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
+
+  const selectedCategoryId = useBookTalkRoomStore(
+    (state) => state.selectedCategoryId,
+  );
 
   const { connect, disconnect } = useSocketStore();
   const { openModal } = useModalStore();
-  const user = useAuthStore((state) => state.user);
 
   /**
    * 게임 화면에서 소켓 연결을 유지한다.
@@ -81,6 +90,22 @@ export const GamePage = () => {
       lastFloorRef.current = currentFloor;
     }
   }, [currentFloor, spawnPoint, gameAppRef, isReady, setRoomId]);
+
+  /**
+   * 카테고리 변경 감지
+   */
+  useEffect(() => {
+    if (isReady && gameAppRef.current) {
+      // [2] 여기서 UUID를 'science'나 'comic'으로 변환합니다.
+      // 맵에 없는 ID라면(전체보기 등) 빈 문자열이나 원래 ID를 사용하도록 처리
+      const mappedKey = CATEGORY_MAP[selectedCategoryId] || '';
+
+      console.log(`[GamePage] 변환: ${selectedCategoryId} -> ${mappedKey}`); // 확인용 로그
+
+      // [3] 변환된 키('science')를 GameApp에 전달합니다.
+      gameAppRef.current.updateBackground(mappedKey);
+    }
+  }, [selectedCategoryId, isReady]);
 
   return (
     <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />}>

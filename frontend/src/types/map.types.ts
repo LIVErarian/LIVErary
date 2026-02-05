@@ -89,6 +89,7 @@ export interface MapConfig {
   defaultRoomId?: string | null; // myRoom에서는 필요 없음
   name: string;
   img: string;
+  categoryImgs?: Record<string, string>; // booktalk에서 일부 카테고리에만 지정
   width?: number;
   height?: number;
   collision?: MapCollisionConfig;

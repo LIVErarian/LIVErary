@@ -1,11 +1,13 @@
 import bookConcertMapRaw from '@/assets/maps/book_concert.tmj?raw';
 import bookConcertImg from '@/assets/maps/book_concert_floor.png';
+import booktalkFloorImg from '@/assets/maps/book_talk_floor.png';
 import bookTalkMapRaw from '@/assets/maps/book_talk_floor.tmj?raw';
-import booktalkFloorImg from '@/assets/maps/booktalk_floor.png';
+import booktalkFloorComicImg from '@/assets/maps/book_talk_floor_comic.png';
+import booktalkFloorScienceImg from '@/assets/maps/book_talk_floor_science.png';
 import conferenceFloorImg from '@/assets/maps/conference_floor.png';
 import conferenceMapRaw from '@/assets/maps/conference_floor.tmj?raw';
+import lobbyImg from '@/assets/maps/lobby.png';
 import lobbyMapRaw from '@/assets/maps/lobby.tmj?raw';
-import lobbyImg from '@/assets/maps/lobby_floor.png';
 import myRoomImg from '@/assets/maps/my_room.png';
 import readingFloorImg from '@/assets/maps/reading_floor.png';
 import readingMapRaw from '@/assets/maps/reading_floor.tmj?raw';
@@ -130,6 +132,11 @@ const getMapProps = (mapData: TiledMap | null) => {
     height,
     collision: collision ?? undefined,
   };
+};
+
+export const CATEGORY_MAP: Record<string, string> = {
+  'f92eb0f2-a547-4004-80d6-5310c7731595': 'science',
+  '84ed26a7-9eff-436e-b8ad-f40051b0e674': 'comic',
 };
 
 const lobbyMap = parseTiledMap(lobbyMapRaw, 'lobby.tmj');
@@ -313,6 +320,10 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     defaultRoomId: null,
     name: '독서 모임 공간',
     img: booktalkFloorImg,
+    categoryImgs: {
+      science: booktalkFloorScienceImg,
+      comic: booktalkFloorComicImg,
+    },
     ...bookTalkMapProps,
     zones: [
       {
