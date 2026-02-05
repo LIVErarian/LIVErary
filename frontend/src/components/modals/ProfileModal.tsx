@@ -294,7 +294,57 @@ export const ProfileModal = ({
                 renderActionButtons(otherProfile.relationStatus)}
             </div>
 
-            <div className={styles.categoryRow}>#판타지</div>
+            {/* 카테고리 (클릭 시 수정) */}
+            <div
+              className={`${styles.categoryRow} ${
+                !isOtherProfile &&
+                myProfile?.preferences &&
+                myProfile.preferences.length > 0 &&
+                myProfile.preferences.length < 23
+                  ? styles.categoryRowInteractive
+                  : ''
+              }`}
+              onClick={() => {
+                if (!isOtherProfile) {
+                  useModalStore.getState().openModal('preferences', {
+                    preferences: myProfile?.preferences ?? undefined,
+                    from: 'profile',
+                  });
+                }
+              }}
+            >
+              {/* 내 프로필일 경우 */}
+              {!isOtherProfile ? (
+                // 선호 카테고리가 있고, 전체(23개)가 아닐 때만 태그 표시
+                myProfile?.preferences &&
+                myProfile.preferences.length > 0 &&
+                myProfile.preferences.length < 23 ? (
+                  myProfile.preferences.map((pref, index) => (
+                    <span key={index} style={{ marginRight: '6px' }}>
+                      #{pref}
+                    </span>
+                  ))
+                ) : (
+                  // 선호 카테고리가 없거나 전체(23개)일 때 (점선 타원 버튼)
+                  <button
+                    className={styles.addCategoryButton}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      useModalStore.getState().openModal('preferences', {
+                        from: 'profile',
+                      });
+                    }}
+                  >
+                    + 선호 카테고리 추가
+                  </button>
+                )
+              ) : (
+                // 타인 프로필일 경우
+                <span style={{ color: '#aaa', fontSize: '0.8rem' }}>
+                  {/* 타인의 선호 카테고리는 표시하지 않음 */}
+                </span>
+              )}
+            </div>
 
             {/* 총 독서 시간 */}
             <div className={styles.timeSection}>

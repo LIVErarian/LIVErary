@@ -70,6 +70,7 @@ export const GamePage = () => {
   useEffect(() => {
     if (!user) return;
     if (user.preferences !== null && user.preferences.length > 0) return;
+
     openModal('preferences');
   }, [openModal, user]);
 

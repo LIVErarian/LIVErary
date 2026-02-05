@@ -38,6 +38,7 @@ interface ModalProps {
   isbn?: string;
   from?: ModalType; // 모달이 어디서 열렸는지
   initialTab?: 'FRIENDS' | 'REQUESTS' | 'BLOCKED';
+  preferences?: string[]; // 선호 카테고리 수정용
   initialBoardTab?: 'INQUIRY' | 'PROMOTION' | 'NOTICE';
   initialIsWished?: boolean;
 }
