@@ -1,6 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  type QueryKey,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
-import { getBookDetail, searchBook, toggleWishlist } from '@/api/book.api';
+import {
+  getBookDetail,
+  registerCompletedBook,
+  registerReadingBook,
+  searchBook,
+  toggleWishlist,
+} from '@/api/book.api';
 
 import type {
   BookDetail,
@@ -23,44 +34,78 @@ export const useSearchBook = (
 
 export const useToggleWishlist = () => {
   const queryClient = useQueryClient();
-  return useMutation<WishStatusResponse, Error, string>({
-    mutationFn: (isbn) => {
-      console.log('📍 [useToggleWishlist] Mutation started for ISBN:', isbn);
-      return toggleWishlist(isbn);
-    },
-    onSuccess: (data, isbn) => {
-      console.log('✅ [useToggleWishlist] Mutation succeeded for ISBN:', isbn);
+  return useMutation<
+    WishStatusResponse,
+    Error,
+    string,
+    {
+      previousSearchData: [QueryKey, unknown][];
+      previousDetailData: BookDetail | undefined;
+    }
+  >({
+    mutationFn: (isbn) => toggleWishlist(isbn),
+    onMutate: async (isbn) => {
+      // 1. 진행 중인 쿼리 취소
+      await queryClient.cancelQueries({ queryKey: ['books', 'search'] });
+      await queryClient.cancelQueries({ queryKey: ['books', 'detail', isbn] });
 
-      // 1. 검색 결과 캐시 업데이트
-      const queryCache = queryClient.getQueryCache();
-      const searchQueries = queryCache.findAll({
+      // 2. 이전 데이터 스냅샷 저장
+      const previousSearchData = queryClient.getQueriesData({
         queryKey: ['books', 'search'],
       });
+      const previousDetailData = queryClient.getQueryData<BookDetail>([
+        'books',
+        'detail',
+        isbn,
+      ]);
 
-      searchQueries.forEach((query) => {
-        const currentData = query.state.data as BookSearchResponse | undefined;
-        if (currentData) {
-          queryClient.setQueryData(query.queryKey, {
-            ...currentData,
-            content: currentData.content.map((book) =>
-              book.isbn === isbn ? { ...book, isWished: data.wished } : book,
+      // 3. 캐시 낙관적 업데이트
+      // (1) 검색/목록 결과 업데이트
+      queryClient.setQueriesData<BookSearchResponse>(
+        { queryKey: ['books', 'search'] },
+        (oldData) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            content: oldData.content.map((book) =>
+              book.isbn === isbn ? { ...book, isWished: !book.isWished } : book,
             ),
-          });
-        }
-      });
+          };
+        },
+      );
 
-      // 2. 상세 정보 캐시 업데이트
-      queryClient.setQueryData<BookDetail>(['books', 'detail', isbn], (old) => {
-        if (!old) return undefined;
-        return { ...old, isWished: data.wished };
-      });
+      // (2) 상세 정보 업데이트
+      queryClient.setQueryData<BookDetail>(
+        ['books', 'detail', isbn],
+        (oldData) => {
+          if (!oldData) return oldData;
+          return { ...oldData, isWished: !oldData.isWished };
+        },
+      );
 
-      // 3. 나의 서재(찜 목록) 캐시 무효화 -> 다시 불러오기
-      queryClient.invalidateQueries({ queryKey: ['bookshelf', 'wished'] });
+      // 4. 스냅샷 반환 (에러 시 복구용)
+      return { previousSearchData, previousDetailData };
     },
-    onError: (error, isbn) => {
-      console.error('[useToggleWishlist] Mutation failed for ISBN:', isbn);
-      console.error('[useToggleWishlist] Error:', error);
+    onError: (err, isbn, context) => {
+      console.error('Optimistic update failed, rolling back.', err);
+      // 에러 시 스냅샷으로 롤백
+      if (context?.previousSearchData) {
+        context.previousSearchData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      if (context?.previousDetailData) {
+        queryClient.setQueryData(
+          ['books', 'detail', isbn],
+          context.previousDetailData,
+        );
+      }
+    },
+    onSettled: (data, error, isbn) => {
+      // 쿼리 무효화 (최신 데이터 갱신)
+      queryClient.invalidateQueries({ queryKey: ['books', 'search'] });
+      queryClient.invalidateQueries({ queryKey: ['books', 'detail', isbn] });
+      queryClient.invalidateQueries({ queryKey: ['bookshelf', 'wished'] });
     },
   });
 };
@@ -71,5 +116,25 @@ export const useBookDetail = (isbn: string, enabled: boolean = true) => {
     queryFn: () => getBookDetail(isbn),
     enabled: enabled && !!isbn, // ISBN이 있고 enabled일 때만 실행
     staleTime: 1000 * 60 * 10, // 10분간 캐시 유지
+  });
+};
+
+export const useRegisterReadingBook = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (isbn: string) => registerReadingBook(isbn),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookshelf', 'reading'] });
+    },
+  });
+};
+
+export const useRegisterCompletedBook = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (isbn: string) => registerCompletedBook(isbn),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookshelf', 'read'] });
+    },
   });
 };

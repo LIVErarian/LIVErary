@@ -1,5 +1,10 @@
 import { api } from './axios';
 
+import type { CommonResponse } from '@/types/api.types';
+import type {
+  UserBooksResponse,
+  UserBookStatus,
+} from '@/types/bookshelf.types';
 import type {
   getUserResponse,
   OtherProfile,
@@ -57,5 +62,47 @@ export const userApi = {
    */
   updateProfile: async (req: UserUpdateRequest): Promise<void> => {
     await api.patch('/user', req);
+  },
+
+  /*
+   * 유저의 책 목록 조회 (찜, 읽고 있는, 읽은 책)
+   * @param status 책 상태 (WISH, PENDING, COMPLETED)
+   * @param page 페이지 번호 (0부터 시작)
+   * @param size 페이지 크기
+   */
+  getUserBooks: async (
+    status: UserBookStatus,
+    page: number = 0,
+    size: number = 6,
+  ): Promise<UserBooksResponse> => {
+    const { data } = await api.get<CommonResponse<UserBooksResponse>>(
+      '/user/books',
+      {
+        params: {
+          status,
+          page,
+          size,
+        },
+      },
+    );
+
+    if (!data.data) {
+      throw new Error('데이터가 존재하지 않습니다.');
+    }
+
+    return data.data;
+  },
+
+  /**
+   * 책장에 책 추가
+   * @param isbn 책의 ISBN (또는 식별자)
+   * @param status 책 상태 (READING | COMPLETED)
+   */
+  addBook: async (isbn: string, status: UserBookStatus) => {
+    const response = await api.post('/api/user/books', {
+      isbn,
+      status,
+    });
+    return response.data;
   },
 };

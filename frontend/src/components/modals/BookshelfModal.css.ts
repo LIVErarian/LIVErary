@@ -69,3 +69,77 @@ export {
   pageInfo,
   paginationContainer,
 } from './sharedBookModalStyles.css';
+
+/**
+ * 로딩 상태 컨테이너
+ */
+export const loadingState = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '100%',
+  height: '100%',
+  fontSize: '2rem',
+  color: theme.colors.beigeText,
+});
+
+/**
+ * 검색 뷰 컨테이너
+ */
+export const searchViewContainer = style({
+  display: 'flex',
+  flexDirection: 'column',
+  width: '100%',
+  height: '100%',
+  gap: '1rem',
+});
+
+/**
+ * 검색 뷰 헤더
+ */
+export const searchHeader = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '1rem',
+  fontSize: '1.2rem',
+  fontWeight: 'bold',
+  color: theme.colors.woodDeep,
+});
+
+/**
+ * 책 추가 버튼 (빈 상태용 - 큰 버튼)
+ */
+export const addBookButton = style({
+  marginTop: '1rem',
+  padding: '0.8rem 1.5rem',
+  fontSize: '1.2rem',
+});
+
+/**
+ * 책 목록 래퍼
+ */
+export const bookListWrapper = style({
+  display: 'flex',
+  flexDirection: 'column',
+  width: '100%',
+  height: '100%',
+  gap: '0.5rem',
+});
+
+/**
+ * 툴바 (작은 추가 버튼 등 위쪽)
+ */
+export const toolbar = style({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  width: '100%',
+  marginBottom: '0.5rem',
+});
+
+/**
+ * 작은 추가 버튼
+ */
+export const addButtonSmall = style({
+  fontSize: '0.8rem',
+  padding: '0.4rem 0.8rem',
+});

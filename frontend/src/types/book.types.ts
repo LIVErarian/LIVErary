@@ -7,6 +7,7 @@ export interface Book {
   author: string;
   category: string;
   coverUrl: string;
+  publisher?: string; // 검색 결과에 포함될 수 있음
   isWished?: boolean; // 찜 상태 (optional)
 }
 
