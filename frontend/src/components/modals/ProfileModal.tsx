@@ -12,13 +12,13 @@ import {
   useOtherProfile,
   useUpdateProfile,
 } from '@/hooks/queries/useUser';
+import { useModalStore } from '@/store/useModalStore';
 import { BaseModal } from '../common/BaseModal';
 import { PixelButton } from '../common/PixelButton';
 
 import type { FriendRelationStatus } from '@/types/friend.types';
 
 import * as styles from './ProfileModal.css';
-import { theme } from '@/styles/theme.css';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -149,7 +149,7 @@ export const ProfileModal = ({
     switch (relationStatus) {
       case 'NONE':
         return (
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className={styles.actionButtonsWrapper}>
             <PixelButton
               size="sm"
               variant="primary"
@@ -165,7 +165,7 @@ export const ProfileModal = ({
 
       case 'FRIEND':
         return (
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className={styles.actionButtonsWrapper}>
             <PixelButton size="sm" variant="danger" onClick={handleBlock}>
               차단
             </PixelButton>
@@ -175,12 +175,7 @@ export const ProfileModal = ({
       case 'PENDING_SENT':
         return (
           <div>
-            <span
-              style={{
-                color: theme.colors.beigeText,
-                fontSize: '0.9rem',
-              }}
-            >
+            <span className={styles.pendingSentText}>
               친구 요청을 보냈습니다
             </span>
           </div>
@@ -188,7 +183,7 @@ export const ProfileModal = ({
 
       case 'PENDING_RECEIVED':
         return (
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className={styles.actionButtonsWrapper}>
             <PixelButton
               size="sm"
               variant="primary"
@@ -208,7 +203,7 @@ export const ProfileModal = ({
 
       case 'BLOCKED_BY_ME':
         return (
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className={styles.actionButtonsWrapper}>
             <PixelButton size="sm" variant="beige" onClick={handleUnblock}>
               차단 해제
             </PixelButton>
@@ -225,23 +220,9 @@ export const ProfileModal = ({
 
   // 닉네임 편집 모드 뷰
   const editModeView = (
-    <div
-      style={{
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '4px',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          gap: '8px',
-          width: '100%',
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ flex: 1 }}>
+    <div className={styles.editModeWrapper}>
+      <div className={styles.editInputWrapper}>
+        <div className={styles.inputContainer}>
           <input
             className={styles.editInput}
             placeholder="닉네임"
@@ -257,16 +238,7 @@ export const ProfileModal = ({
       </div>
 
       {errorMessage && (
-        <span
-          style={{
-            color: theme.colors.red,
-            fontSize: '0.8rem',
-            fontWeight: 'bold',
-            paddingLeft: '4px',
-          }}
-        >
-          * {errorMessage}
-        </span>
+        <span className={styles.errorMessage}>* {errorMessage}</span>
       )}
     </div>
   );
@@ -276,9 +248,18 @@ export const ProfileModal = ({
     <>
       <span className={styles.nicknameText}>{profile?.nickname}</span>
       {!isOtherProfile && (
-        <PixelButton size="sm" variant="beige" onClick={startEdit}>
-          수정
-        </PixelButton>
+        <div className={styles.viewModeButtonWrapper}>
+          <PixelButton
+            size="sm"
+            variant="beige"
+            onClick={() => useModalStore.getState().openModal('passwordReset')}
+          >
+            비밀번호 변경
+          </PixelButton>
+          <PixelButton size="sm" variant="beige" onClick={startEdit}>
+            수정
+          </PixelButton>
+        </div>
       )}
     </>
   );
@@ -287,7 +268,7 @@ export const ProfileModal = ({
     return (
       <BaseModal isOpen={isOpen} onClose={onClose}>
         <div className={styles.cardContainer}>
-          <div style={{ padding: '2rem', textAlign: 'center' }}>로딩 중...</div>
+          <div className={styles.loadingWrapper}>로딩 중...</div>
         </div>
       </BaseModal>
     );

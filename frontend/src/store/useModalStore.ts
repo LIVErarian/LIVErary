@@ -24,6 +24,7 @@ export type ModalType =
   | 'entrance'
   | 'bookDetail'
   | 'notification'
+  | 'passwordReset'
   | null;
 
 interface ModalProps {

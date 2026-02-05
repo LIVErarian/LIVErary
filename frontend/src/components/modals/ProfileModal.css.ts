@@ -82,6 +82,7 @@ export const nicknameText = style({
   textUnderlineOffset: '4px',
 });
 
+// 닉네임 편집 입력창
 export const editInput = style({
   width: '85%',
   backgroundColor: 'transparent',
@@ -169,4 +170,57 @@ export const barcode = style({
   fontSize: '1rem',
   color: theme.colors.woodDeep,
   userSelect: 'none',
+});
+
+// 액션 버튼 레퍼
+export const actionButtonsWrapper = style({
+  display: 'flex',
+  gap: '8px',
+});
+
+// 친구 요청 대기 텍스트
+export const pendingSentText = style({
+  color: theme.colors.beigeText,
+  fontSize: '0.9rem',
+});
+
+// 수정 모드 전체 래퍼
+export const editModeWrapper = style({
+  width: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+});
+
+// 수정 모드 입력창 래퍼
+export const editInputWrapper = style({
+  display: 'flex',
+  gap: '8px',
+  width: '100%',
+  alignItems: 'center',
+});
+
+// 에러 메시지
+export const errorMessage = style({
+  color: theme.colors.red,
+  fontSize: '0.8rem',
+  fontWeight: 'bold',
+  paddingLeft: '4px',
+});
+
+// 뷰 모드 버튼 래퍼
+export const viewModeButtonWrapper = style({
+  display: 'flex',
+  gap: '12px',
+});
+
+// 로딩 래퍼
+export const loadingWrapper = style({
+  padding: '2rem',
+  textAlign: 'center',
+});
+
+// 입력창 컨테이너 (flex: 1 적용)
+export const inputContainer = style({
+  flex: 1,
 });

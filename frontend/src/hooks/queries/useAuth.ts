@@ -11,9 +11,11 @@ import type {
   EmailCodeVerifyResponse,
   EmailVerifyRequest,
   EmailVerifyResponse,
+  FindPasswordRequest,
   LoginRequest,
   LoginResponse,
   LoginResponseData,
+  ResetPasswordRequest,
   SignupRequest,
   SignupResponse,
 } from '@/types/auth.types';
@@ -106,5 +108,17 @@ export const useVerifyEmail = () => {
     EmailCodeVerifyRequest
   >({
     mutationFn: (req: EmailCodeVerifyRequest) => authApi.verifyEmailCode(req),
+  });
+};
+
+export const useFindPassword = () => {
+  return useMutation<void, AxiosError<void>, FindPasswordRequest>({
+    mutationFn: (req: FindPasswordRequest) => authApi.findPassword(req),
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation<void, AxiosError<void>, ResetPasswordRequest>({
+    mutationFn: (req: ResetPasswordRequest) => authApi.resetPassword(req),
   });
 };
