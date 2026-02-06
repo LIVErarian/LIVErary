@@ -61,7 +61,8 @@ export const GamePage = () => {
         setCurrentFloor('bookTalkFloor');
       }
     }
-  }, [currentFloor, setCurrentFloor, setRoomId, setSpawnPoint]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setCurrentFloor, setRoomId, setSpawnPoint]);
 
   useEffect(() => {
     /**

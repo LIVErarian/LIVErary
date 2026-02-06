@@ -4,9 +4,12 @@ import { AxiosError } from 'axios';
 import { roomApi } from '@/api/room.api';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
+import { useModalStore } from '@/store/useModalStore';
+import { categoryKeys } from '../queries/useCategory';
 import { roomKeys } from '../queries/useRoomQueries';
 
 import type { CommonResponse } from '@/types/api.types';
+import type { GetCategoryResponse } from '@/types/category.types';
 import type {
   ApplyScheduledRoomRequest,
   ApplyScheduledRoomResponseData,
@@ -25,82 +28,105 @@ import type {
  */
 export const useCreateRoom = () => {
   const queryClient = useQueryClient();
+  const { openModal } = useModalStore();
+
   const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
   const setRoomId = useGameStore((state) => state.setRoomId);
   const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
-  // room-4 칩 렌더링을 위한 전용 상태 업데이트
   const setRoom4Room = useBookTalkRoomStore((state) => state.setRoom4Room);
-  const conferenceEntrySpawn = { x: 0.88, y: 0.5 };
+  const setRoomCode = useGameStore((state) => state.setRoomCode);
 
   return useMutation<
-    CreateRoomResponseData,
+    CreateRoomResponseData, // API가 이미 data.data를 반환하므로 내부 타입 사용
     AxiosError<CommonResponse<null>>,
     CreateRoomRequest
   >({
     mutationFn: roomApi.createRoom,
-    onSuccess: async (data, variables) => {
-      // 라이브면 즉시 방으로 이동
-      if (variables.status === 'LIVE') {
-        console.log('방 생성 완료:', data.roomId);
+    onSuccess: (data, variables) => {
+      // ✅ API가 이미 data를 벗겨서 주므로 바로 접근
+      const newRoomId = data.roomId;
+      const newRoomCode = data.code || '';
 
-        // concert인 경우 콘서트 홀로 이동 + 즉시 join
-        if (variables.roomType === 'CONCERT') {
-          setRoomId(data.roomId);
+      // 캐시된 카테고리 응답 가져오기
+      const cachedResponse = queryClient.getQueryData<GetCategoryResponse>(
+        categoryKeys.list(),
+      );
+
+      const categories = cachedResponse?.data || [];
+      const matchedCategory = categories.find(
+        (c) => c.categoryId === variables.categoryId,
+      );
+      const categoryName = matchedCategory ? matchedCategory.name : '기타';
+
+      // 쿼리 무효화
+      queryClient.invalidateQueries({ queryKey: roomKeys.lives() });
+      queryClient.invalidateQueries({ queryKey: roomKeys.reservations() });
+
+      // 예약 방인 경우
+      if (variables.status === 'SCHEDULED') {
+        queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
+        alert('예약이 완료되었습니다.');
+        return;
+      }
+
+      // 라이브 방(TALK)인 경우: 시퀀스 실행
+      if (variables.roomType === 'TALK') {
+        setRoom4Room({
+          roomId: newRoomId || '',
+          title: variables.title,
+          roomType: variables.roomType,
+          accessType: variables.accessType,
+          status: variables.status,
+          categoryName: categoryName,
+          currentCount: 1,
+          maxUser: variables.maxUser,
+        });
+
+        // 비밀방인 경우 생성된 코드 저장
+        if (variables.accessType === 'PRIVATE') {
+          setRoomCode(newRoomCode);
+        } else {
+          setRoomCode(null);
+        }
+
+        // 문 앞으로 이동
+        setSpawnPoint({ x: 0.83, y: 0.65 });
+        setCurrentFloor('bookTalkFloor');
+
+        // 입장 확인 모달 띄우기
+        openModal('entrance', {
+          title: '방 생성 완료',
+          message: `'${variables.title}' 방에 지금 바로 입장하시겠습니까?`,
+          onConfirm: async () => {
+            try {
+              if (!newRoomId) throw new Error('방 ID를 찾을 수 없습니다.');
+
+              await roomApi.joinRoom(newRoomId, { code: newRoomCode });
+
+              setRoomId(newRoomId);
+              setCurrentFloor('conferenceFloor');
+              setSpawnPoint({ x: 0.88, y: 0.5 });
+            } catch (error) {
+              const axiosError = error as AxiosError<CommonResponse<null>>;
+              const msg =
+                axiosError.response?.data?.message || '입장에 실패했습니다.';
+              alert(msg);
+            }
+          },
+        });
+      }
+      // CONCERT 등 기타 타입
+      else if (variables.roomType === 'CONCERT') {
+        if (newRoomId) {
+          setRoomId(newRoomId);
           setCurrentFloor('bookConcert');
           setSpawnPoint(null);
         }
-        // booktalk인 경우 분기 필요
-        else if (variables.roomType === 'TALK')
-          if (variables.accessType === 'PRIVATE') {
-            // Private인 경우 회의실로 이동 + 즉시 join
-            setRoomId(data.roomId);
-            setCurrentFloor('conferenceFloor');
-            setSpawnPoint(conferenceEntrySpawn);
-          } else {
-            // Public인 경우 bookTalkFloor로 보내되 roomId는 세팅하지 않음 (존 입장 시 join)
-            setSpawnPoint({ x: 0.83, y: 0.65 }); // room4 zoneFrontAbove
-            setCurrentFloor('bookTalkFloor');
-          }
       }
-      // Scheduled인 경우 방 예약
-      else {
-        queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
-        // [수정] lists -> reservations
-        queryClient.invalidateQueries({ queryKey: roomKeys.reservations() });
-        alert('예약이 완료되었습니다.');
-      }
-
-      try {
-        const detail = await roomApi.getRoomDetail({ roomId: data.roomId });
-        if (
-          variables.status === 'LIVE' &&
-          variables.roomType === 'TALK' &&
-          variables.accessType === 'PUBLIC'
-        ) {
-          // room-4 표시용 데이터만 저장 (추천 배열과 분리)
-          setRoom4Room({
-            roomId: detail.roomId,
-            title: detail.title,
-            roomType: detail.roomType,
-            accessType: detail.accessType,
-            status: detail.status,
-            categoryName: detail.categoryName,
-            currentCount: detail.currentCount,
-            maxUser: detail.maxUser,
-          });
-        }
-      } catch (error) {
-        console.error('방 상세 정보 조회 실패:', error);
-      }
-
-      // 방 목록 강제 갱신
-      // [수정] lists -> lives & reservations
-      queryClient.invalidateQueries({ queryKey: roomKeys.lives() });
-      queryClient.invalidateQueries({ queryKey: roomKeys.reservations() });
     },
     onError: (error) => {
-      console.error('방 생성 실패:', error.message);
-      alert('방 생성을 실패했습니다. 다시 시도해주세요.');
+      const msg = error.response?.data?.message || '방 생성을 실패했습니다.';
+      alert(msg);
     },
   });
 };
@@ -111,33 +137,35 @@ export const useCreateRoom = () => {
 export const useJoinRoom = () => {
   const queryClient = useQueryClient();
   const setRoomId = useGameStore((state) => state.setRoomId);
+  const setRoomCode = useGameStore((state) => state.setRoomCode);
   const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
   const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
-  const conferenceEntrySpawn = { x: 0.88, y: 0.5 };
 
   return useMutation<
     JoinRoomResponseData,
     AxiosError<CommonResponse<null>>,
-    // [수정] API 시그니처 변경에 따른 타입 수정 ({ roomId, req })
     { roomId: string; req: JoinRoomRequest }
   >({
-    // [수정] API 호출 방식 변경 (인자 2개 전달)
     mutationFn: ({ roomId, req }) => roomApi.joinRoom(roomId, req),
-    onSuccess: (data) => {
-      // 참여자수 갱신을 위해 방 상세 정보 갱신
-      queryClient.invalidateQueries({ queryKey: roomKeys.detail(data.roomId) });
+    onSuccess: (data, variables) => {
+      const roomId = data.roomId;
+      console.log('저예요!!!', roomId);
 
-      alert('방에 참여하였습니다.');
-      setRoomId(data.roomId);
-      setSpawnPoint(conferenceEntrySpawn);
-      setCurrentFloor('conferenceFloor');
+      if (roomId) {
+        queryClient.invalidateQueries({ queryKey: roomKeys.detail(roomId) });
+        setRoomId(roomId);
+
+        // 코드가 있으면 넣고, 없으면 null로 초기화
+        setRoomCode(variables.req.code || null);
+
+        setSpawnPoint({ x: 0.88, y: 0.5 });
+        setCurrentFloor('conferenceFloor');
+      }
     },
     onError: (error) => {
-      // 리스트 강제 갱신
-      // [수정] lists -> lives (참여는 주로 라이브 방)
       queryClient.invalidateQueries({ queryKey: roomKeys.lives() });
-      console.error('방 참여 실패:', error);
-      alert(error.response?.data?.message || '방에 참여하지 못했습니다.');
+      const msg = error.response?.data?.message || '방 참여에 실패했습니다.';
+      alert(msg);
     },
   });
 };
@@ -148,19 +176,22 @@ export const useJoinRoom = () => {
 export const useLeaveRoom = () => {
   const queryClient = useQueryClient();
   const setRoomId = useGameStore((state) => state.setRoomId);
+  const setRoomCode = useGameStore((state) => state.setRoomCode);
 
-  return useMutation<string, AxiosError, { roomId: string }>({
+  return useMutation<
+    string,
+    AxiosError<CommonResponse<null>>,
+    { roomId: string }
+  >({
     mutationFn: roomApi.leaveRoom,
     onSuccess: (_, variables) => {
-      // 방 목록과 방 상세 정보 갱신
-      // [수정] lists -> lives
       queryClient.invalidateQueries({ queryKey: roomKeys.lives() });
       queryClient.invalidateQueries({
         queryKey: roomKeys.detail(variables.roomId),
       });
 
-      // TODO: 해당 층의 로비/복도 채널로 복귀
       setRoomId(null);
+      setRoomCode(null);
     },
   });
 };
@@ -181,7 +212,7 @@ export const useApplyScheduledRoom = () => {
       alert('방 참여 신청이 완료되었습니다!');
       queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
     },
-    onError: (error: AxiosError) => {
+    onError: (error) => {
       alert('참여 신청 중 오류가 발생했습니다.');
       console.log('예약 방 참여 신청 오류:', error);
     },
@@ -196,12 +227,15 @@ export const useUpdateScheduledRoom = () => {
 
   return useMutation<
     PatchScheduledRoomResponseData,
-    AxiosError,
+    AxiosError<CommonResponse<null>>,
     PatchScheduledRoomRequest
   >({
     mutationFn: roomApi.patchScheduledRoom,
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: roomKeys.detail(data.roomId) });
+      const roomId = data.roomId;
+      if (roomId) {
+        queryClient.invalidateQueries({ queryKey: roomKeys.detail(roomId) });
+      }
       queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
       alert('방 정보가 수정되었습니다.');
     },
@@ -214,7 +248,11 @@ export const useUpdateScheduledRoom = () => {
 export const useDeleteScheduledRoom = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<string, AxiosError, DeleteScheduledRoomRequest>({
+  return useMutation<
+    string,
+    AxiosError<CommonResponse<null>>,
+    DeleteScheduledRoomRequest
+  >({
     mutationFn: roomApi.deleteScheduledRoom,
     onSuccess: (message) => {
       queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
@@ -233,7 +271,11 @@ export const useDeleteScheduledRoom = () => {
 export const useDeleteApplyScheduledRoom = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<string, AxiosError, DeleteApplyScheduledRequest>({
+  return useMutation<
+    string,
+    AxiosError<CommonResponse<null>>,
+    DeleteApplyScheduledRequest
+  >({
     mutationFn: roomApi.deleteApplyScheduledRoom,
     onSuccess: (message) => {
       queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
