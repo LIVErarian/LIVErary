@@ -7,6 +7,7 @@ import { BoardUpdate } from '../board/BoardUpdate';
 import { PixelModal } from '../common/PixelModal';
 import { BookDetailModal } from './BookDetailModal';
 import { BookSearchModal } from './BookSearchModal';
+import { BookSelectionModal } from './BookSelectionModal';
 import { BookshelfModal } from './BookshelfModal';
 import { ConfirmModal } from './ConfirmModal';
 import { CreateRoomModal } from './CreateRoomModal';
@@ -17,6 +18,7 @@ import { NotificationModal } from './NotificationModal';
 import { PasswordResetModal } from './PasswordResetModal';
 import { PreferencesModal } from './PreferencesModal';
 import { ProfileModal } from './ProfileModal';
+import { ReadingCompletionModal } from './ReadingCompletionModal';
 import { RoomListModal } from './RoomListModal';
 
 import * as styles from './GlobalModal.css';
@@ -262,6 +264,12 @@ export const GlobalModal = () => {
           initialIsWished={modalProps.initialIsWished}
         />
       )}
+
+      {/* 독서 타이머: 책 선택 모달 */}
+      <BookSelectionModal />
+
+      {/* 독서 타이머: 독서 종료 모달 */}
+      <ReadingCompletionModal />
     </>
   );
 };
