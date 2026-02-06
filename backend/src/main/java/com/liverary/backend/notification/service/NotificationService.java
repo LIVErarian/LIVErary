@@ -76,6 +76,8 @@ public class NotificationService {
                 .build()
         );
 
+        notificationRepository.flush();
+
         // 2. 현재 로그인한 유저의 모든 연결(emitter)을 찾음
         String userId = user.getUserId().toString();
         Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByUserId(userId);

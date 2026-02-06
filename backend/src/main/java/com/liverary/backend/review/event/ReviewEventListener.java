@@ -35,7 +35,12 @@ public class ReviewEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReviewCreatedEvent(ReviewCreatedEvent event) {
+
+        log.info("📬 알림 리스너 작동 시작! receiverId={}", event.receiverId());
+
         try {
+
+
             // 이벤트에서 ID를 꺼내서 DB에서 직접 조회
             User receiver = userRepository.findById(event.receiverId())
                             .orElseThrow(()-> new BaseException(ErrorCode.USER_NOT_FOUND));
@@ -45,9 +50,16 @@ public class ReviewEventListener {
 
 
             sendNotification(receiver, board);
+
+
+            log.info("🚀 NotificationService 호출 직전");
+            sendNotification(receiver, board);
+
         }
         catch (Exception e){
             log.error("댓글 알림 전송 실패: targetUser={}, error={}", event.receiverId(), e.getMessage());
+
+            log.error("💥 리스너 내부 에러 발생!", e);
         }
     }
 
