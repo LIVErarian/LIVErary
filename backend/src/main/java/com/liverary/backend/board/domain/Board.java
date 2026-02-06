@@ -117,4 +117,14 @@ public class Board {
 
         this.status = Status.DONE;
     }
+
+    /**
+     * 해당 유저가 작성한 게시글인지 확인 - 댓글 알림용
+     * @param user 비교할 유저
+     * @return true (작성자가 아닐 경우) / false (작성자일 경우)
+     */
+    public boolean isNotWrittenBy(User user){
+        if(this.user == null) return false; // 작성자가 없으면 (탈퇴 등) 알림 안 보냄
+        return !this.user.getUserId().equals(user.getUserId());
+    }
 }

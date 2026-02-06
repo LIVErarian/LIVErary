@@ -1,22 +1,20 @@
 package com.liverary.backend.review.service;
 
 import com.liverary.backend.board.domain.Board;
-import com.liverary.backend.board.domain.Status;
 import com.liverary.backend.board.domain.Type;
 import com.liverary.backend.board.repository.BoardRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
-import com.liverary.backend.notification.domain.NotificationType;
-import com.liverary.backend.notification.service.NotificationService;
 import com.liverary.backend.review.domain.Review;
 import com.liverary.backend.review.dto.request.ReviewCreateRequest;
 import com.liverary.backend.review.dto.request.ReviewUpdateRequest;
 import com.liverary.backend.review.dto.response.ReviewResponse;
+import com.liverary.backend.review.event.ReviewCreatedEvent;
 import com.liverary.backend.review.repository.ReviewRepository;
-import com.liverary.backend.user.domain.Role;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,7 +34,7 @@ public class ReviewService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
 
-    private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 댓글 생성 로직 수행
@@ -69,6 +67,11 @@ public class ReviewService {
                 .build();
 
         Review savedReview = reviewRepository.save(review);
+
+        // 2. 이벤트 발행
+        if(board.isNotWrittenBy(user)){
+            eventPublisher.publishEvent(new ReviewCreatedEvent(board.getUser(), board));
+        }
 
         return ReviewResponse.from(savedReview);
     }
