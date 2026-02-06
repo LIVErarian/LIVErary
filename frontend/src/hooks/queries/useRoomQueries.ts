@@ -113,5 +113,6 @@ export const useRecommendedRooms = (
     queryKey: roomKeys.recommended(categoryId),
     queryFn: () => roomApi.getRecommendedRooms(categoryId),
     enabled,
+    refetchInterval: 1000 * 10, // 10초 간격으로 refetch
   });
 };

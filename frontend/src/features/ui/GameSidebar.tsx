@@ -20,7 +20,7 @@ const FLOOR_TITLES: Record<string, string> = {
   readingFloor: '독서실',
   conferenceFloor: '회의실',
   bookConcert: '북 콘서트 홀',
-  bookTalkFloor: '독서 모임 공간',
+  bookTalkFloor: '독서 모임',
 };
 
 export const GameSidebar = () => {

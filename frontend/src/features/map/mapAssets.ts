@@ -355,7 +355,7 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
   bookTalkFloor: {
     floorId: '33333333-3333-3333-3333-333333333333',
     defaultRoomId: null,
-    name: '독서 모임 공간',
+    name: '독서 모임',
     imgAlias: 'bookTalkBasic',
     jsonAlias: 'bookTalkTmj',
     categoryImgAliases: {

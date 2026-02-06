@@ -7,6 +7,7 @@ import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown
 import { ConferenceRoomInfoPanel } from '@/features/ui/ConferenceRoomInfoPanel';
 import { GameSidebar } from '@/features/ui/GameSidebar';
 import { useReadingTimer } from '@/hooks/queries/useReadingTimer';
+import { useRecommendedRooms } from '@/hooks/queries/useRoomQueries';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
@@ -25,7 +26,11 @@ export const GamePage = () => {
   const setRoomId = useGameStore((state) => state.setRoomId);
   const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
   const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
+
   const clearRoom4Room = useBookTalkRoomStore((state) => state.clearRoom4Room);
+  const setRecommendedRooms = useBookTalkRoomStore(
+    (state) => state.setRecommendedRooms,
+  );
 
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -34,8 +39,23 @@ export const GamePage = () => {
     (state) => state.selectedCategoryId,
   );
 
+  const { data: latestRooms } = useRecommendedRooms(
+    selectedCategoryId,
+    currentFloor === 'bookTalkFloor',
+  );
+
   const { connect, disconnect } = useSocketStore();
   const { openModal } = useModalStore();
+
+  useEffect(() => {
+    if (!latestRooms || !gameAppRef.current || currentFloor !== 'bookTalkFloor')
+      return;
+
+    // 받아온 최신 데이터 업데이트
+    setRecommendedRooms(latestRooms);
+
+    gameAppRef.current.refreshBookTalkRoomInfoOverlay();
+  });
 
   /**
    * 게임 화면에서 소켓 연결을 유지한다.

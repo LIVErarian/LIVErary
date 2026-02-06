@@ -68,7 +68,7 @@ export const ElevatorModal = () => {
           </PixelButton>
 
           <PixelButton fullWidth onClick={() => handleMove('bookTalkFloor')}>
-            3F 독서 모임 공간
+            3F 독서 모임
           </PixelButton>
 
           <PixelButton fullWidth onClick={() => handleMove('bookConcert')}>

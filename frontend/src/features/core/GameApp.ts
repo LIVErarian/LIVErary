@@ -80,7 +80,7 @@ export class GameApp {
   // 상수 정의
   private readonly MOVE_SPEED = 4;
   private readonly DEFAULT_PLAYER_SCALE = 2;
-  private readonly MY_ROOM_PLAYER_SCALE = 5;
+  private readonly MY_ROOM_PLAYER_SCALE = 4;
   private readonly MY_ROOM_SPEED_MULTIPLIER = 2;
   private readonly CONFERENCE_ENTRY_SPAWN = { x: 0.88, y: 0.5 };
   private readonly DEFAULT_WORLD_WIDTH = 1440;
@@ -283,6 +283,12 @@ export class GameApp {
     }
   }
 
+  public refreshBookTalkRoomInfoOverlay() {
+    if (this._mapManager) {
+      this._mapManager.refreshBookTalkRoomInfoOverlay();
+    }
+  }
+
   private update(ticker: Ticker) {
     // 안전장치
     if (!this._mapManager || !this._playerManager) return;
@@ -291,7 +297,7 @@ export class GameApp {
     if (!me) return;
 
     if (this._mapManager.currentFloorType === 'bookTalkFloor') {
-      this._mapManager.refreshBookTalkRoomInfoOverlay();
+      this.refreshBookTalkRoomInfoOverlay();
     }
 
     const isModalOpen = useModalStore.getState().currentModal !== null;
