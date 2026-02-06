@@ -10,8 +10,7 @@ import { useModalStore } from '@/store/useModalStore';
 import * as styles from './PasswordResetModal.css';
 
 export const PasswordResetModal = () => {
-  const { currentModal, closeModal } = useModalStore();
-  const isOpen = currentModal === 'passwordReset';
+  const { closeModal, openModal } = useModalStore();
 
   const { mutate: resetPassword, isPending } = useResetPassword();
 
@@ -52,8 +51,11 @@ export const PasswordResetModal = () => {
       { oldPassword, newPassword, confirmPassword },
       {
         onSuccess: () => {
-          alert('비밀번호가 변경되었습니다.');
-          handleClose();
+          openModal('alert', {
+            title: '성공',
+            message: '비밀번호가 변경되었습니다.',
+            onConfirm: handleClose,
+          });
         },
         onError: (error: AxiosError) => {
           const data = error.response?.data as {
@@ -67,12 +69,11 @@ export const PasswordResetModal = () => {
   };
 
   // 비밀번호 변경 모달 렌더링
-  if (!isOpen) return null;
 
   // 비밀번호 변경 모달
   return (
     <PixelModal
-      isOpen={isOpen}
+      isOpen={true}
       onClose={handleClose}
       title="비밀번호 변경"
       width="400px"

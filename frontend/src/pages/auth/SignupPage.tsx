@@ -10,6 +10,7 @@ import {
   useSignup,
   useVerifyEmail,
 } from '@/hooks/queries/useAuth';
+import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './SignupPage.css';
 
@@ -28,25 +29,36 @@ export const SignupPage = () => {
 
   const { mutate: checkEmail, isPending: isSending } = useCheckEmail();
   const { mutate: verifyEmail, isPending: isVerifying } = useVerifyEmail();
+  const { openModal } = useModalStore();
   const { mutate: signup, isPending: isSigningUp } = useSignup();
 
   // 인증 코드 전송
   const handleSendCode = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    if (!email) return alert('이메일을 입력해주세요.');
+    if (!email)
+      return openModal('alert', {
+        title: '알림',
+        message: '이메일을 입력해주세요.',
+      });
 
     checkEmail(
       { email },
       {
         onSuccess: () => {
-          alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
+          openModal('alert', {
+            title: '알림',
+            message: '인증 코드가 전송되었습니다. 이메일을 확인해주세요.',
+          });
           setIsCodeSent(true);
           setIsEmailVerified(false);
         },
 
         onError: (error) => {
-          alert(error.response?.data?.message || '인증 메일 전송 실패');
+          openModal('alert', {
+            title: '알림',
+            message: error.response?.data?.message || '인증 메일 전송 실패',
+          });
         },
       },
     );
@@ -56,21 +68,30 @@ export const SignupPage = () => {
   const handleVerifyCode = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    if (!code) return alert('인증 코드를 입력해주세요.');
+    if (!code)
+      return openModal('alert', {
+        title: '알림',
+        message: '인증 코드를 입력해주세요.',
+      });
 
     verifyEmail(
       { email, code },
       {
         onSuccess: () => {
-          alert('이메일 인증이 완료되었습니다!');
+          openModal('alert', {
+            title: '알림',
+            message: '이메일 인증이 완료되었습니다!',
+          });
           setIsEmailVerified(true);
           setIsCodeSent(false);
         },
 
         onError: (error) => {
-          alert(
-            error.response?.data?.message || '인증 코드가 올바르지 않습니다.',
-          );
+          openModal('alert', {
+            title: '알림',
+            message:
+              error.response?.data?.message || '인증 코드 확인에 실패했습니다.',
+          });
         },
       },
     );
@@ -80,24 +101,36 @@ export const SignupPage = () => {
     e.preventDefault();
 
     if (!isEmailVerified) {
-      return alert('이메일 인증을 먼저 완료해주세요.');
+      return openModal('alert', {
+        title: '알림',
+        message: '이메일 인증을 먼저 완료해주세요.',
+      });
     }
     if (!nickname || !password || !checkPassword) {
-      return alert('모든 정보를 입력해주세요.');
+      return openModal('alert', {
+        title: '알림',
+        message: '모든 정보를 입력해주세요.',
+      });
     }
     if (password !== checkPassword) {
-      return alert('비밀번호가 일치하지 않습니다.');
+      return openModal('alert', {
+        title: '알림',
+        message: '비밀번호가 일치하지 않습니다.',
+      });
     }
 
     signup(
       { email, nickname, password },
       {
         onSuccess: () => {
-          alert('회원 가입 성공!');
+          openModal('alert', { title: '알림', message: '회원 가입 성공!' });
         },
         onError: (error) => {
           const msg = error.response?.data?.message;
-          alert(msg || '회원가입 실패');
+          openModal('alert', {
+            title: '회원가입 실패',
+            message: msg || '회원가입 실패',
+          });
         },
       },
     );

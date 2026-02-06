@@ -28,6 +28,8 @@ export type ModalType =
   | 'quote'
   | 'bookSelection'
   | 'readingCompletion'
+  | 'alert' // 알림 (ErrorModal 재사용)
+  | 'confirm' // 확인
   | null;
 
 interface ModalProps {
@@ -45,6 +47,7 @@ interface ModalProps {
   initialBoardTab?: 'INQUIRY' | 'PROMOTION' | 'NOTICE';
   initialIsWished?: boolean;
   isChanging?: boolean; // 책 변경 여부 (독서 타이머용)
+  isDanger?: boolean; // 위험 작업 여부
 }
 
 interface ErrorState {
@@ -53,12 +56,19 @@ interface ErrorState {
 }
 
 // 모달 스택 아이템 인터페이스
+interface ModalItem {
+  type: ModalType;
+  props: ModalProps;
+}
+
 interface ModalState {
   currentModal: ModalType;
   modalProps: ModalProps;
+
+  modalStack: ModalItem[];
+
   error: ErrorState | null;
 
-  // 타인 프로필 전용 오버레이 상태
   userProfile: { userId: string; friendId?: string } | null;
 
   openModal: (modal: ModalType, props?: ModalProps) => void;
@@ -66,7 +76,6 @@ interface ModalState {
   openError: (error: ErrorState) => void;
   closeError: () => void;
 
-  // 타인 프로필 열기/닫기 (기존 모달 유지)
   openUserProfile: (userId: string, friendId?: string) => void;
   closeUserProfile: () => void;
 }
@@ -74,12 +83,31 @@ interface ModalState {
 export const useModalStore = create<ModalState>((set) => ({
   currentModal: null,
   modalProps: {},
+  modalStack: [],
   error: null,
   userProfile: null,
 
   openModal: (modal, props = {}) =>
-    set({ currentModal: modal, modalProps: props }),
-  closeModal: () => set({ currentModal: null, modalProps: {} }),
+    set((state) => {
+      const newStack = [...state.modalStack, { type: modal, props }];
+      return {
+        modalStack: newStack,
+        currentModal: modal,
+        modalProps: props,
+      };
+    }),
+
+  closeModal: () =>
+    set((state) => {
+      const newStack = state.modalStack.slice(0, -1);
+      const topModal = newStack[newStack.length - 1];
+      return {
+        modalStack: newStack,
+        currentModal: topModal ? topModal.type : null,
+        modalProps: topModal ? topModal.props : {},
+      };
+    }),
+
   openError: (error) => set({ error }),
   closeError: () => set({ error: null }),
 

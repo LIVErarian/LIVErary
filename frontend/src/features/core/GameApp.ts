@@ -576,10 +576,12 @@ export class GameApp {
             const apiError = error as {
               response?: { data?: { message?: string } };
             };
-            alert(
-              apiError?.response?.data?.message ??
+            useModalStore.getState().openModal('alert', {
+              title: '오류',
+              message:
+                apiError?.response?.data?.message ??
                 '퇴장 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
-            );
+            });
           } finally {
             this._isLeavingRoom = false;
           }
@@ -683,7 +685,12 @@ export class GameApp {
                   .setSpawnPoint(this.CONFERENCE_ENTRY_SPAWN);
                 useGameStore.getState().setCurrentFloor('conferenceFloor');
               } else {
-                alert('현재 입장 가능한 방이 없습니다.');
+                useModalStore
+                  .getState()
+                  .openModal('alert', {
+                    title: '알림',
+                    message: '현재 입장 가능한 방이 없습니다.',
+                  });
                 bounceOutFromZone();
               }
             } catch (error: unknown) {
@@ -694,7 +701,9 @@ export class GameApp {
               const message =
                 apiError?.response?.data?.message ??
                 '방에 입장하지 못했습니다.';
-              alert(message);
+              useModalStore
+                .getState()
+                .openModal('alert', { title: '오류', message });
               bounceOutFromZone();
             }
           } else {

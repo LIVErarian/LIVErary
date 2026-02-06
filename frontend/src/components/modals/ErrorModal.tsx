@@ -9,6 +9,7 @@ interface ErrorModalProps {
   onClose: () => void;
   title?: string;
   message: string;
+  isError?: boolean;
 }
 
 export const ErrorModal = ({
@@ -16,6 +17,7 @@ export const ErrorModal = ({
   onClose,
   title = '오류 발생', // 기본 타이틀
   message,
+  isError = false,
 }: ErrorModalProps) => {
   return (
     <PixelModal
@@ -25,7 +27,11 @@ export const ErrorModal = ({
       width="360px"
       footer={
         <ModalFooter variant="center">
-          <PixelButton size="sm" variant="danger" onClick={onClose}>
+          <PixelButton
+            size="sm"
+            variant={isError ? 'danger' : 'primary'}
+            onClick={onClose}
+          >
             확인
           </PixelButton>
         </ModalFooter>

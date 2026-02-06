@@ -24,6 +24,7 @@ const formatDate = (dateString: string) =>
 const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
+  const { openModal } = useModalStore();
 
   const { mutate: applyRoom, isPending: isApplying } = useApplyScheduledRoom();
   const { mutate: cancelApply, isPending: isCanceling } =
@@ -66,45 +67,55 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
   const hasBook = !!room.bookTitle && room.bookTitle.trim() !== '';
 
   const handleJoin = () => {
-    if (confirm(`'${room.title}' 방에 참여 신청하시겠습니까?`)) {
-      applyRoom(
-        { roomId: room.roomId },
-        {
-          onSuccess: (data) => {
-            setReservationCode(data.code);
-            setLocalJoined(true);
-            // 서버에서 최신 게시글(방) 상세를 다시 조회하여 방 정보를 갱신
-            queryClient.invalidateQueries({
-              queryKey: ['boards', 'detail', post.boardId],
-            });
-            setError(null);
+    openModal('confirm', {
+      title: '참여 신청',
+      message: `'${room.title}' 방에 참여 신청하시겠습니까?`,
+      onConfirm: () => {
+        applyRoom(
+          { roomId: room.roomId },
+          {
+            onSuccess: (data) => {
+              setReservationCode(data.code);
+              setLocalJoined(true);
+              // 서버에서 최신 게시글(방) 상세를 다시 조회하여 방 정보를 갱신
+              queryClient.invalidateQueries({
+                queryKey: ['boards', 'detail', post.boardId],
+              });
+              setError(null);
+            },
+            onError: (e: AxiosError<CommonResponse<null>>) => {
+              setError(
+                e.response?.data?.message ||
+                  '참여 신청 중 오류가 발생했습니다.',
+              );
+            },
           },
-          onError: (e: AxiosError<CommonResponse<null>>) => {
-            setError(
-              e.response?.data?.message || '참여 신청 중 오류가 발생했습니다.',
-            );
-          },
-        },
-      );
-    }
+        );
+      },
+    });
   };
 
   const handleCancel = () => {
-    if (confirm('참여 신청을 취소하시겠습니까?')) {
-      cancelApply(
-        { roomId: room.roomId },
-        {
-          onSuccess: () => {
-            setLocalJoined(false);
-            setReservationCode(null);
-            // 서버에서 최신 게시글(방) 상세를 다시 조회하여 방 정보를 갱신
-            queryClient.invalidateQueries({
-              queryKey: ['boards', 'detail', post.boardId],
-            });
+    openModal('confirm', {
+      title: '참여 취소',
+      message: '참여 신청을 취소하시겠습니까?',
+      isDanger: true,
+      onConfirm: () => {
+        cancelApply(
+          { roomId: room.roomId },
+          {
+            onSuccess: () => {
+              setLocalJoined(false);
+              setReservationCode(null);
+              // 서버에서 최신 게시글(방) 상세를 다시 조회하여 방 정보를 갱신
+              queryClient.invalidateQueries({
+                queryKey: ['boards', 'detail', post.boardId],
+              });
+            },
           },
-        },
-      );
-    }
+        );
+      },
+    });
   };
 
   return (
@@ -206,24 +217,24 @@ export const BoardDetail = ({ boardId }: { boardId: string }) => {
 
   const { data: post, isLoading, isError } = useGetBoardDetail(boardId);
   const { mutate: deleteBoard } = useDeleteBoard();
-
   const handleDelete = () => {
-    if (confirm('정말 삭제하시겠습니까?')) {
-      deleteBoard(boardId, {
-        onSuccess: () => {
-          const boardType = post?.type;
-          if (boardType === 'INQUIRY') {
-            openModal('boardList', { initialBoardTab: 'INQUIRY' });
-          } else if (boardType === 'PROMOTION') {
-            openModal('boardList', { initialBoardTab: 'PROMOTION' });
-          } else if (boardType === 'NOTICE') {
-            openModal('boardList', { initialBoardTab: 'NOTICE' });
-          } else {
-            openModal('boardList');
-          }
-        },
-      });
-    }
+    openModal('confirm', {
+      title: '삭제 확인',
+      message: '정말 삭제하시겠습니까?',
+      isDanger: true,
+      onConfirm: () => {
+        deleteBoard(boardId, {
+          onSuccess: () => {
+            // 게시판 타입에 따라 목록 탭 유지
+            if (post?.type) {
+              openModal('boardList', { initialBoardTab: post.type });
+            } else {
+              openModal('boardList');
+            }
+          },
+        });
+      },
+    });
   };
 
   if (isLoading) {

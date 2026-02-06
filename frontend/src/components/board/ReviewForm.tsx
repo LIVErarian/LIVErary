@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { PixelButton } from '@/components/common/PixelButton';
 import { useCreateReview } from '@/hooks/queries/useReview';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './Review.css';
 
@@ -13,12 +14,20 @@ interface ReviewFormProps {
 export const ReviewForm = ({ boardId }: ReviewFormProps) => {
   const [content, setContent] = useState('');
   const { user } = useAuthStore();
+  const { openModal } = useModalStore();
   const { mutate: createReview, isPending } = useCreateReview(boardId);
   const handleSubmit = () => {
     if (!user) {
-      return alert('로그인이 필요한 서비스입니다.');
+      return openModal('alert', {
+        title: '알림',
+        message: '로그인이 필요한 서비스입니다.',
+      });
     }
-    if (!content.trim()) return alert('리뷰 내용을 입력해주세요.');
+    if (!content.trim())
+      return openModal('alert', {
+        title: '알림',
+        message: '리뷰 내용을 입력해주세요.',
+      });
 
     createReview(
       { boardId, content },

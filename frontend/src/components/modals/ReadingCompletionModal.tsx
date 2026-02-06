@@ -11,8 +11,7 @@ import { useReadingStore } from '@/store/useReadingStore';
 import * as styles from './ReadingCompletionModal.css.ts';
 
 export const ReadingCompletionModal = () => {
-  const { currentModal, closeModal } = useModalStore();
-  const isOpen = currentModal === 'readingCompletion';
+  const { closeModal, openModal } = useModalStore();
   const { elapsedSeconds, currentBook, endReading } = useReadingStore();
   const queryClient = useQueryClient();
 
@@ -41,7 +40,7 @@ export const ReadingCompletionModal = () => {
       closeModal();
     } catch (error) {
       console.error('독서 종료 실패:', error);
-      alert('저장에 실패했습니다.');
+      openModal('alert', { title: '오류', message: '저장에 실패했습니다.' });
     } finally {
       setIsSaving(false);
     }
@@ -53,11 +52,9 @@ export const ReadingCompletionModal = () => {
     return `${hours}시간 ${minutes}분`;
   };
 
-  if (!isOpen) return null;
-
   return (
     <PixelModal
-      isOpen={isOpen}
+      isOpen={true}
       onClose={closeModal}
       title="독서 종료"
       width="400px"

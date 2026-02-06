@@ -61,9 +61,13 @@ export const FriendListModal = () => {
    * @param friendId - 거절할 친구 요청 ID
    */
   const handleReject = (friendId: string) => {
-    if (confirm('정말 거절하시겠습니까?')) {
-      rejectFriend(friendId);
-    }
+    useModalStore.getState().openModal('confirm', {
+      title: '친구 요청 거절',
+      message: '정말 거절하시겠습니까?',
+      onConfirm: () => {
+        rejectFriend(friendId);
+      },
+    });
   };
 
   /**
@@ -71,9 +75,19 @@ export const FriendListModal = () => {
    * @param email - 차단 해제할 사용자 이메일
    */
   const handleUnblock = (email: string) => {
-    if (confirm('차단을 해제하시겠습니까?')) {
-      unblockUser(email);
-    }
+    useModalStore.getState().openModal('confirm', {
+      title: '차단 해제',
+      message: '차단을 해제하시겠습니까?',
+      onConfirm: () => {
+        unblockUser(email, {
+          onSuccess: () => {
+            useModalStore
+              .getState()
+              .openModal('alert', { message: '차단을 해제했습니다.' });
+          },
+        });
+      },
+    });
   };
 
   /**

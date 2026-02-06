@@ -10,6 +10,7 @@ import {
   useRoomDetail,
 } from '@/hooks/queries/useRoomQueries';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './ScheduledRoomDetailModal.css';
 
@@ -23,6 +24,8 @@ export const ScheduledRoomDetailModal = ({
   onClose,
 }: ScheduledRoomDetailModalProps) => {
   const isModalOpen = !!roomId;
+  const { openModal } = useModalStore();
+
   const { user } = useAuthStore();
 
   const { data: room, isLoading } = useRoomDetail(roomId || undefined);
@@ -44,15 +47,28 @@ export const ScheduledRoomDetailModal = ({
   const handleHostDelete = () => {
     // 혹시 모를 방어 코드
     if (hasParticipants) {
-      alert('다른 참여자가 있어 방을 삭제할 수 없습니다.');
+      openModal('alert', {
+        title: '알림',
+        message: '다른 참여자가 있어 방을 삭제할 수 없습니다.',
+      });
       return;
     }
 
-    if (confirm('방 예약을 완전히 삭제하시겠습니까?')) {
-      if (roomId) {
-        deleteRoom({ roomId }, { onSuccess: () => onClose() });
-      }
-    }
+    openModal('confirm', {
+      title: '예약 취소',
+      message: '방 예약을 완전히 삭제하시겠습니까?',
+      isDanger: true,
+      onConfirm: () => {
+        if (roomId) {
+          deleteRoom(
+            { roomId },
+            {
+              onSuccess: onClose, // 성공 시 모달 닫기
+            },
+          );
+        }
+      },
+    });
   };
 
   const handleUserApply = () => {
@@ -60,9 +76,21 @@ export const ScheduledRoomDetailModal = ({
   };
 
   const handleUserCancelApply = () => {
-    if (confirm('참여 신청을 취소하시겠습니까?')) {
-      if (roomId) cancelApply({ roomId });
-    }
+    openModal('confirm', {
+      title: '참여 취소',
+      message: '참여 신청을 취소하시겠습니까?',
+      isDanger: true,
+      onConfirm: () => {
+        if (roomId) {
+          cancelApply(
+            { roomId },
+            {
+              onSuccess: onClose,
+            },
+          );
+        }
+      },
+    });
   };
 
   const formatTime = (isoString?: string) => {

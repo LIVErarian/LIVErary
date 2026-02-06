@@ -51,6 +51,11 @@ api.interceptors.response.use(
 
     // 토큰 만료시
     if (error.response?.status === 401) {
+      // 로그인 요청은토큰 재발급 로직에서 제외 (로그인 실패 시 화면 새로고침 방지)
+      if (originalRequest.url?.includes('/auth/login')) {
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
       try {

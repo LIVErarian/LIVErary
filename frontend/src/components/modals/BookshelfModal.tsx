@@ -17,6 +17,7 @@ import {
   useToggleWishlist,
 } from '@/hooks/queries/useBook';
 import { useUserBooks } from '@/hooks/queries/useUser';
+import { useModalStore } from '@/store/useModalStore';
 import { BookCard } from '../book/BookCard';
 import { BookSearchModal } from './BookSearchModal';
 
@@ -42,6 +43,8 @@ export const BookshelfModal = () => {
 
   // 현재 페이지 (0부터 시작)
   const [currentPage, setCurrentPage] = useState(0);
+
+  const { openModal } = useModalStore();
 
   // 현재 활성 탭에 따른 API status 매핑
   const currentStatus: UserBookStatus =
@@ -120,16 +123,26 @@ export const BookshelfModal = () => {
   /**
    * 완독 처리 핸들러
    */
-  const handleComplete = async (isbn: string) => {
-    if (confirm('이 책을 완독 처리하시겠습니까?')) {
-      try {
-        await registerCompleted(isbn);
-        alert('완독 처리되었습니다.');
-      } catch (error) {
-        console.error(error);
-        alert('완독 처리에 실패했습니다.');
-      }
-    }
+  const handleComplete = (isbn: string) => {
+    openModal('confirm', {
+      title: '완독 처리',
+      message: '이 책을 완독 처리하시겠습니까?',
+      onConfirm: async () => {
+        try {
+          await registerCompleted(isbn);
+          openModal('alert', {
+            title: '알림',
+            message: '완독 처리되었습니다.',
+          });
+        } catch (error) {
+          console.error(error);
+          openModal('alert', {
+            title: '오류',
+            message: '완독 처리에 실패했습니다.',
+          });
+        }
+      },
+    });
   };
 
   /**
@@ -140,9 +153,15 @@ export const BookshelfModal = () => {
       if (activeTab === 'wished') {
         const { wished } = await toggleWish(book.isbn);
         if (wished) {
-          alert('찜 목록에 추가되었습니다.');
+          openModal('alert', {
+            title: '알림',
+            message: '찜 목록에 추가되었습니다.',
+          });
         } else {
-          alert('찜 목록에서 제거되었습니다.');
+          openModal('alert', {
+            title: '알림',
+            message: '찜 목록에서 제거되었습니다.',
+          });
         }
       } else {
         // 읽고 있는 책 / 읽은 책 추가
@@ -151,7 +170,10 @@ export const BookshelfModal = () => {
         } else {
           await registerCompleted(book.isbn);
         }
-        alert('책장에 추가되었습니다.');
+        openModal('alert', {
+          title: '알림',
+          message: '책장에 추가되었습니다.',
+        });
       }
 
       // 목록으로 돌아가기 (데이터는 쿼리 무효화로 자동 갱신됨)
@@ -159,7 +181,7 @@ export const BookshelfModal = () => {
       setCurrentPage(0); // 첫 페이지로 이동
     } catch (error) {
       console.error(error);
-      alert('책 추가에 실패했습니다.');
+      openModal('alert', { title: '오류', message: '책 추가에 실패했습니다.' });
     }
   };
 

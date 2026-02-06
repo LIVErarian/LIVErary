@@ -36,12 +36,21 @@ export const BoardCreate = () => {
 
   const handleSubmit = () => {
     if (!title.trim() || !content.trim())
-      return alert('제목과 내용을 입력해주세요.');
+      return openModal('alert', {
+        title: '알림',
+        message: '제목과 내용을 입력해주세요.',
+      });
     if (type === 'PROMOTION' && !roomId)
-      return alert('홍보할 방을 선택해주세요.');
+      return openModal('alert', {
+        title: '알림',
+        message: '홍보할 방을 선택해주세요.',
+      });
 
     if (type === 'NOTICE' && !isAdmin) {
-      return alert('관리자만 공지사항을 작성할 수 있습니다.');
+      return openModal('alert', {
+        title: '알림',
+        message: '관리자만 공지사항을 작성할 수 있습니다.',
+      });
     }
 
     createBoard({
