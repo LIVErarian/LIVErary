@@ -42,10 +42,10 @@ export const useLogin = () => {
 
         setUser(userProfile);
         console.log('유저 정보 로드 완료:', userProfile);
-        navigate('/game', { replace: true }); // 뒤로가기 방지
+        navigate('/', { replace: true }); // 뒤로가기 방지
       } catch (error) {
         console.error('유저 정보를 불러오기 실패:', error);
-        navigate('/game', { replace: true });
+        navigate('/', { replace: true });
       }
     },
 
