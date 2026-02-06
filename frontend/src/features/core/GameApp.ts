@@ -1176,7 +1176,7 @@ export class GameApp {
     const paddingX = 8;
     const paddingY = 12;
     const panelWidth = Math.max(contentsWidth + paddingX * 2, 210);
-    const panelHeight = 95;
+    const panelHeight = 90; // 105 -> 90 (하단 여백 축소)
 
     const panelBg = new Graphics();
     panelBg
@@ -1194,63 +1194,78 @@ export class GameApp {
     contentGroup.y = paddingY;
     container.addChild(contentGroup);
 
-    // 타이머 박스
-    const timerBox = new Container();
-    timerBox.eventMode = 'static';
-
-    const timerBg = new Graphics();
-    timerBg
-      .roundRect(0, 0, timerWidth, timerHeight, 6)
-      .fill({ color: 0x4a2619, alpha: 0.95 })
-      .stroke({ width: 1.5, color: 0xc58346, alpha: 0.4 });
-
-    timerBox.addChild(timerBg);
-
-    const timerText = new Text({
-      text: '00:00',
-      style: {
-        fill: 0xddd3b9,
-        fontFamily: contentFont,
-        fontSize: 20,
-        fontWeight: 'bold',
-      },
-    });
-    timerText.anchor.set(0.5, 0.5);
-    timerText.x = timerWidth / 2;
-    timerText.y = timerHeight / 2;
-
-    timerBox.addChild(timerText);
-    contentGroup.addChild(timerBox);
-    this._readingTimerText = timerText;
-
-    // 타이머 호버
-    timerBox.on('pointerover', () => {
-      this._isTimerHovered = true;
-      this.refreshReadingTimerUI();
-    });
-    timerBox.on('pointerout', () => {
-      this._isTimerHovered = false;
-      this.refreshReadingTimerUI();
-    });
-
     // 버튼 생성
     if (!isReading) {
+      // 독서 시작 전: 패널을 가득 채우는 왕큰 버튼 하나만 표시
       const startBtn = this.createEnhancedPixelButton(
         '독서 시작',
-        90,
-        timerHeight,
+        panelWidth - 20,
+        panelHeight - 20,
         0x420e07, // primary
         () =>
           useModalStore
             .getState()
             .openModal('bookSelection', { isChanging: false }),
+        22, // 왕큰 글씨
       );
-      startBtn.x = timerWidth + gap + 45;
-      startBtn.y = 0;
-      contentGroup.addChild(startBtn);
+      startBtn.x = 0;
+      startBtn.y = 10;
+      container.addChild(startBtn);
     } else {
+      // 독서 중: 기존 레이아웃 (타이머 + 조작 아이콘 + 제목)
       const btnSize = 32;
-      const btnGap = 6;
+      const btnGap = 8;
+      const timerWidthCombined = timerWidth + gap + btnSize * 2 + btnGap;
+      const innerStartX = -timerWidthCombined / 2;
+
+      // 내부 정렬을 위해 contentGroup 위치 재조정
+      contentGroup.x = innerStartX;
+
+      // 타이머 박스 생성
+      const timerBox = new Container();
+      timerBox.eventMode = 'static';
+
+      const timerBg = new Graphics();
+      // 버튼과 높이를 맞추기 위한 3D 픽셀 스타일 적용 (외곽선 + 그림자)
+      timerBg
+        .roundRect(-2, -2, timerWidth + 4, timerHeight + 6, 8)
+        .fill({ color: 0x4a2619 }) // 외곽선
+        .roundRect(0, 0, timerWidth, timerHeight, 6)
+        .fill({ color: 0x4a2619 }) // 메인 배경
+        .roundRect(0, timerHeight - 4, timerWidth, 4, 6)
+        .fill({ color: 0x8d563e, alpha: 0.6 }) // 하단 그림자
+        .roundRect(0, 0, timerWidth, timerHeight, 6)
+        .stroke({ width: 1.5, color: 0xc58346, alpha: 0.4 }); // 상단 하이라이트 느낌의 스트로크
+
+      timerBox.addChild(timerBg);
+
+      const timerText = new Text({
+        text: '00:00',
+        style: {
+          fill: 0xddd3b9,
+          fontFamily: contentFont,
+          fontSize: 20,
+          fontWeight: 'bold',
+        },
+      });
+      timerText.anchor.set(0.5, 0.5);
+      timerText.x = timerWidth / 2;
+      timerText.y = timerHeight / 2;
+
+      timerBox.addChild(timerText);
+
+      // 타이머 호버
+      timerBox.on('pointerover', () => {
+        this._isTimerHovered = true;
+        this.refreshReadingTimerUI();
+      });
+      timerBox.on('pointerout', () => {
+        this._isTimerHovered = false;
+        this.refreshReadingTimerUI();
+      });
+
+      contentGroup.addChild(timerBox);
+      this._readingTimerText = timerText;
 
       const pauseLabel = isPaused ? '▶' : '||';
       const pauseColor = isPaused ? 0x8b4513 : 0xe5a000;
@@ -1282,7 +1297,7 @@ export class GameApp {
 
       // 책 제목
       if (currentBook) {
-        const titleY = timerHeight + 18;
+        const titleY = timerHeight + 22; // 25 -> 22 (상하 밸런스 조정)
         const titleComp = this.createClickableBookTitle(
           currentBook.title,
           0,
@@ -1309,6 +1324,7 @@ export class GameApp {
     height: number,
     color: number,
     onClick: () => void,
+    fontSize: number = 13,
   ): Container {
     const btn = new Container();
     btn.eventMode = 'static';
@@ -1362,7 +1378,7 @@ export class GameApp {
       style: {
         fill: 0xffffff,
         fontFamily: contentFont,
-        fontSize: 13,
+        fontSize: fontSize,
         fontWeight: 'bold',
       },
     });
@@ -1443,7 +1459,7 @@ export class GameApp {
 
     const displayTitle = title.length > 20 ? `${title.slice(0, 20)}...` : title;
     const text = new Text({
-      text: `📖 ${displayTitle}`,
+      text: `${displayTitle}`,
       style: {
         fill: 0x8b4513,
         fontFamily: contentFont,
