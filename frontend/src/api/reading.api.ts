@@ -6,7 +6,7 @@ import { api } from './axios';
  * 백엔드: POST /api/user/reading-time?readingTime={minutes}
  */
 export const recordReadingTime = async (minutes: number): Promise<void> => {
-  await api.post('/api/user/reading-time', null, {
+  await api.post('/user/reading-time', null, {
     params: { readingTime: minutes },
   });
 };

@@ -515,9 +515,9 @@ export class GameApp {
     const controlContainer = new Container();
     container.addChild(controlContainer);
 
-    const timerWidth = 90;
+    const timerWidth = 120; // 늘림
     const timerHeight = 36;
-    const buttonWidth = 80;
+    const buttonWidth = 60; // 줄임
     const gap = 10;
     const totalWidth = timerWidth + gap + buttonWidth;
 
@@ -623,7 +623,7 @@ export class GameApp {
     titleContainer.cursor = 'pointer';
 
     // 제목 길이 제한
-    const displayTitle = title.length > 20 ? `${title.slice(0, 20)}...` : title;
+    const displayTitle = title.length > 15 ? `${title.slice(0, 15)}...` : title;
 
     const text = new Text({
       text: `📖 ${displayTitle}`,
@@ -636,16 +636,29 @@ export class GameApp {
     });
     text.anchor.set(0.5, 0);
 
-    // 밑줄 효과 (호버 시)
-    const underline = new Graphics();
+    // 배경 (텍스트 뒤에 깔기)
+    const titleBg = new Graphics();
     const textWidth = text.width;
-    underline.rect(-textWidth / 2, text.height + 2, textWidth, 2).fill({
-      color: 0xddd3b9,
-      alpha: 0,
-    });
+    const textHeight = text.height;
+    const paddingX = 12;
+    const paddingY = 6;
 
+    titleBg
+      .roundRect(
+        -textWidth / 2 - paddingX,
+        -paddingY,
+        textWidth + paddingX * 2,
+        textHeight + paddingY * 2,
+        12,
+      )
+      .fill({
+        color: 0x000000,
+        alpha: 0.5, // 반투명 검정 배경
+      });
+
+    titleContainer.addChild(titleBg);
     titleContainer.addChild(text);
-    titleContainer.addChild(underline);
+    // titleContainer.addChild(underline); // 배경이 있으므로 밑줄은 제거하거나 유지 (사용자 "잘보이게" -> 배경이 더 효과적)
     titleContainer.x = x;
     titleContainer.y = y;
 
@@ -656,19 +669,13 @@ export class GameApp {
 
     // 호버 효과
     titleContainer.on('pointerover', () => {
-      underline.clear();
-      underline.rect(-textWidth / 2, text.height + 2, textWidth, 2).fill({
-        color: 0xddd3b9,
-        alpha: 0.8,
-      });
+      titleBg.alpha = 0.7; // 호버 시 진하게
+      text.style.fill = 0xffffff;
     });
 
     titleContainer.on('pointerout', () => {
-      underline.clear();
-      underline.rect(-textWidth / 2, text.height + 2, textWidth, 2).fill({
-        color: 0xddd3b9,
-        alpha: 0,
-      });
+      titleBg.alpha = 0.5;
+      text.style.fill = 0xddd3b9;
     });
 
     return titleContainer;

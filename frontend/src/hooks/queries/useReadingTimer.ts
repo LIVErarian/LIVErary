@@ -62,31 +62,4 @@ export const useReadingTimer = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isReading, elapsedSeconds]);
-
-  // 시간 포맷 (HH:MM)
-  const formatTime = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return [hours, minutes].map((v) => String(v).padStart(2, '0')).join(':');
-  };
-
-  // 상세 포맷 (호버용)
-  const formatTimeDetailed = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    const parts: string[] = [];
-    if (hours > 0) parts.push(`${hours}시간`);
-    if (minutes > 0) parts.push(`${minutes}분`);
-    if (secs > 0 || parts.length === 0) parts.push(`${secs}초`);
-
-    return parts.join(' ');
-  };
-
-  return {
-    elapsedSeconds,
-    formattedTime: formatTime(elapsedSeconds),
-    formattedTimeDetailed: formatTimeDetailed(elapsedSeconds),
-  };
 };
