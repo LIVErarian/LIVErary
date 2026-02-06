@@ -295,10 +295,8 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         height: 0.105,
         trigger: 'interact',
         action: {
-          type: 'moveConfirm',
-          title: '장소 이동',
-          message: '내 서재로 이동하시겠습니까?',
-          targetFloor: 'myRoom',
+          type: 'openModal',
+          modalType: 'rank',
         },
       },
       // TODO: 집중 모드 모달 구현 시 modalType을 'concentration'로 변경
@@ -342,9 +340,9 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
       {
         id: 'conference-search',
         label: '회의실 도서검색대',
-        x: 0.37,
-        y: 0.84,
-        width: 0.16,
+        x: 0.59,
+        y: 0.66,
+        width: 0.12,
         height: 0.09,
         trigger: 'interact',
         action: {
