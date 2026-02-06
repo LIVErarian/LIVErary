@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), vanillaExtractPlugin()],
     server: {
+      host: true,
       proxy: {
         '/api': {
           target: env.VITE_API_TARGET_URL,

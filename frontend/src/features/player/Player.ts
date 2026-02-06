@@ -7,8 +7,8 @@ import type {
 } from '@/types/character.types';
 import type { Direction } from '@/types/socket.types';
 
-import { contentFont } from '@/styles/global.css';
-import { palette } from '@/styles/theme.css';
+import { contentFont } from '@/styles/global.css.ts';
+import { palette } from '@/styles/theme.css.ts';
 
 export class Player extends Container {
   private _layers: Record<PartType, CharacterLayer>;

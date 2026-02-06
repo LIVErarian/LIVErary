@@ -12,7 +12,7 @@ import type {
   MapZoneConfig,
 } from '@/types/map.types';
 
-import { contentFont } from '@/styles/global.css';
+import { contentFont } from '@/styles/global.css.ts';
 
 export class MapManager {
   private _viewport: Viewport;

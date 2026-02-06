@@ -14,6 +14,17 @@ export {
 } from './sharedBookModalStyles.css';
 
 /**
+ * 도서 선택 모달 전용 3열 그리드 (고정 너비, 세로 스케일 최적화)
+ */
+export const selectionSearchGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, 1fr)',
+  gap: '10px',
+  padding: '4px',
+  width: '100%',
+});
+
+/**
  * 모달 전체 컨테이너
  */
 export const modalContainer = style({
