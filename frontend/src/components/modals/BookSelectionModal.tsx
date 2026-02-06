@@ -10,7 +10,7 @@ import { useReadingStore } from '@/store/useReadingStore';
 import * as styles from './BookSelectionModal.css';
 
 export const BookSelectionModal = () => {
-  const { currentModal, modalProps, closeModal } = useModalStore();
+  const { currentModal, modalProps, closeModal, openModal } = useModalStore();
   const isOpen = currentModal === 'bookSelection';
   const isChanging = modalProps?.isChanging || false;
 
@@ -74,6 +74,18 @@ export const BookSelectionModal = () => {
         )}
 
         <div className={styles.bookList}>
+          {/* 새 책 추가 버튼 */}
+          <div
+            className={styles.addBookButton}
+            onClick={() => {
+              closeModal();
+              openModal('bookSearch');
+            }}
+          >
+            <span className={styles.addIcon}>+</span>
+            <span>새로운 책 검색하기</span>
+          </div>
+
           {books.length === 0 && (
             <div className={styles.emptyState}>
               "읽는 중" 상태인 책이 없습니다.

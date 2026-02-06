@@ -5,6 +5,7 @@ import { useGame } from '@/features/core/useGame';
 import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown';
 import { ConferenceRoomInfoPanel } from '@/features/ui/ConferenceRoomInfoPanel';
 import { GameSidebar } from '@/features/ui/GameSidebar';
+import { useReadingTimer } from '@/hooks/queries/useReadingTimer';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
@@ -12,6 +13,7 @@ import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
 
 export const GamePage = () => {
+  useReadingTimer(); // 독서 타이머 로직 활성화 (UI 없음)
   const containerRef = useRef<HTMLDivElement>(null);
   const { gameAppRef, isReady } = useGame(containerRef);
   const lastFloorRef = useRef<string | null>(null);

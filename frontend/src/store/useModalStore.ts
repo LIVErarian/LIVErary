@@ -25,6 +25,8 @@ export type ModalType =
   | 'bookDetail'
   | 'notification'
   | 'passwordReset'
+  | 'bookSelection'
+  | 'readingCompletion'
   | null;
 
 interface ModalProps {
@@ -41,6 +43,7 @@ interface ModalProps {
   preferences?: string[]; // 선호 카테고리 수정용
   initialBoardTab?: 'INQUIRY' | 'PROMOTION' | 'NOTICE';
   initialIsWished?: boolean;
+  isChanging?: boolean; // 책 변경 여부 (독서 타이머용)
 }
 
 interface ErrorState {

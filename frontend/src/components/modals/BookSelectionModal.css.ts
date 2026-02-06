@@ -28,6 +28,30 @@ export const bookList = style({
   overflowY: 'auto',
 });
 
+export const addBookButton = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '8px',
+  padding: '16px',
+  border: `2px dashed ${theme.colors.woodMedium}`,
+  borderRadius: '8px',
+  cursor: 'pointer',
+  fontSize: '0.95rem',
+  fontWeight: 'bold',
+  color: theme.colors.woodDeep,
+  backgroundColor: theme.colors.beigeLight,
+  ':hover': {
+    backgroundColor: theme.colors.beigeMain,
+    borderColor: theme.colors.woodDeep,
+  },
+});
+
+export const addIcon = style({
+  fontSize: '1.5rem',
+  lineHeight: 1,
+});
+
 export const emptyState = style({
   padding: '40px',
   textAlign: 'center',
