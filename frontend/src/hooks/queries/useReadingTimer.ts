@@ -14,7 +14,10 @@ export const useReadingTimer = () => {
     if (!isReading) return;
 
     const interval = setInterval(() => {
-      tick();
+      const { isPaused } = useReadingStore.getState();
+      if (!isPaused) {
+        tick();
+      }
     }, 1000);
 
     return () => clearInterval(interval);

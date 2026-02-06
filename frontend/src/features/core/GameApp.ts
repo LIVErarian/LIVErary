@@ -58,14 +58,13 @@ export class GameApp {
   private _suppressZoneTriggers: Map<string, Set<'enter' | 'exit'>> = new Map();
   private _bgSprite: Sprite | null = null;
   private _mapButtonsContainer: Container | null = null;
-  private _isTimerHovered: boolean = false;
   private _bookTalkRoomInfoContainer: Container | null = null;
   private _bookTalkRoomInfoTextMap: Map<string, Text> = new Map();
   private _bookTalkRoomInfoSnapshot: string = '';
   private _readingTimerContainer: Container | null = null;
   private _readingTimerText: Text | null = null;
-  private _readingTimerSnapshot: string = ''; // 상태 스냅샷 (isReading, book)
-  private _readingTimerTimeSnapshot: string = ''; // 시간 스냅샷 (elapsedSeconds)
+  private _readingTimerSnapshot: string = '';
+  private _isTimerHovered: boolean = false;
   private _mapZones: Array<
     MapZoneConfig & { absX: number; absY: number; absW: number; absH: number }
   > = [];
@@ -78,6 +77,7 @@ export class GameApp {
   private _worldWidth: number = 960;
   private _worldHeight: number = 640;
   private _currentFloorId: string = '';
+  private _currentFloorKey: FloorType = 'myRoom';
   // 이동 브로드캐스트 채널 ID (회의실은 roomId, 그 외는 floorId)
   private _movementChannelId: string = '';
   private _sendMoveThrottled: (payload: MoveRequest) => void;
@@ -164,6 +164,7 @@ export class GameApp {
     const prevFloorId = this._currentFloorId;
     this._worldWidth = mapConfig.width ?? this.DEFAULT_WIDTH;
     this._worldHeight = mapConfig.height ?? this.DEFAULT_HEIGHT;
+    this._currentFloorKey = floor;
     this._currentFloorId = mapConfig.floorId;
     // 회의실은 roomId 채널로, 나머지는 floorId 채널로 구독한다.
     this._movementChannelId = this.getMovementChannelId(
@@ -217,65 +218,6 @@ export class GameApp {
     });
     this.clearOtherPlayers();
 
-    // ---------------------------------------------------------
-    // [Visual Update First]
-    // 화면/UI 업데이트를 먼저 수행하여 사용자 경험을 개선합니다.
-    // ---------------------------------------------------------
-
-    // 맵 뷰포트 리사이즈
-    if (this._viewport) {
-      this._viewport.resize(
-        this._app.screen.width,
-        this._app.screen.height,
-        this._worldWidth,
-        this._worldHeight,
-      );
-      this._viewport.clamp({ direction: 'all' });
-    }
-
-    // 배경 이미지 로드 및 변경
-    const texture = await Assets.load(mapConfig.img);
-
-    // 기존 배경 스프라이트가 있으면 제거 후 새로 생성 (강제 갱신)
-    if (this._bgSprite) {
-      this._viewport.removeChild(this._bgSprite);
-      this._bgSprite.destroy();
-    }
-
-    this._bgSprite = new Sprite(texture);
-    this._bgSprite.width = this._worldWidth;
-    this._bgSprite.height = this._worldHeight;
-    this._viewport.addChildAt(this._bgSprite, 0);
-
-    // 각종 UI 및 존 데이터 업데이트
-    this.updateMapButtons(mapConfig);
-    this.updateMapZones(mapConfig);
-    this.updateBookTalkRoomInfoOverlay(floor);
-    this.updateReadingTimerUI(floor);
-    this.updateCollision(mapConfig);
-
-    // 중앙 정렬 로직 (플레이어를 따르거나 중앙 정렬)
-    const screenWidth = this._viewport.screenWidth;
-    const screenHeight = this._viewport.screenHeight;
-    if (this._worldWidth < screenWidth || this._worldHeight < screenHeight) {
-      this._viewport.moveCenter(this._worldWidth / 2, this._worldHeight / 2);
-    } else {
-      if (this._player) {
-        this._viewport.moveCenter(this._player.x, this._player.y);
-        this._viewport.follow(this._player);
-      } else {
-        this._viewport.moveCenter(this._worldWidth / 2, this._worldHeight / 2);
-      }
-    }
-
-    // 맵 바뀌면 다른 유저 지우기 (한 번 더 확실히)
-    this.clearOtherPlayers();
-
-    // ---------------------------------------------------------
-    // [Network Operation]
-    // 비동기 소켓 구독은 마지막에 수행합니다.
-    // ---------------------------------------------------------
-
     // 내 방이 아니고 연결되어 있을 때만 구독
     if (floor !== 'myRoom' && isConnected) {
       const movementChannelId = this._movementChannelId;
@@ -303,6 +245,51 @@ export class GameApp {
     } else if (floor === 'myRoom') {
       console.log('내 방: 위치 공유 안 함');
     }
+
+    // 맵 변경
+    if (this._viewport) {
+      this._viewport.resize(
+        this._app.screen.width,
+        this._app.screen.height,
+        this._worldWidth,
+        this._worldHeight,
+      );
+      this._viewport.clamp({ direction: 'all' });
+    }
+
+    const texture = await Assets.load(mapConfig.img);
+    if (!this._bgSprite) {
+      this._bgSprite = new Sprite(texture);
+      this._viewport.addChildAt(this._bgSprite, 0);
+    } else {
+      this._bgSprite.texture = texture;
+    }
+
+    this._bgSprite.width = this._worldWidth;
+    this._bgSprite.height = this._worldHeight;
+
+    this.updateMapButtons(mapConfig);
+    this.updateMapZones(mapConfig);
+    this.updateBookTalkRoomInfoOverlay(floor);
+    this.updateCollision(mapConfig);
+    this.updateReadingTimerUI(floor);
+
+    // 중앙 정렬 로직
+    const screenWidth = this._viewport.screenWidth;
+    const screenHeight = this._viewport.screenHeight;
+    if (this._worldWidth < screenWidth || this._worldHeight < screenHeight) {
+      this._viewport.moveCenter(this._worldWidth / 2, this._worldHeight / 2);
+    } else {
+      if (this._player) {
+        this._viewport.moveCenter(this._player.x, this._player.y);
+        this._viewport.follow(this._player);
+      } else {
+        this._viewport.moveCenter(this._worldWidth / 2, this._worldHeight / 2);
+      }
+    }
+
+    // 맵 바뀌면 다른 유저 지우기
+    this.clearOtherPlayers();
   }
 
   private updateMapButtons(mapConfig: { buttons?: MapButtonConfig[] }) {
@@ -486,305 +473,6 @@ export class GameApp {
         room.title.length > 12 ? `${room.title.slice(0, 12)}...` : room.title;
       labelText.text = `${title}\n${room.currentCount} / ${room.maxUser}`;
     });
-  }
-
-  /**
-   * 2층 독서실에서만 독서 타이머 표시
-   */
-  private updateReadingTimerUI(floor: FloorType) {
-    // 기존 타이머 제거
-    if (this._readingTimerContainer) {
-      this._viewport.removeChild(this._readingTimerContainer);
-      this._readingTimerContainer.destroy({ children: true });
-      this._readingTimerContainer = null;
-      this._readingTimerText = null;
-      this._readingTimerSnapshot = '';
-    }
-
-    // 독서실(2층)이 아니면 표시하지 않음
-    if (floor !== 'readingFloor') return;
-
-    const container = new Container();
-    this._readingTimerContainer = container;
-    this._viewport.addChild(container);
-
-    const centerX = this._worldWidth / 2 + 15;
-    const fixedY = 30; // 타이머 고정 위치
-
-    // 타이머 + 버튼 컨테이너
-    const controlContainer = new Container();
-    container.addChild(controlContainer);
-
-    const timerWidth = 120; // 늘림
-    const timerHeight = 36;
-    const buttonWidth = 60; // 줄임
-    const gap = 10;
-    const totalWidth = timerWidth + gap + buttonWidth;
-
-    // 전체 컨트롤 컨테이너를 중앙 정렬
-    controlContainer.x = centerX - totalWidth / 2;
-    controlContainer.y = fixedY;
-
-    // 타이머
-    const timerContainer = new Container();
-    timerContainer.eventMode = 'static';
-
-    const timerBg = new Graphics();
-    timerBg.roundRect(0, 0, timerWidth, timerHeight, 8).fill({
-      color: 0x4a2619,
-      alpha: 0.95,
-    });
-    timerBg.stroke({ width: 1, color: 0xc58346, alpha: 0.8 });
-
-    const timerText = new Text({
-      text: '00:00',
-      style: {
-        fill: 0xddd3b9,
-        fontFamily: contentFont,
-        fontSize: 18,
-        fontWeight: 'bold',
-      },
-    });
-    timerText.anchor.set(0.5, 0.5);
-    timerText.x = timerWidth / 2;
-    timerText.y = timerHeight / 2;
-
-    timerContainer.addChild(timerBg);
-    timerContainer.addChild(timerText);
-    timerContainer.x = 0;
-    timerContainer.y = 0;
-
-    // 타이머 호버 이벤트
-    timerContainer.on('pointerover', () => {
-      this._isTimerHovered = true;
-      this.refreshReadingTimerUI();
-    });
-    timerContainer.on('pointerout', () => {
-      this._isTimerHovered = false;
-      this.refreshReadingTimerUI();
-    });
-
-    controlContainer.addChild(timerContainer);
-    this._readingTimerText = timerText;
-
-    // 버튼 (오른쪽)
-    const { isReading, currentBook } = useReadingStore.getState(); // 상태 가져오기
-    const buttonLabel = isReading ? '종료' : '시작';
-    const buttonColor = isReading ? 0xb22222 : 0x8b4513;
-    const buttonAction = isReading
-      ? () => useModalStore.getState().openModal('readingCompletion')
-      : () =>
-          useModalStore
-            .getState()
-            .openModal('bookSelection', { isChanging: false });
-
-    const button = this.createButton(
-      buttonLabel,
-      buttonWidth,
-      timerHeight,
-      buttonColor,
-      buttonAction,
-    );
-    button.x = timerWidth + gap + buttonWidth / 2;
-    button.y = 0;
-    controlContainer.addChild(button);
-
-    // 책 제목 (타이머 아래에 배치)
-    if (isReading && currentBook) {
-      const bookTitleY = fixedY + timerHeight + 15;
-      const bookTitle = this.createClickableBookTitle(
-        currentBook.title,
-        centerX,
-        bookTitleY,
-      );
-      container.addChild(bookTitle);
-    }
-
-    // 현재 상태로 스냅샷 갱신 (무한 루프 방지)
-    this._readingTimerSnapshot = JSON.stringify({
-      isReading,
-      bookIsbn: currentBook?.isbn,
-    });
-
-    // 시간 텍스트 초기화
-    this.refreshReadingTimerUI(); // 여기서 텍스트 포맷 처리 위임
-  }
-
-  /**
-   * 클릭 가능한 책 제목 생성
-   */
-  private createClickableBookTitle(
-    title: string,
-    x: number,
-    y: number,
-  ): Container {
-    const titleContainer = new Container();
-    titleContainer.eventMode = 'static';
-    titleContainer.cursor = 'pointer';
-
-    // 제목 길이 제한
-    const displayTitle = title.length > 15 ? `${title.slice(0, 15)}...` : title;
-
-    const text = new Text({
-      text: `📖 ${displayTitle}`,
-      style: {
-        fill: 0xddd3b9,
-        fontFamily: contentFont,
-        fontSize: 14,
-        fontWeight: 'bold',
-      },
-    });
-    text.anchor.set(0.5, 0);
-
-    // 배경 (텍스트 뒤에 깔기)
-    const titleBg = new Graphics();
-    const textWidth = text.width;
-    const textHeight = text.height;
-    const paddingX = 12;
-    const paddingY = 6;
-
-    titleBg
-      .roundRect(
-        -textWidth / 2 - paddingX,
-        -paddingY,
-        textWidth + paddingX * 2,
-        textHeight + paddingY * 2,
-        12,
-      )
-      .fill({
-        color: 0x000000,
-        alpha: 0.5, // 반투명 검정 배경
-      });
-
-    titleContainer.addChild(titleBg);
-    titleContainer.addChild(text);
-    // titleContainer.addChild(underline); // 배경이 있으므로 밑줄은 제거하거나 유지 (사용자 "잘보이게" -> 배경이 더 효과적)
-    titleContainer.x = x;
-    titleContainer.y = y;
-
-    // 클릭 이벤트 - 책 변경 모달
-    titleContainer.on('pointertap', () => {
-      useModalStore.getState().openModal('bookSelection', { isChanging: true });
-    });
-
-    // 호버 효과
-    titleContainer.on('pointerover', () => {
-      titleBg.alpha = 0.7; // 호버 시 진하게
-      text.style.fill = 0xffffff;
-    });
-
-    titleContainer.on('pointerout', () => {
-      titleBg.alpha = 0.5;
-      text.style.fill = 0xddd3b9;
-    });
-
-    return titleContainer;
-  }
-
-  /**
-   * PixiJS 버튼 생성 헬퍼
-   */
-  private createButton(
-    label: string,
-    width: number,
-    height: number,
-    color: number,
-    onClick: () => void,
-  ): Container {
-    const btn = new Container();
-    btn.eventMode = 'static';
-    btn.cursor = 'pointer';
-
-    // 배경
-    const bg = new Graphics();
-    bg.roundRect(-width / 2, 0, width, height, 8).fill({ color, alpha: 0.9 });
-    bg.stroke({ width: 2, color: 0x000000, alpha: 0.3 });
-
-    // 텍스트
-    const text = new Text({
-      text: label,
-      style: {
-        fill: 0xffffff,
-        fontFamily: contentFont,
-        fontSize: 14,
-        fontWeight: 'bold',
-      },
-    });
-    text.anchor.set(0.5, 0.5);
-    text.x = 0;
-    text.y = height / 2;
-
-    btn.addChild(bg);
-    btn.addChild(text);
-
-    // 클릭 이벤트
-    btn.on('pointertap', onClick);
-
-    // 호버 효과
-    btn.on('pointerover', () => {
-      bg.clear();
-      bg.roundRect(-width / 2, 0, width, height, 8).fill({ color, alpha: 1 });
-      bg.stroke({ width: 2, color: 0xffffff, alpha: 0.5 });
-    });
-
-    btn.on('pointerout', () => {
-      bg.clear();
-      bg.roundRect(-width / 2, 0, width, height, 8).fill({ color, alpha: 0.9 });
-      bg.stroke({ width: 2, color: 0x000000, alpha: 0.3 });
-    });
-
-    return btn;
-  }
-
-  /**
-   * 독서 타이머 스냅샷 비교로 변경 시에만 텍스트 갱신
-   */
-
-  private refreshReadingTimerUI() {
-    const { isReading, currentBook, elapsedSeconds } =
-      useReadingStore.getState();
-
-    // 상태 변경 시 UI 재생성
-    const stateSnapshot = JSON.stringify({
-      isReading,
-      bookIsbn: currentBook?.isbn,
-    });
-
-    // UI가 없거나 상태가 바뀌면 재생성
-    if (
-      !this._readingTimerText ||
-      stateSnapshot !== this._readingTimerSnapshot
-    ) {
-      if (this._currentFloorId !== MAP_DATA.readingFloor.floorId) return;
-      this.updateReadingTimerUI('readingFloor');
-      return;
-    }
-
-    // 시간 업데이트 (호버 상태 포함해서 체크)
-    // 초 단위 변화나 호버 상태 변화 시 갱신
-    const timeSnapshot = JSON.stringify({
-      elapsedSeconds,
-      hovered: this._isTimerHovered,
-    });
-    if (timeSnapshot === this._readingTimerTimeSnapshot) return;
-    this._readingTimerTimeSnapshot = timeSnapshot;
-
-    const hours = Math.floor(elapsedSeconds / 3600);
-    const minutes = Math.floor((elapsedSeconds % 3600) / 60);
-    const seconds = elapsedSeconds % 60;
-
-    const hh = String(hours).padStart(2, '0');
-    const mm = String(minutes).padStart(2, '0');
-    const ss = String(seconds).padStart(2, '0');
-
-    // 호버 시 초 단위까지 표시
-    if (this._isTimerHovered) {
-      this._readingTimerText.text = `${hh}:${mm}:${ss}`;
-      this._readingTimerText.style.fontSize = 16; // 초 나오면 글자 약간 작게
-    } else {
-      this._readingTimerText.text = `${hh}:${mm}`;
-      this._readingTimerText.style.fontSize = 18;
-    }
   }
 
   private updateCollision(mapConfig: { collision?: MapCollisionConfig }) {
@@ -1183,10 +871,7 @@ export class GameApp {
     if (this._currentFloorId === MAP_DATA.bookTalkFloor.floorId) {
       this.refreshBookTalkRoomInfoOverlay();
     }
-
-    if (this._currentFloorId === MAP_DATA.readingFloor.floorId) {
-      this.refreshReadingTimerUI();
-    }
+    this.refreshReadingTimerUI();
 
     const isModalOpen = useModalStore.getState().currentModal !== null;
     if (isModalOpen) {
@@ -1451,5 +1136,338 @@ export class GameApp {
       return roomId ?? floorId;
     }
     return floorId;
+  }
+
+  /**
+   * 독서 타이머 UI 초기화 및 상태 기반 렌더링
+   */
+  private updateReadingTimerUI(floor: FloorType) {
+    if (this._readingTimerContainer) {
+      this._viewport.removeChild(this._readingTimerContainer);
+      this._readingTimerContainer.destroy({ children: true });
+      this._readingTimerContainer = null;
+      this._readingTimerText = null;
+      this._readingTimerSnapshot = '';
+    }
+
+    if (floor !== 'readingFloor') return;
+
+    const container = new Container();
+    this._readingTimerContainer = container;
+    this._viewport.addChild(container);
+
+    const centerX = this._worldWidth / 2 + 15;
+    const fixedY = 25;
+
+    const { isReading, isPaused, currentBook } = useReadingStore.getState();
+
+    // 사이즈 계산
+    const timerWidth = 100;
+    const timerHeight = 36;
+    const gap = 12; // 조금 더 넓게 조정
+
+    let contentsWidth = timerWidth;
+    if (!isReading) {
+      contentsWidth = timerWidth + gap + 90; // Start button
+    } else {
+      contentsWidth = timerWidth + gap + 32 * 2 + 6; // Pause/Stop buttons (Pixel style)
+    }
+
+    const paddingX = 8;
+    const paddingY = 12;
+    const panelWidth = Math.max(contentsWidth + paddingX * 2, 210);
+    const panelHeight = 95;
+
+    const panelBg = new Graphics();
+    panelBg
+      .rect(-panelWidth / 2, 0, panelWidth, panelHeight)
+      .fill({ color: 0xeee3cb, alpha: 0.98 })
+      .stroke({ width: 3, color: 0x4a2619, alpha: 0.8 });
+
+    container.addChild(panelBg);
+    container.x = centerX;
+    container.y = fixedY;
+
+    // 내부 컨테이너
+    const contentGroup = new Container();
+    contentGroup.x = -contentsWidth / 2;
+    contentGroup.y = paddingY;
+    container.addChild(contentGroup);
+
+    // 타이머 박스
+    const timerBox = new Container();
+    timerBox.eventMode = 'static';
+
+    const timerBg = new Graphics();
+    timerBg
+      .roundRect(0, 0, timerWidth, timerHeight, 6)
+      .fill({ color: 0x4a2619, alpha: 0.95 })
+      .stroke({ width: 1.5, color: 0xc58346, alpha: 0.4 });
+
+    timerBox.addChild(timerBg);
+
+    const timerText = new Text({
+      text: '00:00',
+      style: {
+        fill: 0xddd3b9,
+        fontFamily: contentFont,
+        fontSize: 20,
+        fontWeight: 'bold',
+      },
+    });
+    timerText.anchor.set(0.5, 0.5);
+    timerText.x = timerWidth / 2;
+    timerText.y = timerHeight / 2;
+
+    timerBox.addChild(timerText);
+    contentGroup.addChild(timerBox);
+    this._readingTimerText = timerText;
+
+    // 타이머 호버
+    timerBox.on('pointerover', () => {
+      this._isTimerHovered = true;
+      this.refreshReadingTimerUI();
+    });
+    timerBox.on('pointerout', () => {
+      this._isTimerHovered = false;
+      this.refreshReadingTimerUI();
+    });
+
+    // 버튼 생성
+    if (!isReading) {
+      const startBtn = this.createEnhancedPixelButton(
+        '독서 시작',
+        90,
+        timerHeight,
+        0x420e07, // primary
+        () =>
+          useModalStore
+            .getState()
+            .openModal('bookSelection', { isChanging: false }),
+      );
+      startBtn.x = timerWidth + gap + 45;
+      startBtn.y = 0;
+      contentGroup.addChild(startBtn);
+    } else {
+      const btnSize = 32;
+      const btnGap = 6;
+
+      const pauseLabel = isPaused ? '▶' : '||';
+      const pauseColor = isPaused ? 0x8b4513 : 0xe5a000;
+      const pauseAction = isPaused
+        ? () => useReadingStore.getState().resumeReading()
+        : () => useReadingStore.getState().pauseReading();
+
+      const pauseBtn = this.createEnhancedPixelButton(
+        pauseLabel,
+        btnSize,
+        timerHeight,
+        pauseColor,
+        pauseAction,
+      );
+      pauseBtn.x = timerWidth + gap + btnSize / 2;
+      pauseBtn.y = 0;
+      contentGroup.addChild(pauseBtn);
+
+      const stopBtn = this.createEnhancedPixelButton(
+        '■',
+        btnSize,
+        timerHeight,
+        0xb22222,
+        () => useModalStore.getState().openModal('readingCompletion'),
+      );
+      stopBtn.x = timerWidth + gap + btnSize + btnGap + btnSize / 2;
+      stopBtn.y = 0;
+      contentGroup.addChild(stopBtn);
+
+      // 책 제목
+      if (currentBook) {
+        const titleY = timerHeight + 18;
+        const titleComp = this.createClickableBookTitle(
+          currentBook.title,
+          0,
+          titleY,
+        );
+        container.addChild(titleComp);
+      }
+    }
+
+    this._readingTimerSnapshot = JSON.stringify({
+      isReading,
+      isPaused,
+      bookIsbn: currentBook?.isbn,
+    });
+    this.refreshReadingTimerUI();
+  }
+
+  /**
+   * 픽셀 스타일의 입체감 있는 버튼 생성
+   */
+  private createEnhancedPixelButton(
+    label: string,
+    width: number,
+    height: number,
+    color: number,
+    onClick: () => void,
+  ): Container {
+    const btn = new Container();
+    btn.eventMode = 'static';
+    btn.cursor = 'pointer';
+
+    const drawButton = (isPressed: boolean = false) => {
+      const graphics = new Graphics();
+      const bottomShadow = isPressed ? 2 : 6;
+      const radius = 8; // 부드러운 라운드 적용
+
+      // 외곽선
+      graphics
+        .roundRect(
+          -width / 2 - 2,
+          -2,
+          width + 4,
+          height + 4 + (isPressed ? 0 : 2),
+          radius + 2,
+        )
+        .fill({ color: 0x4a2619 });
+
+      // 메인 배경
+      graphics.roundRect(-width / 2, 0, width, height, radius).fill({ color });
+
+      if (!isPressed) {
+        // 하단 굵은 그림자
+        graphics
+          .roundRect(
+            -width / 2,
+            height - bottomShadow,
+            width,
+            bottomShadow,
+            radius,
+          )
+          .fill({ color: 0x8d563e, alpha: 0.6 });
+
+        // 안쪽 테두리 하이라이트 (상단/좌측)
+        graphics
+          .roundRect(-width / 2, 0, width, height, radius)
+          .stroke({ width: 2, color: 0xeec39a, alpha: 0.4 });
+      }
+
+      return graphics;
+    };
+
+    let currentBg = drawButton(false);
+    btn.addChild(currentBg);
+
+    const text = new Text({
+      text: label,
+      style: {
+        fill: 0xffffff,
+        fontFamily: contentFont,
+        fontSize: 13,
+        fontWeight: 'bold',
+      },
+    });
+    text.anchor.set(0.5, 0.5);
+    text.x = 0;
+    text.y = height / 2;
+    btn.addChild(text);
+
+    btn.on('pointertap', onClick);
+    btn.on('pointerover', () => {
+      text.alpha = 0.8;
+    });
+    btn.on('pointerout', () => {
+      text.alpha = 1;
+    });
+
+    // 누르는 효과
+    btn.on('pointerdown', () => {
+      btn.removeChild(currentBg);
+      currentBg = drawButton(true);
+      btn.addChildAt(currentBg, 0);
+      text.y = height / 2 + 2;
+    });
+
+    const resetBtn = () => {
+      btn.removeChild(currentBg);
+      currentBg = drawButton(false);
+      btn.addChildAt(currentBg, 0);
+      text.y = height / 2;
+    };
+
+    btn.on('pointerup', resetBtn);
+    btn.on('pointerupoutside', resetBtn);
+
+    return btn;
+  }
+
+  private refreshReadingTimerUI() {
+    const { isReading, isPaused, currentBook, elapsedSeconds } =
+      useReadingStore.getState();
+    const snapshot = JSON.stringify({
+      isReading,
+      isPaused,
+      bookIsbn: currentBook?.isbn,
+    });
+
+    if (this._readingTimerSnapshot !== snapshot) {
+      this.updateReadingTimerUI(this._currentFloorKey);
+      return;
+    }
+
+    if (!this._readingTimerText) return;
+
+    const hh = String(Math.floor(elapsedSeconds / 3600)).padStart(2, '0');
+    const mm = String(Math.floor((elapsedSeconds % 3600) / 60)).padStart(
+      2,
+      '0',
+    );
+    const ss = String(elapsedSeconds % 60).padStart(2, '0');
+
+    if (this._isTimerHovered) {
+      this._readingTimerText.text = `${hh}:${mm}:${ss}`;
+      this._readingTimerText.style.fontSize = 17;
+    } else {
+      this._readingTimerText.text = `${hh}:${mm}`;
+      this._readingTimerText.style.fontSize = 20;
+    }
+  }
+
+  private createClickableBookTitle(
+    title: string,
+    x: number,
+    y: number,
+  ): Container {
+    const titleContainer = new Container();
+    titleContainer.eventMode = 'static';
+    titleContainer.cursor = 'pointer';
+
+    const displayTitle = title.length > 20 ? `${title.slice(0, 20)}...` : title;
+    const text = new Text({
+      text: `📖 ${displayTitle}`,
+      style: {
+        fill: 0x8b4513,
+        fontFamily: contentFont,
+        fontSize: 14,
+        fontWeight: 'bold',
+      },
+    });
+    text.anchor.set(0.5, 0);
+    titleContainer.addChild(text);
+    titleContainer.x = x;
+    titleContainer.y = y;
+
+    titleContainer.on('pointertap', () =>
+      useModalStore.getState().openModal('bookSelection', { isChanging: true }),
+    );
+    titleContainer.on('pointerover', () => {
+      text.style.fill = 0xa0522d;
+      text.alpha = 0.8;
+    });
+    titleContainer.on('pointerout', () => {
+      text.style.fill = 0x8b4513;
+      text.alpha = 1;
+    });
+
+    return titleContainer;
   }
 }

@@ -18,6 +18,54 @@ export const completionCheck = style({
   padding: '12px',
   backgroundColor: theme.colors.beigeLight,
   borderRadius: '8px',
+  marginTop: '8px',
+});
+
+export const currentBookSection = style({
+  padding: '16px',
+  backgroundColor: theme.colors.beigeLight,
+  borderRadius: '12px',
+  border: `2px solid ${theme.colors.woodMedium}`,
+  marginBottom: '8px',
+});
+
+export const sectionLabel = style({
+  fontSize: '0.85rem',
+  fontWeight: 'bold',
+  color: theme.colors.beigeText,
+  marginBottom: '10px',
+  display: 'block',
+});
+
+export const currentBookInfo = style({
+  display: 'flex',
+  gap: '12px',
+  alignItems: 'center',
+});
+
+export const currentBookCover = style({
+  width: '50px',
+  height: '75px',
+  objectFit: 'cover',
+  borderRadius: '4px',
+  boxShadow: '2px 2px 4px rgba(0,0,0,0.1)',
+});
+
+export const currentBookDetails = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+});
+
+export const currentBookTitle = style({
+  fontSize: '0.95rem',
+  fontWeight: 'bold',
+  color: theme.colors.woodDeep,
+});
+
+export const currentBookAuthor = style({
+  fontSize: '0.85rem',
+  color: theme.colors.beigeText,
 });
 
 export const bookList = style({

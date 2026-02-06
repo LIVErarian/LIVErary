@@ -7,18 +7,49 @@ import { useUserBooks } from '@/hooks/queries/useUser';
 import { useModalStore } from '@/store/useModalStore';
 import { useReadingStore } from '@/store/useReadingStore';
 
-import * as styles from './BookSelectionModal.css';
+import {
+  addBookButton,
+  addIcon,
+  bookAuthor,
+  bookCover,
+  bookInfo,
+  bookItem,
+  bookItemSelected,
+  bookList,
+  bookTitle,
+  completionCheck,
+  container,
+  currentBookAuthor,
+  currentBookCover,
+  currentBookDetails,
+  currentBookInfo,
+  currentBookSection,
+  currentBookTitle,
+  description,
+  emptyState,
+  footer,
+  sectionLabel,
+} from './BookSelectionModal.css';
 
 export const BookSelectionModal = () => {
   const { currentModal, modalProps, closeModal, openModal } = useModalStore();
   const isOpen = currentModal === 'bookSelection';
   const isChanging = modalProps?.isChanging || false;
 
-  const { startReading, updateBook } = useReadingStore();
+  const {
+    startReading,
+    updateBook,
+    currentBook: readingStoreBook,
+  } = useReadingStore();
   const { data: booksData } = useUserBooks('READING', 0, 10);
 
   const [selectedIsbn, setSelectedIsbn] = useState('');
   const [isCompleted, setIsCompleted] = useState(false);
+
+  // 현재 읽고 있는 책의 전체 정보를 booksData에서 찾음
+  const currentBookInfoData = readingStoreBook
+    ? booksData?.content.find((b) => b.isbn === readingStoreBook.isbn)
+    : null;
 
   const handleConfirm = async () => {
     if (!selectedIsbn) {
@@ -44,7 +75,15 @@ export const BookSelectionModal = () => {
 
   if (!isOpen) return null;
 
-  const books = booksData?.content || [];
+  let books = booksData?.content || [];
+
+  // 책 변경 시 현재 읽고 있는 책은 리스트에서 제외
+  if (isChanging) {
+    const { currentBook } = useReadingStore.getState();
+    if (currentBook) {
+      books = books.filter((b) => b.isbn !== currentBook.isbn);
+    }
+  }
 
   return (
     <PixelModal
@@ -53,15 +92,38 @@ export const BookSelectionModal = () => {
       title={isChanging ? '책 변경하기' : '읽을 책 선택'}
       width="500px"
     >
-      <div className={styles.container}>
-        <p className={styles.description}>
+      <div className={container}>
+        <p className={description}>
           {isChanging
             ? '읽을 책을 변경하시겠습니까?'
             : '독서를 시작할 책을 선택해주세요.'}
         </p>
 
+        {isChanging && currentBookInfoData && (
+          <div className={currentBookSection}>
+            <span className={sectionLabel}>현재 읽고 있는 책</span>
+            <div className={currentBookInfo}>
+              {currentBookInfoData.coverUrl && (
+                <img
+                  src={currentBookInfoData.coverUrl}
+                  alt={currentBookInfoData.title}
+                  className={currentBookCover}
+                />
+              )}
+              <div className={currentBookDetails}>
+                <div className={currentBookTitle}>
+                  {currentBookInfoData.title}
+                </div>
+                <div className={currentBookAuthor}>
+                  {currentBookInfoData.author}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {isChanging && (
-          <div className={styles.completionCheck}>
+          <div className={completionCheck}>
             <label>
               <input
                 type="checkbox"
@@ -73,47 +135,45 @@ export const BookSelectionModal = () => {
           </div>
         )}
 
-        <div className={styles.bookList}>
+        <div className={bookList}>
           {/* 새 책 추가 버튼 */}
           <div
-            className={styles.addBookButton}
+            className={addBookButton}
             onClick={() => {
               closeModal();
               openModal('bookSearch');
             }}
           >
-            <span className={styles.addIcon}>+</span>
+            <span className={addIcon}>+</span>
             <span>새로운 책 검색하기</span>
           </div>
 
           {books.length === 0 && (
-            <div className={styles.emptyState}>
-              "읽는 중" 상태인 책이 없습니다.
-            </div>
+            <div className={emptyState}>"읽는 중" 상태인 책이 없습니다.</div>
           )}
 
           {books.map((book) => (
             <div
               key={book.isbn}
-              className={`${styles.bookItem} ${selectedIsbn === book.isbn ? styles.bookItemSelected : ''}`}
+              className={`${bookItem} ${selectedIsbn === book.isbn ? bookItemSelected : ''}`}
               onClick={() => setSelectedIsbn(book.isbn)}
             >
-              {book.coverImage && (
+              {book.coverUrl && (
                 <img
-                  src={book.coverImage}
+                  src={book.coverUrl}
                   alt={book.title}
-                  className={styles.bookCover}
+                  className={bookCover}
                 />
               )}
-              <div className={styles.bookInfo}>
-                <div className={styles.bookTitle}>{book.title}</div>
-                <div className={styles.bookAuthor}>{book.author}</div>
+              <div className={bookInfo}>
+                <div className={bookTitle}>{book.title}</div>
+                <div className={bookAuthor}>{book.author}</div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className={styles.footer}>
+        <div className={footer}>
           <PixelButton size="sm" variant="beige" onClick={closeModal}>
             취소
           </PixelButton>
