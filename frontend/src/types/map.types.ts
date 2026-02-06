@@ -93,10 +93,11 @@ export interface MapCollisionConfig {
 
 export interface MapConfig {
   floorId: string;
-  defaultRoomId?: string | null; // myRoom에서는 필요 없음
+  defaultRoomId?: string | null;
   name: string;
-  img: string;
-  categoryImgs?: Record<string, string>; // booktalk에서 일부 카테고리에만 지정
+  imgAlias: string;
+  jsonAlias?: string;
+  categoryImgAliases?: Record<string, string>;
   width?: number;
   height?: number;
   collision?: MapCollisionConfig;

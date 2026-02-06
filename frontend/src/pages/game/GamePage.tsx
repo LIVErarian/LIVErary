@@ -50,13 +50,18 @@ export const GamePage = () => {
     const navEntry = performance.getEntriesByType('navigation')[0] as
       | PerformanceNavigationTiming
       | undefined;
+
     if (navEntry?.type === 'reload') {
-      // 새로고침 시 bookTalkFloor 기본 입장 위치로 복귀
+      // 1. 방 ID와 스폰 포인트는 어디에 있든 일단 초기화 (안전장치)
       setRoomId(null);
       setSpawnPoint(null);
-      setCurrentFloor('bookTalkFloor');
+
+      // 현재 위치가 'conferenceFloor'(회의실)일 때만 'bookTalkFloor'로 강제 이동
+      if (currentFloor === 'conferenceFloor') {
+        setCurrentFloor('bookTalkFloor');
+      }
     }
-  }, [setCurrentFloor, setRoomId, setSpawnPoint]);
+  }, [currentFloor, setCurrentFloor, setRoomId, setSpawnPoint]);
 
   useEffect(() => {
     /**

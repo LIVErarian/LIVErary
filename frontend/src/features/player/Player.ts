@@ -1,23 +1,25 @@
 import { AnimatedSprite, Container, Rectangle, Text, Texture } from 'pixi.js';
 
+import type {
+  CharacterLayer,
+  CharacterParts,
+  PartType,
+} from '@/types/character.types';
 import type { Direction } from '@/types/socket.types';
 
 import { contentFont } from '@/styles/global.css';
 import { palette } from '@/styles/theme.css';
 
-//TODO: 파츠 별로 스프라이트 추가
 export class Player extends Container {
-  private _character: AnimatedSprite;
-  private _nicknameText: Text;
-  private _userId: string; // 사용자 ID (프로필 조회용)
+  private _layers: Record<PartType, CharacterLayer>;
+  private _container: Container;
 
-  // 텍스쳐를 잘라내서 보관
-  private _textures: Record<Direction, Texture[]> = {
-    DOWN: [],
-    LEFT: [],
-    RIGHT: [],
-    UP: [],
-  };
+  private _nicknameText: Text;
+  private _userId: string;
+
+  // 현재 상태 저장
+  private _currentDirection: Direction = 'DOWN';
+  private _isMoving: boolean = false;
 
   // Readonly 상수
   private readonly FRAME_SIZE = 64;
@@ -31,7 +33,7 @@ export class Player extends Container {
     x: number,
     y: number,
     nickname: string,
-    sheetTexture: Texture,
+    initialParts: CharacterParts,
     userId: string,
     onClickCallback?: (userId: string) => void,
   ) {
@@ -42,42 +44,42 @@ export class Player extends Container {
     this.y = y;
     this._userId = userId;
 
-    // 텍스처 자르기
-    this.sliceTextures(sheetTexture);
+    // 캐릭터 컨테이너 생성 (파츠 묶어서 관리)
+    this._container = new Container();
+    this._container.sortableChildren = true; // z-index 제어 가능하도록
 
-    // 초기 이미지 설정
-    this._character = new AnimatedSprite(this._textures.DOWN);
-    this._character.gotoAndStop(2);
-
-    // 애니메이션 속도 지정
-    this._character.animationSpeed = 0.15;
-    this._character.scale.set(this._scaleFactor);
-    this._character.anchor.set(0.5, 0.7); // 발바닥 기준
-
-    this._character.x = 0;
-    this._character.y = 0;
-
-    // 캐릭터를 클릭 가능하게 설정
-    this._character.eventMode = 'static';
-    this._character.cursor = 'pointer';
-
-    // 히트 영역 설정 (투명 영역 제외하고 실제 캐릭터 크기에 맞춤)
-    // anchor(0.5, 0.7) 기준 오프셋 계산
-    this._character.hitArea = new Rectangle(
+    // 캐릭터 클릭 이벤트를 컨테이너 전체에 걸어줘야 함
+    this._container.eventMode = 'static';
+    this._container.cursor = 'pointer';
+    this._container.hitArea = new Rectangle(
       -this.ACTUAL_WIDTH / 2,
       -this.ACTUAL_HEIGHT * 0.7,
       this.ACTUAL_WIDTH,
       this.ACTUAL_HEIGHT,
     );
 
-    // 클릭 이벤트 핸들러 추가
     if (onClickCallback) {
-      this._character.on('pointerdown', () => {
-        onClickCallback(this._userId);
-      });
+      this._container.on('pointerdown', () => onClickCallback(this._userId));
     }
 
-    this.addChild(this._character);
+    this.addChild(this._container);
+
+    // 레이어 초기화 (실제 텍스처는 setPart에서 채움)
+    this._layers = {
+      body: this.createEmptyLayer('body', 0),
+      pants: this.createEmptyLayer('pants', 1),
+      shirt: this.createEmptyLayer('shirt', 2),
+      hair: this.createEmptyLayer('hair', 3),
+    } as Record<PartType, CharacterLayer>;
+
+    // 초기 파츠 장착
+    (Object.keys(initialParts) as PartType[]).forEach((part) => {
+      this.setPart(
+        part,
+        initialParts[part].sheetTexture,
+        initialParts[part].tint,
+      );
+    });
 
     // 플레이어 상단에 닉네임 띄우기
     this._nicknameText = new Text({
@@ -96,7 +98,90 @@ export class Player extends Container {
     this.updateNicknamePosition();
 
     this.addChild(this._nicknameText);
-    this._character.gotoAndStop(2);
+    this.setAnimation('DOWN', false);
+  }
+
+  /**
+   * 빈 레이어 객체를 생성하여 컨테이너에 추가
+   * @param partName
+   * @param zIndex
+   * @returns
+   */
+  private createEmptyLayer(partName: string, zIndex: number): CharacterLayer {
+    const sprite = new AnimatedSprite([Texture.EMPTY]);
+    sprite.anchor.set(0.5, 0.7);
+    sprite.scale.set(this._scaleFactor);
+    sprite.zIndex = zIndex;
+    sprite.label = partName;
+    sprite.animationSpeed = 0.15;
+
+    this._container.addChild(sprite);
+
+    return {
+      sprite,
+      textures: {
+        DOWN: [Texture.EMPTY],
+        LEFT: [Texture.EMPTY],
+        RIGHT: [Texture.EMPTY],
+        UP: [Texture.EMPTY],
+      },
+    };
+  }
+
+  public setPart(part: PartType, sheetTexture?: Texture, tint?: number) {
+    const layer = this._layers[part];
+    if (!layer) return;
+
+    if (sheetTexture) {
+      // 텍스처 자르기
+      layer.textures = this.sliceTextures(sheetTexture);
+      const currentFrame = layer.sprite.currentFrame;
+      layer.sprite.textures = layer.textures[this._currentDirection];
+
+      if (this._isMoving) {
+        layer.sprite.gotoAndPlay(currentFrame);
+      } else {
+        layer.sprite.gotoAndStop(2); // 기본
+      }
+    }
+
+    if (tint !== undefined) {
+      layer.sprite.tint = tint;
+    }
+  }
+
+  /**
+   * 방향과 움직임 상태에 따라 애니메이션 재생
+   * @param direction 이동 방향
+   * @param isMoving 이동 중인지 확인
+   */
+  public setAnimation(direction: Direction, isMoving: boolean) {
+    this._currentDirection = direction;
+    this._isMoving = isMoving;
+
+    (Object.values(this._layers) as CharacterLayer[]).forEach((layer) => {
+      // 방향에 맞는 텍스처 세트 가져오기
+      const targetTextures = layer.textures[direction];
+
+      // 텍스처가 없거나 비어있으면 아무것도 하지 않음 (에러 방지)
+      if (!targetTextures || targetTextures.length === 0) return;
+
+      // 텍스처 교체
+      if (layer.sprite.textures !== targetTextures) {
+        layer.sprite.textures = targetTextures;
+      }
+
+      // 재생 로직
+      if (layer.sprite.totalFrames > 0) {
+        if (isMoving) {
+          if (!layer.sprite.playing) layer.sprite.play();
+        } else {
+          // 멈춤 프레임(2번)이 전체 프레임보다 크면 0번으로 대체
+          const stopFrame = 2 < layer.sprite.totalFrames ? 2 : 0;
+          layer.sprite.gotoAndStop(stopFrame);
+        }
+      }
+    });
   }
 
   /**
@@ -110,6 +195,12 @@ export class Player extends Container {
     const frameWidth = this.FRAME_SIZE;
     const frameHeight = this.FRAME_SIZE;
 
+    const result: Record<Direction, Texture[]> = {
+      DOWN: [],
+      LEFT: [],
+      RIGHT: [],
+      UP: [],
+    };
     const directions: Direction[] = ['DOWN', 'LEFT', 'RIGHT', 'UP'];
 
     for (let row = 0; row < rows; row++) {
@@ -130,33 +221,10 @@ export class Player extends Container {
           frame: rect,
         });
 
-        this._textures[currentDir].push(frameTexture);
+        result[currentDir].push(frameTexture);
       }
     }
-  }
-
-  /**
-   * 방향과 움직임 상태에 따라 애니메이션 재생
-   * @param direction 이동 방향
-   * @param isMoving 이동 중인지 확인
-   */
-  public setAnimation(direction: Direction, isMoving: boolean) {
-    if (!this._textures[direction] || this._textures[direction].length === 0) {
-      return;
-    }
-
-    // 현재 재생 중인 텍스처와 이동 방향이 다르다면 재생 중인 텍스쳐를 현재 방향으로 변경
-    if (this._character.textures !== this._textures[direction]) {
-      this._character.textures = this._textures[direction];
-      this._character.play();
-    }
-
-    // 움직이는 중이면 재생, 멈추면 정지
-    if (isMoving) {
-      if (!this._character.playing) this._character.play();
-    } else {
-      this._character.gotoAndStop(2); // base 프레임으로 변경
-    }
+    return result;
   }
 
   // Getter
@@ -175,7 +243,11 @@ export class Player extends Container {
   public setScaleFactor(scaleFactor: number) {
     if (scaleFactor <= 0 || this._scaleFactor === scaleFactor) return;
     this._scaleFactor = scaleFactor;
-    this._character.scale.set(this._scaleFactor);
+
+    (Object.values(this._layers) as CharacterLayer[]).forEach((layer) => {
+      layer.sprite.scale.set(scaleFactor);
+    });
+
     this.updateNicknamePosition();
   }
 
