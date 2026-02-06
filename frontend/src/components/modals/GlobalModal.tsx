@@ -175,13 +175,31 @@ export const GlobalModal = () => {
         <p>정말 로그아웃 하시겠습니까?</p>
       </ConfirmModal>
 
-      {/* 에러 알림 모달 */}
+      {/* 에러 알림 모달 (기존 'error' + 새로 추가한 'alert') */}
       <ErrorModal
-        isOpen={currentModal === 'error'}
+        isOpen={currentModal === 'error' || currentModal === 'alert'}
         onClose={closeModal}
         title={modalProps.title || '알림'}
         message={modalProps.message || '알 수 없는 오류가 발생했습니다.'}
       />
+
+      {/* 일반 확인(Confirm) 모달 */}
+      <ConfirmModal
+        isOpen={currentModal === 'confirm'}
+        onClose={() => {
+          if (modalProps.onCancel) modalProps.onCancel();
+          closeModal();
+        }}
+        onConfirm={() => {
+          if (modalProps.onConfirm) modalProps.onConfirm();
+          closeModal();
+        }}
+        title={modalProps.title || '확인'}
+        confirmText={modalProps.title === '삭제' ? '삭제' : '확인'} // 간단한 동적 처리 예시
+        isDanger={modalProps.title === '삭제' || modalProps.title === '탈퇴'}
+      >
+        <p style={{ textAlign: 'center' }}>{modalProps.message}</p>
+      </ConfirmModal>
 
       {/* 프로필 모달 */}
       <ProfileModal isOpen={currentModal === 'profile'} onClose={closeModal} />

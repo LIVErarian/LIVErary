@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { useDeleteReview, useUpdateReview } from '@/hooks/queries/useReview';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useModalStore } from '@/store/useModalStore';
 
 import type { ReviewData } from '@/types/review.types';
 
@@ -21,9 +22,10 @@ export const ReviewItem = ({ review, boardId }: ReviewItemProps) => {
   const [editContent, setEditContent] = useState(review.content);
 
   const { mutate: updateReview } = useUpdateReview(boardId);
-  const { mutate: deleteReview } = useDeleteReview(boardId);
+  const { mutate: deleteReview } = useDeleteReview();
+  const { openModal } = useModalStore();
 
-  const isMyReview = user?.nickname === review.nickname;
+  const isMyReview = user?.userId === review.user?.userId;
 
   const handleUpdate = () => {
     if (!editContent.trim()) return;
@@ -34,9 +36,12 @@ export const ReviewItem = ({ review, boardId }: ReviewItemProps) => {
   };
 
   const handleDelete = () => {
-    if (confirm('리뷰를 삭제하시겠습니까?')) {
-      deleteReview(review.reviewId);
-    }
+    openModal('confirm', {
+      title: '리뷰 삭제',
+      message: '리뷰를 삭제하시겠습니까?',
+      isDanger: true,
+      onConfirm: () => deleteReview(review.reviewId),
+    });
   };
 
   return (

@@ -6,11 +6,13 @@ import { categoryApi } from '@/api/category.api';
 import { useDebounce } from '@/hooks/common/useDebounce';
 import { useCreateRoom } from '@/hooks/mutations/useRoomMutations';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useModalStore } from '@/store/useModalStore';
 
 import type { Book } from '@/types/book.types';
 import type { AccessType, RoomType } from '@/types/room.types';
 
 export const useCreateRoomForm = (closeModal: () => void) => {
+  const { openModal } = useModalStore();
   const { mutate: createRoom, isPending } = useCreateRoom();
   const user = useAuthStore((state) => state.user);
 
@@ -128,32 +130,60 @@ export const useCreateRoomForm = (closeModal: () => void) => {
 
   // 제출
   const handleSubmit = () => {
-    if (!title.trim()) return alert('방 제목을 입력해주세요.');
-    if (!categoryId) return alert('카테고리를 선택해주세요.');
-    if (!selectedBook && !categoryId) return alert('카테고리는 필수입니다.');
+    if (!title.trim())
+      return openModal('alert', {
+        title: '알림',
+        message: '방 제목을 입력해주세요.',
+      });
+    if (!categoryId)
+      return openModal('alert', {
+        title: '알림',
+        message: '카테고리를 선택해주세요.',
+      });
+    if (!selectedBook && !categoryId)
+      return openModal('alert', {
+        title: '알림',
+        message: '카테고리는 필수입니다.',
+      });
     if (maxUser < 2 || maxUser > 20)
-      return alert('인원은 2명 이상 20명 이하여야 합니다.');
+      return openModal('alert', {
+        title: '알림',
+        message: '인원은 2명 이상 20명 이하여야 합니다.',
+      });
 
     let formattedStart = undefined;
     let formattedEnd = undefined;
 
     if (isScheduled) {
       if (!startDate || !startTime || !endDate || !endTime) {
-        return alert('예약 시간을 모두 설정해주세요.');
+        return openModal('alert', {
+          title: '알림',
+          message: '예약 시간을 모두 설정해주세요.',
+        });
       }
       const start = new Date(`${startDate}T${startTime}:00`);
       const end = new Date(`${endDate}T${endTime}:00`);
       const now = new Date();
 
-      if (start < now) return alert('시작 시간은 현재보다 미래여야 합니다.');
+      if (start < now)
+        return openModal('alert', {
+          title: '알림',
+          message: '시작 시간은 현재보다 미래여야 합니다.',
+        });
       if (end <= start)
-        return alert('종료 시간은 시작 시간보다 뒤여야 합니다.');
+        return openModal('alert', {
+          title: '알림',
+          message: '종료 시간은 시작 시간보다 뒤여야 합니다.',
+        });
 
       const diffTime = end.getTime() - start.getTime();
       const oneDayInMs = 24 * 60 * 60 * 1000;
 
       if (diffTime > oneDayInMs) {
-        return alert('종료 시간은 시작 시간으로부터 24시간 이내여야 합니다.');
+        return openModal('alert', {
+          title: '알림',
+          message: '종료 시간은 시작 시간으로부터 24시간 이내여야 합니다.',
+        });
       }
 
       formattedStart = start.toISOString();

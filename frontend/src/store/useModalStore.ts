@@ -28,6 +28,8 @@ export type ModalType =
   | 'quote'
   | 'bookSelection'
   | 'readingCompletion'
+  | 'alert' // 알림 (ErrorModal 재사용)
+  | 'confirm' // 확인
   | null;
 
 interface ModalProps {
@@ -45,6 +47,7 @@ interface ModalProps {
   initialBoardTab?: 'INQUIRY' | 'PROMOTION' | 'NOTICE';
   initialIsWished?: boolean;
   isChanging?: boolean; // 책 변경 여부 (독서 타이머용)
+  isDanger?: boolean; // 위험 작업 여부
 }
 
 interface ErrorState {

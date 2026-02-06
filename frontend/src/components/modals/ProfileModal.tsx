@@ -35,6 +35,7 @@ export const ProfileModal = ({
 }: ProfileModalProps) => {
   // 내 프로필 또는 타인 프로필 조회
   const { data: myProfile } = useGetMyProfile();
+  const { openModal } = useModalStore();
   const { data: otherProfile, isLoading } = useOtherProfile(userId);
 
   // 타인 프로필 여부 확인
@@ -114,10 +115,12 @@ export const ProfileModal = ({
    */
   const handleRejectFriend = () => {
     if (!friendId) return;
-    if (confirm('정말 거절하시겠습니까?')) {
-      rejectFriend(friendId);
-      onClose();
-    }
+    openModal('confirm', {
+      title: '거절 확인',
+      message: '정말 거절하시겠습니까?',
+      onConfirm: () => rejectFriend(friendId),
+    });
+    onClose();
   };
 
   /**
@@ -125,10 +128,13 @@ export const ProfileModal = ({
    */
   const handleBlock = () => {
     if (!profile?.email) return;
-    if (confirm('정말 차단하시겠습니까?')) {
-      blockUser(profile.email);
-      onClose();
-    }
+    openModal('confirm', {
+      title: '차단 확인',
+      message: '정말 차단하시겠습니까?',
+      isDanger: true,
+      onConfirm: () => blockUser(profile.email),
+    });
+    onClose();
   };
 
   /**
@@ -136,10 +142,12 @@ export const ProfileModal = ({
    */
   const handleUnblock = () => {
     if (!profile?.email) return;
-    if (confirm('차단을 해제하시겠습니까?')) {
-      unblockUser(profile.email);
-      onClose();
-    }
+    openModal('confirm', {
+      title: '차단 해제',
+      message: '차단을 해제하시겠습니까?',
+      onConfirm: () => unblockUser(profile.email),
+    });
+    onClose();
   };
 
   /**

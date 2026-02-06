@@ -71,9 +71,20 @@ export const FriendListModal = () => {
    * @param email - 차단 해제할 사용자 이메일
    */
   const handleUnblock = (email: string) => {
-    if (confirm('차단을 해제하시겠습니까?')) {
-      unblockUser(email);
-    }
+    useModalStore.getState().openModal('confirm', {
+      title: '차단 해제',
+      message: '차단을 해제하시겠습니까?',
+      onConfirm: () => {
+        unblockUser(email, {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: friendKeys.blocked() });
+            useModalStore
+              .getState()
+              .openModal('alert', { message: '차단을 해제했습니다.' });
+          },
+        });
+      },
+    });
   };
 
   /**

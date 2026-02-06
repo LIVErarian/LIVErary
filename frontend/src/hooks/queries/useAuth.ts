@@ -5,6 +5,7 @@ import { AxiosError } from 'axios';
 import { authApi } from '@/api/auth.api';
 import { userApi } from '@/api/user.api';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useModalStore } from '@/store/useModalStore';
 
 import type {
   EmailCodeVerifyRequest,
@@ -59,6 +60,7 @@ export const useLogout = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const logout = useAuthStore((state) => state.logout);
+  const { openModal } = useModalStore();
 
   return useMutation({
     mutationFn: () => authApi.logout(),
@@ -70,7 +72,7 @@ export const useLogout = () => {
       // 캐싱된 유저 정보 있으면 제거
       queryClient.removeQueries({ queryKey: ['user'] });
 
-      alert('로그아웃 되었습니다.');
+      openModal('alert', { message: '로그아웃 되었습니다.' });
       navigate('/login', { replace: true });
     },
   });

@@ -65,7 +65,10 @@ export const useCreateRoom = () => {
       // 예약 방인 경우
       if (variables.status === 'SCHEDULED') {
         queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
-        alert('예약이 완료되었습니다.');
+        openModal('alert', {
+          title: '예약 성공',
+          message: '예약이 완료되었습니다.',
+        });
         return;
       }
 
@@ -110,7 +113,7 @@ export const useCreateRoom = () => {
               const axiosError = error as AxiosError<CommonResponse<null>>;
               const msg =
                 axiosError.response?.data?.message || '입장에 실패했습니다.';
-              alert(msg);
+              openModal('alert', { title: '입장 실패', message: msg });
             }
           },
         });
@@ -126,7 +129,10 @@ export const useCreateRoom = () => {
     },
     onError: (error) => {
       const msg = error.response?.data?.message || '방 생성을 실패했습니다.';
-      alert(msg);
+      openModal('alert', {
+        title: '입장 실패',
+        message: msg,
+      });
     },
   });
 };
@@ -165,7 +171,10 @@ export const useJoinRoom = () => {
     onError: (error) => {
       queryClient.invalidateQueries({ queryKey: roomKeys.lives() });
       const msg = error.response?.data?.message || '방 참여에 실패했습니다.';
-      alert(msg);
+      useModalStore.getState().openModal('alert', {
+        title: '빠른 입장 실패',
+        message: msg,
+      });
     },
   });
 };
@@ -209,11 +218,17 @@ export const useApplyScheduledRoom = () => {
   >({
     mutationFn: roomApi.applyScheduledRoom,
     onSuccess: () => {
-      alert('방 참여 신청이 완료되었습니다!');
+      useModalStore.getState().openModal('alert', {
+        title: '신청 완료',
+        message: '방 참여 신청이 완료되었습니다!',
+      });
       queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
     },
     onError: (error) => {
-      alert('참여 신청 중 오류가 발생했습니다.');
+      useModalStore.getState().openModal('alert', {
+        title: '오류',
+        message: '참여 신청 중 오류가 발생했습니다.',
+      });
       console.log('예약 방 참여 신청 오류:', error);
     },
   });
@@ -237,7 +252,9 @@ export const useUpdateScheduledRoom = () => {
         queryClient.invalidateQueries({ queryKey: roomKeys.detail(roomId) });
       }
       queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
-      alert('방 정보가 수정되었습니다.');
+      useModalStore
+        .getState()
+        .openModal('alert', { message: '방 정보가 수정되었습니다.' });
     },
   });
 };
@@ -256,11 +273,16 @@ export const useDeleteScheduledRoom = () => {
     mutationFn: roomApi.deleteScheduledRoom,
     onSuccess: (message) => {
       queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
-      alert(message || '예약된 방이 취소되었습니다.');
+      useModalStore.getState().openModal('alert', {
+        message: message || '예약된 방이 취소되었습니다.',
+      });
     },
     onError: (error) => {
       console.error('방 취소 실패:', error);
-      alert('방 취소 중 오류가 발생했습니다.');
+      useModalStore.getState().openModal('alert', {
+        title: '오류',
+        message: '방 취소 중 오류가 발생했습니다.',
+      });
     },
   });
 };
@@ -279,11 +301,16 @@ export const useDeleteApplyScheduledRoom = () => {
     mutationFn: roomApi.deleteApplyScheduledRoom,
     onSuccess: (message) => {
       queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
-      alert(message || '참여 신청이 취소되었습니다.');
+      useModalStore.getState().openModal('alert', {
+        message: message || '참여 신청이 취소되었습니다.',
+      });
     },
     onError: (error) => {
       console.error('참여 취소 실패:', error);
-      alert('참여 취소 중 오류가 발생했습니다.');
+      useModalStore.getState().openModal('alert', {
+        title: '오류',
+        message: '참여 취소 중 오류가 발생했습니다.',
+      });
     },
   });
 };

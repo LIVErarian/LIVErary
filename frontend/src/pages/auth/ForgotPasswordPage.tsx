@@ -6,11 +6,13 @@ import { PixelButton } from '@/components/common/PixelButton';
 import { PixelContainer } from '@/components/common/PixelContainer';
 import { PixelInput } from '@/components/common/PixelInput';
 import { useFindPassword } from '@/hooks/queries/useAuth';
+import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './ForgotPasswordPage.css';
 
 export const ForgotPasswordPage = () => {
   const navigate = useNavigate();
+  const { openModal } = useModalStore();
   const { mutate: findPassword, isPending } = useFindPassword();
 
   const [email, setEmail] = useState('');
@@ -35,9 +37,11 @@ export const ForgotPasswordPage = () => {
       { email },
       {
         onSuccess: () => {
-          alert(
-            '가입하신 이메일로 임시 비밀번호를 전송했습니다.\n로그인 후 비밀번호를 변경해주세요.',
-          );
+          openModal('alert', {
+            title: '알림',
+            message:
+              '임시 비밀번호가 이메일로 전송되었습니다.\n로그인 후 비밀번호를 변경해주세요.',
+          });
           navigate('/login');
         },
         onError: () => {

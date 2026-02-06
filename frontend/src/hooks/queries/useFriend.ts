@@ -48,12 +48,15 @@ export const useSearchUser = () => {
  * @returns 친구 요청 mutation
  */
 export const useRequestFriend = () => {
-  const { openError } = useModalStore();
+  const { openError, openModal } = useModalStore();
 
   return useMutation({
     mutationFn: (req: FriendRequest) => friendApi.requestFriend(req),
     onSuccess: () => {
-      alert('친구 요청을 보냈습니다.');
+      openModal('alert', {
+        title: '요청 완료',
+        message: '친구 요청을 보냈습니다.',
+      });
     },
     onError: (error: AxiosError<CommonResponse<null>>) => {
       console.error('친구 요청 전송 실패:', error);
@@ -160,13 +163,16 @@ export const useRejectFriend = () => {
  */
 export const useBlockUser = () => {
   const queryClient = useQueryClient();
-  const { openError } = useModalStore();
+  const { openError, openModal } = useModalStore();
 
   return useMutation({
     mutationFn: (email: string) => friendApi.blockUser(email),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FRIEND_KEYS.all });
-      alert('사용자를 차단했습니다.');
+      openModal('alert', {
+        title: '차단 완료',
+        message: '사용자를 차단했습니다.',
+      });
     },
     onError: (error: AxiosError<CommonResponse<null>>) => {
       console.error('사용자 차단 실패:', error);
@@ -184,13 +190,17 @@ export const useBlockUser = () => {
  */
 export const useUnblockUser = () => {
   const queryClient = useQueryClient();
+  const { openModal } = useModalStore();
   const { openError } = useModalStore();
 
   return useMutation({
     mutationFn: (email: string) => friendApi.unblockUser(email),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FRIEND_KEYS.all });
-      alert('차단을 해제했습니다.');
+      openModal('alert', {
+        title: '차단 해제',
+        message: '차단을 해제했습니다.',
+      });
     },
     onError: (error: AxiosError<CommonResponse<null>>) => {
       console.error('차단 해제 실패:', error);
