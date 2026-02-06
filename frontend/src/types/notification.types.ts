@@ -3,7 +3,7 @@ export interface Notification {
   content: string;
   relatedUrl: string;
   read: boolean;
-  type: 'FRIEND_REQUEST' | 'SYSTEM' | 'OTHER';
+  type: 'FRIEND_REQUEST' | 'INQUIRY_REVIEW' | 'BOARD_REVIEW';
   createdAt: string;
 }
 

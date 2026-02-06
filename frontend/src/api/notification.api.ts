@@ -6,7 +6,7 @@ import type { Notification } from '@/types/notification.types';
 // 알림 목록 조회
 export const fetchNotifications = async (): Promise<Notification[]> => {
   const { data } =
-    await api.get<CommonResponse<Notification[]>>('/notification');
+    await api.get<CommonResponse<Notification[]>>('/notifications');
 
   if (!data.data) {
     return [];
@@ -19,5 +19,5 @@ export const fetchNotifications = async (): Promise<Notification[]> => {
 export const readNotification = async (
   notificationId: string,
 ): Promise<void> => {
-  await api.patch(`/notification/${notificationId}/read`);
+  await api.patch(`/notifications/${notificationId}/read`);
 };
