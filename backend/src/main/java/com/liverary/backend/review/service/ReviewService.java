@@ -14,6 +14,7 @@ import com.liverary.backend.review.repository.ReviewRepository;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +26,7 @@ import java.util.UUID;
 /**
  * 댓글 비즈니스 로직 처리 서비스
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -70,7 +72,11 @@ public class ReviewService {
 
         // 2. 이벤트 발행
         if(board.isNotWrittenBy(user)){
+            log.info("✅ 조건 통과: 이벤트 발행!");
+
             eventPublisher.publishEvent(new ReviewCreatedEvent(board.getUser().getUserId(), board.getBoardId()));
+        }else{
+            log.warn("❌ 자기 글에 단 댓글이라 알림 생략됨");
         }
 
         return ReviewResponse.from(savedReview);
