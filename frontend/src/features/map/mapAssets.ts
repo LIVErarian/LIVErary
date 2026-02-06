@@ -200,9 +200,9 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
       {
         id: 'lobby-exit',
         label: '로비 퇴장 - 마이룸',
-        x: 0.35,
+        x: 0.45,
         y: 0.9,
-        width: 0.3,
+        width: 0.135,
         height: 0.1,
         trigger: 'interact',
         action: {
@@ -210,6 +210,32 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
           title: '장소 이동',
           message: '내 서재로 이동하시겠습니까?',
           targetFloor: 'myRoom',
+        },
+      },
+      {
+        id: 'random-quote',
+        label: '오늘의 문장',
+        x: 0.11,
+        y: 0.48,
+        width: 0.145,
+        height: 0.16,
+        trigger: 'interact',
+        action: {
+          type: 'openModal',
+          modalType: 'quote',
+        },
+      },
+      {
+        id: 'lobby-rank',
+        label: '독서 랭킹 확인 ',
+        x: 0.7,
+        y: 0.55,
+        width: 0.22,
+        height: 0.23,
+        trigger: 'interact',
+        action: {
+          type: 'openModal',
+          modalType: 'rank',
         },
       },
     ],
@@ -275,6 +301,21 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
           targetFloor: 'myRoom',
         },
       },
+      // TODO: 집중 모드 모달 구현 시 modalType을 'concentration'로 변경
+      {
+        id: 'reading-concentration',
+        label: '집중 모드 시작',
+        x: 0.05,
+        y: 0.62,
+        width: 0.085,
+        height: 0.285,
+        trigger: 'interact',
+        action: {
+          type: 'openModal',
+          // modalType: 'concentration',
+          modalType: 'userProfile',
+        },
+      },
     ],
   },
   conferenceFloor: {
@@ -296,6 +337,19 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
           type: 'leaveRoomConfirm',
           title: '퇴장 확인',
           message: '퇴장하시겠습니까?',
+        },
+      },
+      {
+        id: 'conference-search',
+        label: '회의실 도서검색대',
+        x: 0.37,
+        y: 0.84,
+        width: 0.16,
+        height: 0.09,
+        trigger: 'interact',
+        action: {
+          type: 'openModal',
+          modalType: 'bookSearch',
         },
       },
     ],
@@ -483,6 +537,21 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         action: {
           type: 'openModal',
           modalType: 'bookshelf',
+        },
+      },
+      // TODO: 출석체크 모달 구현 시 modalType을 'attendance'로 변경
+      {
+        id: 'myRoom-attendance',
+        label: '출석체크 달력',
+        x: 0.66,
+        y: 0.07,
+        width: 0.14,
+        height: 0.33,
+        trigger: 'interact',
+        action: {
+          type: 'openModal',
+          // modalType: 'attendance',
+          modalType: 'userProfile',
         },
       },
     ],

@@ -17,6 +17,7 @@ import { NotificationModal } from './NotificationModal';
 import { PasswordResetModal } from './PasswordResetModal';
 import { PreferencesModal } from './PreferencesModal';
 import { ProfileModal } from './ProfileModal';
+import { QuoteModal } from './QuoteModal';
 import { RoomListModal } from './RoomListModal';
 
 import * as styles from './GlobalModal.css';
@@ -245,6 +246,11 @@ export const GlobalModal = () => {
 
       {/* 비밀번호 변경 모달 */}
       <PasswordResetModal />
+
+      {/* 오늘의 문장 (명언) 모달 */}
+      {currentModal === 'quote' && (
+        <QuoteModal isOpen={true} onClose={closeModal} />
+      )}
 
       {/* 책 상세 모달 */}
       {currentModal === 'bookDetail' && modalProps.isbn && (
