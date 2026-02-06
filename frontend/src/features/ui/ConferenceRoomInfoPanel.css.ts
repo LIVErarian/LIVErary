@@ -13,7 +13,7 @@ export const panel = style({
   border: `1px solid ${theme.colors.woodMedium}`,
   background: 'rgba(74, 38, 25, 0.92)',
   boxShadow: '0 6px 14px rgba(0, 0, 0, 0.28)',
-  pointerEvents: 'none',
+  pointerEvents: 'auto',
 });
 
 export const title = style({
@@ -44,6 +44,48 @@ export const chip = style({
   fontSize: '0.78rem',
   fontWeight: 700,
   lineHeight: 1,
+});
+
+export const codeContainer = style({
+  display: 'flex',
+  flexDirection: 'column',
+  backgroundColor: theme.colors.beigeLight,
+  padding: '8px 10px',
+  borderRadius: '8px',
+  marginBottom: '12px',
+  gap: '4px',
+});
+
+export const codeLabel = style({
+  fontSize: '0.75rem',
+  fontWeight: 'bold',
+  color: theme.colors.woodDeep,
+  opacity: 0.8,
+});
+
+export const codeValue = style({
+  fontSize: '1.1rem',
+  fontWeight: 'bold',
+  color: theme.colors.primary,
+  fontFamily: 'inherit',
+  userSelect: 'text',
+  cursor: 'text',
+  marginRight: 'auto',
+});
+
+export const copyButton = style({
+  backgroundColor: theme.colors.woodMedium,
+  color: theme.colors.white,
+  border: 'none',
+  borderRadius: '4px',
+  fontSize: '0.75rem',
+  padding: '4px 8px',
+  cursor: 'pointer',
+  marginLeft: '8px',
+  transition: 'background 0.2s',
+  ':hover': {
+    backgroundColor: theme.colors.woodDeep,
+  },
 });
 
 export const bookCard = style({

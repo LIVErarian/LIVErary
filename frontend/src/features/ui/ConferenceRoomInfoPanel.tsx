@@ -6,6 +6,7 @@ import * as styles from './ConferenceRoomInfoPanel.css';
 export const ConferenceRoomInfoPanel = () => {
   const currentFloor = useGameStore((state) => state.currentFloor);
   const roomId = useGameStore((state) => state.roomId);
+  const storedCode = useGameStore((state) => state.roomCode);
   const targetRoomId =
     currentFloor === 'conferenceFloor' ? (roomId ?? undefined) : undefined;
   const { data: roomDetail, isLoading } = useRoomDetail(targetRoomId);
@@ -28,6 +29,17 @@ export const ConferenceRoomInfoPanel = () => {
     Boolean(roomDetail.bookAuthor?.trim()) ||
     Boolean(roomDetail.bookCoverUrl?.trim());
 
+  const isPrivate = roomDetail.accessType === 'PRIVATE';
+
+  const displayCode = storedCode;
+
+  const handleCopyCode = () => {
+    if (displayCode) {
+      navigator.clipboard.writeText(displayCode);
+      alert('입장 코드가 복사되었습니다.');
+    }
+  };
+
   return (
     <section className={styles.panel} aria-label="회의실 방 정보 패널">
       <h3 className={styles.title}>{roomDetail.title}</h3>
@@ -40,6 +52,22 @@ export const ConferenceRoomInfoPanel = () => {
           인원 {roomDetail.currentCount} / {roomDetail.maxUser}
         </span>
       </div>
+
+      {isPrivate && displayCode && (
+        <div className={styles.codeContainer}>
+          <span className={styles.codeLabel}>입장 코드</span>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span className={styles.codeValue}>{displayCode}</span>
+            <button
+              className={styles.copyButton}
+              onClick={handleCopyCode}
+              aria-label="코드 복사"
+            >
+              복사
+            </button>
+          </div>
+        </div>
+      )}
 
       {hasBookInfo ? (
         <div className={styles.bookCard}>

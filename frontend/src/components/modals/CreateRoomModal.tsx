@@ -293,7 +293,7 @@ export const CreateRoomModal = () => {
                 checked={isScheduled}
                 onChange={handlers.handleScheduledChange}
               />
-              <span style={{ fontWeight: 'bold' }}>예약된 방으로 만들기</span>
+              <span style={{ fontWeight: 'bold' }}>예약 방 만들기</span>
             </label>
           </div>
           {scheduledUI}

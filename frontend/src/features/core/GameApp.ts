@@ -69,7 +69,7 @@ export class GameApp {
   private _sendMoveThrottled: (payload: MoveRequest) => void;
 
   // 상수 정의
-  private readonly MOVE_SPEED = 3;
+  private readonly MOVE_SPEED = 4;
   private readonly DEFAULT_PLAYER_SCALE = 2;
   private readonly MY_ROOM_PLAYER_SCALE = 5;
   private readonly MY_ROOM_SPEED_MULTIPLIER = 2;

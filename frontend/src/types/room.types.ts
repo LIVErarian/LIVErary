@@ -16,10 +16,12 @@ export interface ROOM_INFO {
 // 상세 정보
 export interface ROOM_DETAIL extends ROOM_INFO {
   roomId: string;
+  hostId?: string;
   status: RoomStatus;
   categoryName: string;
   currentCount: number;
   startAt?: string;
+  endAt?: string;
 
   // 책 정보 (상세 조회용)
   bookTitle?: string;
@@ -79,6 +81,7 @@ export type GetRoomListResponse = CommonResponse<PageResponse<ROOM_DETAIL>>;
 export interface MyScheduledRoomResponseData {
   roomId: string;
   title: string;
+  code?: string;
 }
 
 export type MyScheduledRoomResponse = CommonResponse<
@@ -119,6 +122,7 @@ export interface CreateRoomRequest {
 
 export interface CreateRoomResponseData {
   roomId: string;
+  code?: string;
 }
 
 export type CreateRoomResponse = CommonResponse<CreateRoomResponseData>;
