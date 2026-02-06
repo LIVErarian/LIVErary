@@ -25,6 +25,7 @@ export const bookCard = style({
   margin: '0 auto',
   height: '360px',
   boxSizing: 'border-box',
+  overflow: 'hidden',
 
   // 애니메이션
   transition: 'transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out',
@@ -38,6 +39,15 @@ export const bookCard = style({
       inset 2px 2px 0px ${theme.colors.beigeLight},
       6px 6px 0px ${theme.colors.woodDeep}
     `,
+  },
+
+  selectors: {
+    // 도서 선택 모달 내의 3열 그리드에서만 카드를 컴팩트하게 축소
+    '[class*="selectionSearchGrid"] &': {
+      height: '220px !important',
+      padding: '8px !important',
+      gap: '4px !important',
+    },
   },
 });
 
@@ -55,6 +65,13 @@ export const coverWrapper = style({
   position: 'relative',
 
   boxShadow: 'inset 2px 2px 4px rgba(0, 0, 0, 0.1)',
+
+  selectors: {
+    // 도서 선택 모달 내의 표지 크기 축소
+    '[class*="selectionSearchGrid"] &': {
+      height: '140px !important',
+    },
+  },
 });
 
 /**

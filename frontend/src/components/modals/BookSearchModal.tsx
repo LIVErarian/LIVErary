@@ -11,8 +11,8 @@ import type { Book } from '@/types/book.types';
 
 import * as styles from './BookSearchModal.css';
 
-const ITEMS_PER_PAGE = 6;
-const FETCH_SIZE = 20;
+const ITEMS_PER_PAGE = 12; // 3열 그리드이므로 4줄 표시
+const FETCH_SIZE = 48; // 더 많은 결과를 가져오도록 상향
 
 interface BookSearchModalProps {
   onSelectBook?: (book: Book) => void | Promise<void>;
@@ -173,7 +173,13 @@ export const BookSearchModal = ({
 
     // 5. 결과 목록 표시
     return (
-      <div className={styles.booksGrid}>
+      <div
+        className={
+          from === 'bookSelection'
+            ? styles.selectionSearchGrid
+            : styles.booksGrid
+        }
+      >
         {currentBooks.map((book) => (
           <BookCard
             key={book.isbn} // ISBN을 키로 사용
