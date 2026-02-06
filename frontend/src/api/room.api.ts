@@ -11,47 +11,96 @@ import type {
   DeleteApplyScheduledResponse,
   DeleteScheduledRoomRequest,
   DeleteScheduledRoomResponse,
+  GetLiveRoomListRequest,
   GetRecommendedRoomResponse,
+  GetReservationRoomListRequest,
   GetRoomDetailRequest,
   GetRoomDetailResponse,
   GetRoomDetailResponseData,
-  GetRoomListRequest,
   GetRoomListResponse,
-  GetScheduledRoomResponse,
-  GetScheduledRoomResponseData,
+  GetRoomSearchRequest,
+  GetRoomSearchResponse,
   JoinRoomRequest,
   JoinRoomResponse,
   JoinRoomResponseData,
   LeaveRoomRequest,
   LeaveRoomResponse,
+  MyScheduledRoomResponse,
+  MyScheduledRoomResponseData,
   PatchScheduledRoomRequest,
   PatchScheduledRoomResponse,
   PatchScheduledRoomResponseData,
   RECOMMENDED_ROOM,
+  ROOM_DETAIL,
 } from '@/types/room.types';
 
 export const roomApi = {
   /**
-   * [GET] 방 검색
-   * @param req roomType, keyword, page, size, sort
-   * @returns
+   * [GET] 라이브 방 목록 조회
    */
-  getRoomList: async (
-    req: GetRoomListRequest,
+  getLiveRoomList: async (
+    req: GetLiveRoomListRequest,
   ): Promise<GetRoomListResponse['data']> => {
-    const { data } = await api.get<GetRoomListResponse>('/room', {
+    const { data } = await api.get<GetRoomListResponse>('/room/live', {
       params: req,
     });
+    if (!data.data) throw new Error('라이브 방 목록을 불러오지 못했습니다.');
+    return data.data;
+  },
 
-    if (!data.data) throw new Error('방 목록 데이터를 불러오지 못했습니다.');
+  /**
+   * [GET] 예약된 방 목록 조회
+   */
+  getReservationRoomList: async (
+    req: GetReservationRoomListRequest,
+  ): Promise<GetRoomListResponse['data']> => {
+    const { data } = await api.get<GetRoomListResponse>('/room/reservation', {
+      params: req,
+    });
+    if (!data.data) throw new Error('예약 방 목록을 불러오지 못했습니다.');
+    return data.data;
+  },
 
+  /**
+   * [GET] 방 코드로 검색 (추가됨)
+   */
+  searchRoom: async (req: GetRoomSearchRequest): Promise<ROOM_DETAIL> => {
+    const { data } = await api.get<GetRoomSearchResponse>('/room/search', {
+      params: req, // ?code=...
+    });
+    if (!data.data) throw new Error('해당 코드로 방을 찾을 수 없습니다.');
+    return data.data;
+  },
+
+  /**
+   * [GET] 내 예약 목록 조회
+   */
+  getMyScheduledRooms: async (): Promise<MyScheduledRoomResponseData[]> => {
+    const { data } = await api.get<MyScheduledRoomResponse>(
+      '/room/reservation/my',
+    );
+    if (!data.data) return [];
+    return data.data;
+  },
+
+  /**
+   * [GET] 추천 방 목록 조회
+   */
+  getRecommendedRooms: async (
+    categoryId?: string,
+  ): Promise<RECOMMENDED_ROOM[]> => {
+    const { data } = await api.get<GetRecommendedRoomResponse>(
+      '/room/recommend',
+      {
+        params: { categoryId },
+      },
+    );
+    if (!data.data) return [];
     return data.data;
   },
 
   /**
    * [GET] 방 상세 정보 조회
-   * @param req
-   * @returns
    */
   getRoomDetail: async (
     req: GetRoomDetailRequest,
@@ -59,55 +108,38 @@ export const roomApi = {
     const { data } = await api.get<GetRoomDetailResponse>(
       `/room/${req.roomId}`,
     );
-
     if (!data.data) throw new Error('방 상세 정보를 불러오지 못했습니다.');
-
     return data.data;
   },
 
   /**
-   * [POST] 방 만들기
-   * @param req
-   * @returns
+   * [POST] 방 생성
    */
   createRoom: async (
     req: CreateRoomRequest,
   ): Promise<CreateRoomResponseData> => {
     const { data } = await api.post<CreateRoomResponse>('/room', req);
-
     if (!data.data) throw new Error('방 생성에 실패했습니다.');
-
     return data.data;
   },
 
   /**
-   * [POST] 방 들어가기
-   * @param req
-   * @returns
+   * [POST] 방 참여
    */
-  joinRoom: async (req: JoinRoomRequest): Promise<JoinRoomResponseData> => {
-    const { roomId, code } = req;
-
-    /**
-     * 공개방은 code 없이 입장 가능하므로 빈 객체를 전송한다.
-     * 비공개방은 code가 있을 때만 body에 포함한다.
-     * (undefined를 그대로 보내지 않아 서버 DTO 검증 충돌을 줄임)
-     */
-    const payload = code ? { code } : {};
+  joinRoom: async (
+    roomId: string,
+    req: JoinRoomRequest,
+  ): Promise<JoinRoomResponseData> => {
     const { data } = await api.post<JoinRoomResponse>(
       `/room/${roomId}/join`,
-      payload,
+      req,
     );
-
-    if (!data.data) throw new Error('방 입장에 실패했습니다.');
-
+    if (!data.data) throw new Error('방 참여에 실패했습니다.');
     return data.data;
   },
 
   /**
-   * [POST] 방 떠나기
-   * @param req
-   * @returns
+   * [POST] 방 퇴장
    */
   leaveRoom: async (req: LeaveRoomRequest): Promise<string> => {
     const { data } = await api.post<LeaveRoomResponse>(
@@ -117,9 +149,7 @@ export const roomApi = {
   },
 
   /**
-   * [POST] 예약된 방 참여하기
-   * @param req
-   * @returns
+   * [POST] 예약된 방 참여 신청
    */
   applyScheduledRoom: async (
     req: ApplyScheduledRoomRequest,
@@ -127,16 +157,12 @@ export const roomApi = {
     const { data } = await api.post<ApplyScheduledRoomResponse>(
       `/room/reservation/${req.roomId}/apply`,
     );
-
-    if (!data.data) throw new Error('예약 참여 신청에 실패했습니다.');
-
+    if (!data.data) throw new Error('방 참여 신청에 실패했습니다.');
     return data.data;
   },
 
   /**
    * [DELETE] 예약된 방 참여 취소
-   * @param req
-   * @returns
    */
   deleteApplyScheduledRoom: async (
     req: DeleteApplyScheduledRequest,
@@ -149,8 +175,6 @@ export const roomApi = {
 
   /**
    * [PATCH] 방 예약 정보 수정
-   * @param req
-   * @returns
    */
   patchScheduledRoom: async (
     req: PatchScheduledRoomRequest,
@@ -160,16 +184,12 @@ export const roomApi = {
       `/room/reservation/${roomId}`,
       body,
     );
-
     if (!data.data) throw new Error('방 정보 수정에 실패했습니다.');
-
     return data.data;
   },
 
   /**
    * [DELETE] 예약된 방 삭제 (취소)
-   * @param req
-   * @returns
    */
   deleteScheduledRoom: async (
     req: DeleteScheduledRoomRequest,
@@ -178,39 +198,5 @@ export const roomApi = {
       `/room/reservation/${req.roomId}`,
     );
     return data.message;
-  },
-
-  /**
-   * [GET] 내 예약 목록 조회
-   * @returns
-   */
-  getMyScheduledRooms: async (): Promise<GetScheduledRoomResponseData[]> => {
-    const { data } = await api.get<GetScheduledRoomResponse>(
-      '/room/reservation/my',
-    );
-
-    // 빈 배열이라도 올 수 있으니 null 체크만
-    if (!data.data) return [];
-
-    return data.data;
-  },
-
-  /**
-   * [GET] 추천 방 목록 조회
-   * @param categoryId (optional)
-   * @returns
-   */
-  getRecommendedRooms: async (
-    categoryId?: string,
-  ): Promise<RECOMMENDED_ROOM[]> => {
-    const params = categoryId ? { categoryId } : undefined;
-    const { data } = await api.get<GetRecommendedRoomResponse>(
-      '/ai/recommend',
-      { params },
-    );
-
-    if (!data.data) return [];
-
-    return data.data;
   },
 };

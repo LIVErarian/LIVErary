@@ -36,7 +36,7 @@ import {
   searchTitle,
   searchViewContainer,
   sectionLabel,
-} from './BookSelectionModal.css';
+} from './BookSelectionModal.css.ts';
 
 type ViewMode = 'list' | 'search';
 

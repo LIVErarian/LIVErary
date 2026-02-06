@@ -224,16 +224,16 @@ globalStyle(`${searchViewContainer} [class*="contentArea"]`, {
   borderRadius: '12px',
   border: `2px solid ${theme.colors.beigeMain}`,
   display: 'flex !important',
-  flexDirection: 'column !important',
+  flexDirection: 'column',
   padding: '8px !important',
-  boxSizing: 'border-box !important',
+  boxSizing: 'border-box',
 });
 
 // 검색 안내 문구 상하좌우 정중앙 배치
 globalStyle(`${searchViewContainer} [class*="emptyState"]`, {
   flex: '1 !important',
   display: 'flex !important',
-  flexDirection: 'column !important',
+  flexDirection: 'column',
   alignItems: 'center !important',
   justifyContent: 'center !important',
   height: '100% !important',
@@ -245,7 +245,7 @@ globalStyle(`${searchViewContainer} [class*="emptyState"]`, {
 globalStyle(
   `${searchViewContainer} [class*="contentArea"]:has([class*="Grid"])`,
   {
-    overflowY: 'auto !important',
+    overflowY: 'auto',
   },
 );
 
@@ -255,7 +255,7 @@ globalStyle(`${searchViewContainer} [class*="modalContainer"]`, {
   gap: '4px !important',
   height: '100% !important',
   display: 'flex !important',
-  flexDirection: 'column !important',
+  flexDirection: 'column',
   overflow: 'hidden !important',
 });
 

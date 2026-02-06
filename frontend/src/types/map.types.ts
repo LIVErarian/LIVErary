@@ -1,3 +1,5 @@
+import type { ModalType } from '@/store/useModalStore';
+
 export type FloorType =
   | 'lobby'
   | 'readingFloor'
@@ -29,7 +31,7 @@ export type MapZoneAction =
     }
   | {
       type: 'openModal';
-      modalType: 'elevator' | 'boardList' | 'bookshelf' | 'bookSearch';
+      modalType: ModalType;
       title?: string;
       message?: string;
     }
@@ -91,9 +93,11 @@ export interface MapCollisionConfig {
 
 export interface MapConfig {
   floorId: string;
-  defaultRoomId?: string | null; // myRoom에서는 필요 없음
+  defaultRoomId?: string | null;
   name: string;
-  img: string;
+  imgAlias: string;
+  jsonAlias?: string;
+  categoryImgAliases?: Record<string, string>;
   width?: number;
   height?: number;
   collision?: MapCollisionConfig;

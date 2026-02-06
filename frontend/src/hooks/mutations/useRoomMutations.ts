@@ -65,7 +65,8 @@ export const useCreateRoom = () => {
       // Scheduled인 경우 방 예약
       else {
         queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
-        queryClient.invalidateQueries({ queryKey: roomKeys.lists() });
+        // [수정] lists -> reservations
+        queryClient.invalidateQueries({ queryKey: roomKeys.reservations() });
         alert('예약이 완료되었습니다.');
       }
 
@@ -93,7 +94,9 @@ export const useCreateRoom = () => {
       }
 
       // 방 목록 강제 갱신
-      queryClient.invalidateQueries({ queryKey: roomKeys.lists() });
+      // [수정] lists -> lives & reservations
+      queryClient.invalidateQueries({ queryKey: roomKeys.lives() });
+      queryClient.invalidateQueries({ queryKey: roomKeys.reservations() });
     },
     onError: (error) => {
       console.error('방 생성 실패:', error.message);
@@ -115,9 +118,11 @@ export const useJoinRoom = () => {
   return useMutation<
     JoinRoomResponseData,
     AxiosError<CommonResponse<null>>,
-    JoinRoomRequest
+    // [수정] API 시그니처 변경에 따른 타입 수정 ({ roomId, req })
+    { roomId: string; req: JoinRoomRequest }
   >({
-    mutationFn: roomApi.joinRoom,
+    // [수정] API 호출 방식 변경 (인자 2개 전달)
+    mutationFn: ({ roomId, req }) => roomApi.joinRoom(roomId, req),
     onSuccess: (data) => {
       // 참여자수 갱신을 위해 방 상세 정보 갱신
       queryClient.invalidateQueries({ queryKey: roomKeys.detail(data.roomId) });
@@ -129,7 +134,8 @@ export const useJoinRoom = () => {
     },
     onError: (error) => {
       // 리스트 강제 갱신
-      queryClient.invalidateQueries({ queryKey: roomKeys.lists() });
+      // [수정] lists -> lives (참여는 주로 라이브 방)
+      queryClient.invalidateQueries({ queryKey: roomKeys.lives() });
       console.error('방 참여 실패:', error);
       alert(error.response?.data?.message || '방에 참여하지 못했습니다.');
     },
@@ -147,7 +153,8 @@ export const useLeaveRoom = () => {
     mutationFn: roomApi.leaveRoom,
     onSuccess: (_, variables) => {
       // 방 목록과 방 상세 정보 갱신
-      queryClient.invalidateQueries({ queryKey: roomKeys.lists() });
+      // [수정] lists -> lives
+      queryClient.invalidateQueries({ queryKey: roomKeys.lives() });
       queryClient.invalidateQueries({
         queryKey: roomKeys.detail(variables.roomId),
       });

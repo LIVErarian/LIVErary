@@ -18,6 +18,7 @@ export const PixelButton = ({
   fullWidth = false,
   shape = 'default',
   className,
+  style,
   ...props
 }: PixelButtonProps) => {
   const finalVariant = disabled ? 'disabled' : variant;
@@ -25,6 +26,7 @@ export const PixelButton = ({
     <button
       className={`${pixelButton({ size, variant: finalVariant, fullWidth, shape })} ${className || ''}`}
       disabled={disabled}
+      style={{ whiteSpace: 'nowrap', ...style }}
       {...props}
     >
       {children}

@@ -8,7 +8,7 @@ import { PixelModal } from '@/components/common/PixelModal';
 import { useModalStore } from '@/store/useModalStore';
 import { useReadingStore } from '@/store/useReadingStore';
 
-import * as styles from './ReadingCompletionModal.css';
+import * as styles from './ReadingCompletionModal.css.ts';
 
 export const ReadingCompletionModal = () => {
   const { currentModal, closeModal } = useModalStore();

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { GameLayout } from '@/components/layout/GameLayout';
 import { useGame } from '@/features/core/useGame';
+import { CATEGORY_MAP } from '@/features/map/mapAssets';
 import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown';
 import { ConferenceRoomInfoPanel } from '@/features/ui/ConferenceRoomInfoPanel';
 import { GameSidebar } from '@/features/ui/GameSidebar';
@@ -15,19 +16,26 @@ import { useSocketStore } from '@/store/useSocketStore';
 export const GamePage = () => {
   useReadingTimer(); // 독서 타이머 로직 활성화 (UI 없음)
   const containerRef = useRef<HTMLDivElement>(null);
-  const { gameAppRef, isReady } = useGame(containerRef);
   const lastFloorRef = useRef<string | null>(null);
+
+  const { gameAppRef, isReady } = useGame(containerRef);
+
   const currentFloor = useGameStore((state) => state.currentFloor);
   const spawnPoint = useGameStore((state) => state.spawnPoint);
   const setRoomId = useGameStore((state) => state.setRoomId);
   const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
   const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
   const clearRoom4Room = useBookTalkRoomStore((state) => state.clearRoom4Room);
+
+  const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
+
+  const selectedCategoryId = useBookTalkRoomStore(
+    (state) => state.selectedCategoryId,
+  );
 
   const { connect, disconnect } = useSocketStore();
   const { openModal } = useModalStore();
-  const user = useAuthStore((state) => state.user);
 
   /**
    * 게임 화면에서 소켓 연결을 유지한다.
@@ -44,13 +52,18 @@ export const GamePage = () => {
     const navEntry = performance.getEntriesByType('navigation')[0] as
       | PerformanceNavigationTiming
       | undefined;
+
     if (navEntry?.type === 'reload') {
-      // 새로고침 시 bookTalkFloor 기본 입장 위치로 복귀
+      // 1. 방 ID와 스폰 포인트는 어디에 있든 일단 초기화 (안전장치)
       setRoomId(null);
       setSpawnPoint(null);
-      setCurrentFloor('bookTalkFloor');
+
+      // 현재 위치가 'conferenceFloor'(회의실)일 때만 'bookTalkFloor'로 강제 이동
+      if (currentFloor === 'conferenceFloor') {
+        setCurrentFloor('bookTalkFloor');
+      }
     }
-  }, [setCurrentFloor, setRoomId, setSpawnPoint]);
+  }, [currentFloor, setCurrentFloor, setRoomId, setSpawnPoint]);
 
   useEffect(() => {
     /**
@@ -110,6 +123,18 @@ export const GamePage = () => {
     setRoomId,
     clearRoom4Room,
   ]);
+
+  /**
+   * 카테고리 변경 감지
+   */
+  useEffect(() => {
+    if (isReady && gameAppRef.current) {
+      const mappedKey = CATEGORY_MAP[selectedCategoryId] || '';
+
+      console.log(`[GamePage] 변환: ${selectedCategoryId} -> ${mappedKey}`);
+      gameAppRef.current.updateBackground(mappedKey);
+    }
+  }, [selectedCategoryId, isReady, gameAppRef]);
 
   return (
     <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />}>

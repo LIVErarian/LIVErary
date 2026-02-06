@@ -4,7 +4,6 @@ import { BoardCreate } from '../board/BoardCreate';
 import { BoardDetail } from '../board/BoardDetail';
 import { BoardList } from '../board/BoardList';
 import { BoardUpdate } from '../board/BoardUpdate';
-import { PixelButton } from '../common/PixelButton';
 import { PixelModal } from '../common/PixelModal';
 import { BookDetailModal } from './BookDetailModal';
 import { BookSearchModal } from './BookSearchModal';
@@ -20,49 +19,9 @@ import { PasswordResetModal } from './PasswordResetModal';
 import { PreferencesModal } from './PreferencesModal';
 import { ProfileModal } from './ProfileModal';
 import { ReadingCompletionModal } from './ReadingCompletionModal';
+import { RoomListModal } from './RoomListModal';
 
 import * as styles from './GlobalModal.css';
-
-// const BoardContent = () => (
-//   <div className={styles.contentWrapper}>
-//     <p>게시판 기능을 준비 중입니다.</p>
-//   </div>
-// );
-
-const RoomContent = () => {
-  const { openModal } = useModalStore();
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-        height: '100%',
-      }}
-    >
-      {/* 🟢 상단 헤더 영역 (제목 + 방 만들기 버튼) */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>방 목록</h2>
-
-        {/* 방 만들기 버튼 */}
-        <PixelButton
-          variant="primary" // 강조 색상 (빨강/브랜드 컬러)
-          onClick={() => openModal('createRoom')} // 'createRoom' 모달 열기
-          style={{ padding: '8px 16px', fontSize: '0.9rem' }}
-        >
-          + 방 만들기
-        </PixelButton>
-      </div>
-    </div>
-  );
-};
 
 const RankContent = () => (
   <div className={styles.contentWrapper}>
@@ -177,10 +136,10 @@ export const GlobalModal = () => {
       <PixelModal
         isOpen={currentModal === 'roomList'}
         onClose={closeModal}
-        title="🚪 방 목록"
-        width="500px"
+        title="방 목록"
+        width="auto" // 모달 내부에서 크기(800px) 지정했으므로 auto
       >
-        <RoomContent />
+        <RoomListModal />
       </PixelModal>
 
       {/* 방 만들기 모달 */}
