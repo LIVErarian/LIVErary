@@ -97,7 +97,7 @@ export const useNotification = () => {
   }, [token, queryClient]);
 
   // 읽지 않은 알림 개수 계산
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   // 3. 알림 읽음 처리 Mutation
   const { mutate: markAsRead } = useMutation({
@@ -106,7 +106,7 @@ export const useNotification = () => {
       queryClient.setQueryData<Notification[]>(['notifications'], (old) => {
         if (!old) return [];
         return old.map((n) =>
-          n.notificationId === notificationId ? { ...n, read: true } : n,
+          n.notificationId === notificationId ? { ...n, isRead: true } : n,
         );
       });
     },
