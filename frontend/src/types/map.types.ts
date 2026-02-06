@@ -1,3 +1,5 @@
+import type { ModalType } from '@/store/useModalStore';
+
 export type FloorType =
   | 'lobby'
   | 'readingFloor'
@@ -29,7 +31,7 @@ export type MapZoneAction =
     }
   | {
       type: 'openModal';
-      modalType: 'elevator' | 'boardList' | 'bookshelf' | 'bookSearch';
+      modalType: ModalType;
       title?: string;
       message?: string;
     }

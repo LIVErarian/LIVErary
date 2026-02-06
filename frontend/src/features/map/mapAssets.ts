@@ -207,10 +207,8 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         height: 0.09,
         trigger: 'interact',
         action: {
-          type: 'moveConfirm',
-          title: '장소 이동',
-          message: '내 서재로 이동하시겠습니까?',
-          targetFloor: 'myRoom',
+          type: 'openModal',
+          modalType: 'roomList',
         },
       },
       {
@@ -272,10 +270,8 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         height: 0.09,
         trigger: 'interact',
         action: {
-          type: 'moveConfirm',
-          title: '장소 이동',
-          message: '내 서재로 이동하시겠습니까?',
-          targetFloor: 'myRoom',
+          type: 'openModal',
+          modalType: 'roomList',
         },
       },
       {
@@ -428,10 +424,8 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         height: 0.09,
         trigger: 'interact',
         action: {
-          type: 'moveConfirm',
-          title: '장소 이동',
-          message: '내 서재로 이동하시겠습니까?',
-          targetFloor: 'myRoom',
+          type: 'openModal',
+          modalType: 'roomList',
         },
       },
       {
