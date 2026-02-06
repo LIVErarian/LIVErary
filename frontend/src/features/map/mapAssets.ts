@@ -1,34 +1,25 @@
-import bookConcertMapRaw from '@/assets/maps/book_concert.tmj?raw';
-import bookConcertImg from '@/assets/maps/book_concert_floor.png';
-import bookTalkMapRaw from '@/assets/maps/book_talk_floor.tmj?raw';
-import booktalkFloorImg from '@/assets/maps/booktalk_floor.png';
-import conferenceFloorImg from '@/assets/maps/conference_floor.png';
-import conferenceMapRaw from '@/assets/maps/conference_floor.tmj?raw';
-import lobbyMapRaw from '@/assets/maps/lobby.tmj?raw';
-import lobbyImg from '@/assets/maps/lobby_floor.png';
-import myRoomImg from '@/assets/maps/my_room.png';
-import readingFloorImg from '@/assets/maps/reading_floor.png';
-import readingMapRaw from '@/assets/maps/reading_floor.tmj?raw';
-
 import type {
   FloorType,
   MapCollisionConfig,
   MapConfig,
 } from '@/types/map.types';
 
+// Tiled Map JSON 데이터의 타입 정의
 type TiledLayer = {
   name?: string;
   type?: string;
   data?: number[];
 };
 
-type TiledMap = {
+export type TiledMap = {
   width?: number;
   height?: number;
   tilewidth?: number;
   tileheight?: number;
   layers?: TiledLayer[];
 };
+
+// 충돌 계산 로직
 
 const buildLayerCollision = (
   mapData: TiledMap,
@@ -99,18 +90,12 @@ const buildCollisionFromLayers = (
   };
 };
 
-const parseTiledMap = (raw: string, label: string): TiledMap | null => {
-  try {
-    return JSON.parse(raw) as TiledMap;
-  } catch (error) {
-    console.error(`[mapAssets] failed to parse ${label}`, error);
-    return null;
-  }
-};
-
 const COLLISION_LAYERS = ['WALL', 'OBJECT', 'BOOKSHELF'];
 
-const getMapProps = (mapData: TiledMap | null) => {
+/**
+ * 맵 데이터(JSON)를 받아서 충돌 영역과 크기를 계산해주는 함수
+ */
+export const getMapProps = (mapData: TiledMap | null) => {
   if (!mapData?.width || !mapData?.height) return {};
 
   const width =
@@ -132,25 +117,20 @@ const getMapProps = (mapData: TiledMap | null) => {
   };
 };
 
-const lobbyMap = parseTiledMap(lobbyMapRaw, 'lobby.tmj');
-const readingMap = parseTiledMap(readingMapRaw, 'reading_floor.tmj');
-const conferenceMap = parseTiledMap(conferenceMapRaw, 'conference_floor.tmj');
-const bookTalkMap = parseTiledMap(bookTalkMapRaw, 'book_talk_floor.tmj');
-const bookConcertMap = parseTiledMap(bookConcertMapRaw, 'book_concert.tmj');
+// 맵 설정 데이터
 
-const lobbyMapProps = getMapProps(lobbyMap);
-const readingMapProps = getMapProps(readingMap);
-const conferenceMapProps = getMapProps(conferenceMap);
-const bookTalkMapProps = getMapProps(bookTalkMap);
-const bookConcertMapProps = getMapProps(bookConcertMap);
+export const CATEGORY_MAP: Record<string, string> = {
+  'f92eb0f2-a547-4004-80d6-5310c7731595': 'science',
+  '84ed26a7-9eff-436e-b8ad-f40051b0e674': 'comic',
+};
 
 export const MAP_DATA: Record<FloorType, MapConfig> = {
   lobby: {
     floorId: '11111111-1111-1111-1111-111111111111',
     defaultRoomId: 'lobby-channel-uuid',
     name: '도서관 로비',
-    img: lobbyImg,
-    ...lobbyMapProps,
+    imgAlias: 'lobby',
+    jsonAlias: 'lobbyTmj',
     zones: [
       {
         id: 'lobby-board-left',
@@ -200,10 +180,8 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         height: 0.09,
         trigger: 'interact',
         action: {
-          type: 'moveConfirm',
-          title: '장소 이동',
-          message: '내 서재로 이동하시겠습니까?',
-          targetFloor: 'myRoom',
+          type: 'openModal',
+          modalType: 'roomList',
         },
       },
       {
@@ -240,8 +218,8 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     floorId: '22222222-2222-2222-2222-222222222222',
     defaultRoomId: 'reading-floor-uuid',
     name: '독서실',
-    img: readingFloorImg,
-    ...readingMapProps,
+    imgAlias: 'readingFloor',
+    jsonAlias: 'readingFloorTmj',
     zones: [
       {
         id: 'reading-elevator',
@@ -265,10 +243,8 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         height: 0.09,
         trigger: 'interact',
         action: {
-          type: 'moveConfirm',
-          title: '장소 이동',
-          message: '내 서재로 이동하시겠습니까?',
-          targetFloor: 'myRoom',
+          type: 'openModal',
+          modalType: 'roomList',
         },
       },
       {
@@ -305,8 +281,8 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     floorId: '55555555-5555-5555-5555-555555555555',
     defaultRoomId: 'conference-floor-uuid',
     name: '회의실',
-    img: conferenceFloorImg,
-    ...conferenceMapProps,
+    imgAlias: 'conference',
+    jsonAlias: 'conferenceTmj',
     zones: [
       {
         id: 'conference-exit',
@@ -328,8 +304,12 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     floorId: '33333333-3333-3333-3333-333333333333',
     defaultRoomId: null,
     name: '독서 모임 공간',
-    img: booktalkFloorImg,
-    ...bookTalkMapProps,
+    imgAlias: 'bookTalkBasic',
+    jsonAlias: 'bookTalkTmj',
+    categoryImgAliases: {
+      science: 'bookTalkScience',
+      comic: 'bookTalkComic',
+    },
     zones: [
       {
         id: 'room-1',
@@ -417,10 +397,8 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         height: 0.09,
         trigger: 'interact',
         action: {
-          type: 'moveConfirm',
-          title: '장소 이동',
-          message: '내 서재로 이동하시겠습니까?',
-          targetFloor: 'myRoom',
+          type: 'openModal',
+          modalType: 'roomList',
         },
       },
       {
@@ -442,8 +420,8 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     floorId: '44444444-4444-4444-4444-444444444444',
     defaultRoomId: 'book-concert-uuid',
     name: '북 콘서트 홀',
-    img: bookConcertImg,
-    ...bookConcertMapProps,
+    imgAlias: 'bookConcert',
+    jsonAlias: 'bookConcertTmj',
     zones: [
       {
         id: 'concert-whiteboard',
@@ -477,9 +455,9 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
   },
   myRoom: {
     floorId: '00000000-0000-0000-0000-000000000000',
-    // myRoom에서는 webRTC 연결하지 않으므로 defaultRoomId 필요 없음
     name: '내 서재',
-    img: myRoomImg,
+    imgAlias: 'myRoom',
+    // myRoom은 JSON 맵 데이터가 없으므로 jsonAlias 생략
     zones: [
       {
         id: 'myRoom-bookshelf-left',

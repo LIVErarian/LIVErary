@@ -36,7 +36,6 @@ export const GameSidebar = () => {
   const [isMicOn, setIsMicOn] = useState(false);
   const [isLeavingRoom, setIsLeavingRoom] = useState(false);
 
-  // TODO: api 연결하면 roomId로 수정 필요
   const { toggleMic, remoteStreams } = useWebRTC(
     roomId || '', // 로비에 항상 열려있는 roomId 기본 연결 필요
     user?.userId || '',
@@ -113,6 +112,19 @@ export const GameSidebar = () => {
     }
   };
 
+  const renderExitBtn = () => (
+    <PixelButton
+      variant="danger"
+      shape="square"
+      size="lg"
+      onClick={handleLeaveConferenceRoom}
+      title="회의실 나가기"
+      disabled={isLeavingRoom}
+    >
+      {isLeavingRoom ? '...' : '🚪'}
+    </PixelButton>
+  );
+
   // 내 서재 사이드바
   const renderMyRoomMenu = () => (
     <div className={styles.sidebarButton}>
@@ -147,17 +159,6 @@ export const GameSidebar = () => {
         📙
       </PixelButton>
 
-      {/* 책 검색 */}
-      <PixelButton
-        variant="beige"
-        shape="square"
-        size="lg"
-        onClick={() => openModal('bookSearch')}
-        title="책 검색"
-      >
-        🔍
-      </PixelButton>
-
       {/* 친구 목록 */}
       <PixelButton
         variant="beige"
@@ -188,34 +189,21 @@ export const GameSidebar = () => {
       );
     }
 
-    // 회의실에서는 "나가기"로 방 퇴장
-    if (currentFloor === 'conferenceFloor') {
+    // 회의실일 때는 아무것도 보여줄 필요 없음
+    else if (currentFloor !== 'conferenceFloor') {
+      // 그 외에서는 방 목록
       return (
         <PixelButton
-          variant="danger"
+          variant="beige"
           shape="square"
           size="lg"
-          onClick={handleLeaveConferenceRoom}
-          title="회의실 나가기"
-          disabled={isLeavingRoom}
+          onClick={() => openModal('roomList')}
+          title="방 목록"
         >
-          {isLeavingRoom ? '...' : '🚪'}
+          💬
         </PixelButton>
       );
     }
-
-    // 그 외에서는 방 목록
-    return (
-      <PixelButton
-        variant="beige"
-        shape="square"
-        size="lg"
-        onClick={() => openModal('roomList')}
-        title="방 목록"
-      >
-        💬
-      </PixelButton>
-    );
   };
 
   // 도서관 사이드바
@@ -265,17 +253,6 @@ export const GameSidebar = () => {
         📚
       </PixelButton>
 
-      {/* 책 검색 */}
-      <PixelButton
-        variant="beige"
-        shape="square"
-        size="lg"
-        onClick={() => openModal('bookSearch')}
-        title="책 검색"
-      >
-        🔍
-      </PixelButton>
-
       {/* 상황에 따른 버튼 */}
       {renderContextBtn()}
 
@@ -289,6 +266,8 @@ export const GameSidebar = () => {
       >
         👥
       </PixelButton>
+
+      {currentFloor === 'conferenceFloor' ? renderExitBtn() : null}
     </div>
   );
 
