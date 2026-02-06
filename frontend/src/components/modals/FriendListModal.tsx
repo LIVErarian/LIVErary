@@ -81,19 +81,6 @@ export const FriendListModal = () => {
       onConfirm: () => {
         unblockUser(email, {
           onSuccess: () => {
-            // Unblocking naturally invalidates dependent queries if handled in hook,
-            // but keeping this explicit if needed, fixing the variable name.
-            // However, FRIEND_KEYS is usually imported from api/hooks.
-            // Let's assume FRIEND_KEYS needs to be used.
-            // Wait, FRIEND_KEYS is imported as * from styles? NO.
-            // FRIEND_KEYS is not imported currently.
-            // I should import FRIEND_KEYS from useFriend hooks file if strictly needed.
-            // For now, I will comment it out if I can't find it, or try to fix it.
-            // Actually, checking lines 1-13 in FriendListModal.tsx view:
-            // It imports hooks from '@/hooks/queries/useFriend'.
-            // It does NOT import FRIEND_KEYS.
-
-            // If useUnblockUser already handles invalidation (which it should), I can remove this line.
             useModalStore
               .getState()
               .openModal('alert', { message: '차단을 해제했습니다.' });
