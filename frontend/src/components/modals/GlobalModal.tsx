@@ -19,16 +19,9 @@ import { PasswordResetModal } from './PasswordResetModal';
 import { PreferencesModal } from './PreferencesModal';
 import { ProfileModal } from './ProfileModal';
 import { QuoteModal } from './QuoteModal';
+import { RankingModal } from './RankingModal';
 import { ReadingCompletionModal } from './ReadingCompletionModal';
 import { RoomListModal } from './RoomListModal';
-
-import * as styles from './GlobalModal.css';
-
-const RankContent = () => (
-  <div className={styles.contentWrapper}>
-    <p>랭킹 기능을 준비중입니다.</p>
-  </div>
-);
 
 export const GlobalModal = () => {
   const { modalStack, closeModal, userProfile, closeUserProfile, openModal } =
@@ -154,10 +147,10 @@ export const GlobalModal = () => {
             <PixelModal
               isOpen={currentModal === 'rank'}
               onClose={closeModal}
-              title="랭킹"
-              width="500px"
+              title="🏆 랭킹"
+              width="550px"
             >
-              <RankContent />
+              <RankingModal />
             </PixelModal>
 
             {/* 로그아웃 모달 */}
