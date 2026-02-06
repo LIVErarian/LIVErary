@@ -172,12 +172,12 @@ export const GlobalModal = () => {
               <p>정말 로그아웃 하시겠습니까?</p>
             </ConfirmModal>
 
-            {/* 에러 및 알림 모달 */}
             <ErrorModal
               isOpen={currentModal === 'error' || currentModal === 'alert'}
               onClose={closeModal}
               title={modalProps.title || '알림'}
               message={modalProps.message || '알 수 없는 오류가 발생했습니다.'}
+              isError={currentModal === 'error'}
             />
 
             {/* 일반 확인(Confirm) 모달 */}
