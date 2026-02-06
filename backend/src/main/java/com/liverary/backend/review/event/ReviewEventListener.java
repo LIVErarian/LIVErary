@@ -17,17 +17,27 @@ public class ReviewEventListener {
 
     private final NotificationService notificationService;
 
+    /**
+     * 댓글 생성 이벤트를 수신하여 알림을 전송하는 핸들러
+     *  - TransactionalEventListener 설정으로 ReviewService 트랜젝션이 커밋된 후 실행
+     *  - Async 설정으로 알림 전송이 시간이 걸려도 댓글 작성 응답 속도 영향 없게 비동기 처리
+     * @param event
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReviewCreatedEvent(ReviewCreatedEvent event) {
         try {
-            //sendNotification(event);
+            sendNotification(event);
         }
         catch (Exception e){
             log.error("댓글 알림 전송 실패: targetUser={}, error={}", event.receiver().getUserId(), e.getMessage());
         }
     }
 
+    /**
+     * event 객체를 받아 댓글 알림을 생성 & Notification Service를 호출함
+     * @param event
+     */
     private void sendNotification(ReviewCreatedEvent event){
         NotificationType notificationType;
         String notificationContent;
