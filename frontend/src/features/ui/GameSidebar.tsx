@@ -70,10 +70,12 @@ export const GameSidebar = () => {
           const apiError = error as {
             response?: { data?: { message?: string } };
           };
-          alert(
-            apiError?.response?.data?.message ??
+          openModal('alert', {
+            title: '오류',
+            message:
+              apiError?.response?.data?.message ??
               '퇴장 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
-          );
+          });
           return;
         } finally {
           setIsLeavingRoom(false);
@@ -103,10 +105,12 @@ export const GameSidebar = () => {
       const apiError = error as {
         response?: { data?: { message?: string } };
       };
-      alert(
-        apiError?.response?.data?.message ??
+      openModal('alert', {
+        title: '오류',
+        message:
+          apiError?.response?.data?.message ??
           '퇴장 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
-      );
+      });
     } finally {
       setIsLeavingRoom(false);
     }

@@ -8,7 +8,7 @@ import { useSocketStore } from '@/store/useSocketStore';
 import type { FloorType } from '@/types/map.types';
 
 export const ElevatorModal = () => {
-  const { closeModal } = useModalStore();
+  const { closeModal, openModal } = useModalStore();
   const { currentFloor, roomId, setCurrentFloor, setRoomId } = useGameStore();
   const sendLeaveRoom = useSocketStore((state) => state.sendLeaveRoom);
 
@@ -25,10 +25,12 @@ export const ElevatorModal = () => {
         const apiError = error as {
           response?: { data?: { message?: string } };
         };
-        alert(
-          apiError?.response?.data?.message ??
+        openModal('alert', {
+          title: '오류',
+          message:
+            apiError?.response?.data?.message ??
             '퇴장 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
-        );
+        });
         return;
       }
     }

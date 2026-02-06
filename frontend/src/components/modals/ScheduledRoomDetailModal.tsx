@@ -47,7 +47,10 @@ export const ScheduledRoomDetailModal = ({
   const handleHostDelete = () => {
     // 혹시 모를 방어 코드
     if (hasParticipants) {
-      alert('다른 참여자가 있어 방을 삭제할 수 없습니다.');
+      openModal('alert', {
+        title: '알림',
+        message: '다른 참여자가 있어 방을 삭제할 수 없습니다.',
+      });
       return;
     }
 

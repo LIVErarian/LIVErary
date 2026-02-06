@@ -1,9 +1,11 @@
 import { useRoomDetail } from '@/hooks/queries/useRoomQueries';
 import { useGameStore } from '@/store/useGameStore';
+import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './ConferenceRoomInfoPanel.css';
 
 export const ConferenceRoomInfoPanel = () => {
+  const { openModal } = useModalStore();
   const currentFloor = useGameStore((state) => state.currentFloor);
   const roomId = useGameStore((state) => state.roomId);
   const storedCode = useGameStore((state) => state.roomCode);
@@ -36,7 +38,10 @@ export const ConferenceRoomInfoPanel = () => {
   const handleCopyCode = () => {
     if (displayCode) {
       navigator.clipboard.writeText(displayCode);
-      alert('입장 코드가 복사되었습니다.');
+      openModal('alert', {
+        title: '알림',
+        message: '입장 코드가 복사되었습니다.',
+      });
     }
   };
 

@@ -5,26 +5,30 @@ import { PixelModal } from '@/components/common/PixelModal';
 import { useCategoryList } from '@/hooks/queries/useCategory';
 import { useSavePreferences } from '@/hooks/queries/useUserPreferences';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useModalStore } from '@/store/useModalStore';
+import { type ModalType, useModalStore } from '@/store/useModalStore';
 
 import * as styles from './PreferencesModal.css';
 
-export const PreferencesModal = () => {
-  const { currentModal, closeModal } = useModalStore();
+interface PreferencesModalProps {
+  preferences?: string[];
+  from?: ModalType;
+}
+
+export const PreferencesModal = ({
+  preferences: initialPreferences,
+  from,
+}: PreferencesModalProps) => {
+  const { closeModal } = useModalStore();
   const userId = useAuthStore((state) => state.user?.userId);
-  const isOpen = currentModal === 'preferences';
 
-  const { modalProps } = useModalStore();
-  const initialPreferences = modalProps?.preferences as string[] | undefined;
-
-  const { data: categories = [], isLoading, isError } = useCategoryList(isOpen);
+  const { data: categories = [], isLoading, isError } = useCategoryList(true);
   const { mutate: savePreferences, isPending } = useSavePreferences();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [warningMessage, setWarningMessage] = useState<string>('');
 
   // 초기값 설정
   useEffect(() => {
-    if (isOpen && categories.length > 0 && initialPreferences) {
+    if (categories.length > 0 && initialPreferences) {
       // 23개(전체)인 경우엔 선택된 게 없는 것으로 간주
       if (initialPreferences.length >= 23) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -36,15 +40,15 @@ export const PreferencesModal = () => {
         .filter((cat) => initialPreferences.includes(cat.name))
         .map((cat) => cat.categoryId);
       setSelectedIds(ids);
-    } else if (isOpen && !initialPreferences) {
+    } else if (!initialPreferences) {
       // 초기값이 없으면 초기화
       setSelectedIds([]);
     }
     setWarningMessage('');
-  }, [isOpen, categories, initialPreferences]);
+  }, [categories, initialPreferences]);
 
   const closeOrReturn = () => {
-    if (modalProps?.from === 'profile') {
+    if (from === 'profile') {
       // 프로필에서 왔으면 프로필 모달 다시 열기 (내 프로필)
       useModalStore.getState().openModal('profile');
     } else {
@@ -104,11 +108,9 @@ export const PreferencesModal = () => {
     );
   };
 
-  if (!isOpen) return null;
-
   return (
     <PixelModal
-      isOpen={isOpen}
+      isOpen={true}
       onClose={handleClose}
       title="선호 카테고리"
       width="520px"

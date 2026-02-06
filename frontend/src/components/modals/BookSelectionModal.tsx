@@ -40,10 +40,14 @@ import {
 
 type ViewMode = 'list' | 'search';
 
-export const BookSelectionModal = () => {
-  const { currentModal, modalProps, closeModal } = useModalStore();
-  const isOpen = currentModal === 'bookSelection';
-  const isChanging = modalProps?.isChanging || false;
+interface BookSelectionModalProps {
+  isChanging?: boolean;
+}
+
+export const BookSelectionModal = ({
+  isChanging = false,
+}: BookSelectionModalProps) => {
+  const { closeModal, openModal } = useModalStore();
 
   const {
     startReading,
@@ -64,7 +68,7 @@ export const BookSelectionModal = () => {
 
   const handleConfirm = async () => {
     if (!selectedIsbn) {
-      alert('책을 선택해주세요!');
+      openModal('alert', { title: '알림', message: '책을 선택해주세요!' });
       return;
     }
 
@@ -90,15 +94,13 @@ export const BookSelectionModal = () => {
   const handleSelectBookFromSearch = async (book: Book) => {
     try {
       await registerReading(book.isbn);
-      alert('목록에 추가되었습니다.');
+      openModal('alert', { title: '성공', message: '목록에 추가되었습니다.' });
       setViewMode('list');
     } catch (error) {
       console.error('Failed to add book:', error);
-      alert('책 추가에 실패했습니다.');
+      openModal('alert', { title: '오류', message: '책 추가에 실패했습니다.' });
     }
   };
-
-  if (!isOpen) return null;
 
   let books = booksData?.content || [];
 
@@ -112,7 +114,7 @@ export const BookSelectionModal = () => {
 
   return (
     <PixelModal
-      isOpen={isOpen}
+      isOpen={true}
       onClose={closeModal}
       title={isChanging ? '책 변경하기' : '읽을 책 선택'}
       width="500px"
