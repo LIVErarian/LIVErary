@@ -70,7 +70,7 @@ public class ReviewService {
 
         // 2. 이벤트 발행
         if(board.isNotWrittenBy(user)){
-            eventPublisher.publishEvent(new ReviewCreatedEvent(board.getUser(), board));
+            eventPublisher.publishEvent(new ReviewCreatedEvent(board.getUser().getUserId(), board.getBoardId()));
         }
 
         return ReviewResponse.from(savedReview);
