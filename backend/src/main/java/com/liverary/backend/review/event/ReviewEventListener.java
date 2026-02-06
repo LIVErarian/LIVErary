@@ -34,7 +34,6 @@ public class ReviewEventListener {
      */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional
     public void handleReviewCreatedEvent(ReviewCreatedEvent event) {
         try {
             // 이벤트에서 ID를 꺼내서 DB에서 직접 조회
