@@ -63,7 +63,6 @@ public class NotificationService {
      * @param user
      * @param type
      * @param content
-     * @param url
      */
     @Transactional
     public void send(User user, NotificationType type, String content) {
