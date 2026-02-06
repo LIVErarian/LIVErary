@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 
 import { PixelModal } from '@/components/common/PixelModal';
 import { PixelPagination } from '@/components/common/PixelPagination'; // Import
 import { useNotification } from '@/hooks/queries/useNotification';
 import { useModalStore } from '@/store/useModalStore';
+
+import type { Notification } from '@/types/notification.types';
 
 import * as notiStyles from './NotificationModal.css.ts';
 
@@ -14,7 +15,6 @@ const ITEMS_PER_PAGE = 5;
 export const NotificationModal = () => {
   const { closeModal, openModal } = useModalStore();
   const { notifications, markAsRead } = useNotification();
-  const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -35,6 +35,8 @@ export const NotificationModal = () => {
   };
 
   const handleNotificationClick = (noti: (typeof notifications)[0]) => {
+    console.log('🖱️ Notification Clicked:', noti); // Debug log
+
     // 읽지 않은 알림이면 읽음 처리
     if (!noti.read) {
       markAsRead(noti.notificationId);
@@ -46,32 +48,35 @@ export const NotificationModal = () => {
       openModal('friendList', { initialTab: 'REQUESTS' });
       return;
     }
-
-    if (noti.relatedUrl) {
-      if (noti.relatedUrl.startsWith('http')) {
-        window.open(noti.relatedUrl, '_blank');
-      } else {
-        navigate(noti.relatedUrl);
-      }
-      closeModal();
-    }
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return (
-      date.toLocaleDateString() +
-      ' ' +
-      date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    );
+    if (!dateString) return '';
+    // 나노초 등으로 인해 Date 파싱 실패 시 예외 처리
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+      return (
+        date.toLocaleDateString() +
+        ' ' +
+        date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      );
+    } catch (e) {
+      console.error('Date parsing error:', e);
+      return dateString;
+    }
   };
 
-  const getIcon = (type: string) => {
+  const getIcon = (type: Notification['type']) => {
     switch (type) {
       case 'FRIEND_REQUEST':
         return '👥';
-      case 'SYSTEM':
-        return '📢';
+      case 'INQUIRY_REVIEW':
+        return '❓';
+      case 'BOARD_REVIEW':
+        return '🗨️';
       default:
         return '🔔';
     }

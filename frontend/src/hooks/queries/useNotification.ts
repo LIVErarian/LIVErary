@@ -11,38 +11,50 @@ export const useNotification = () => {
   const queryClient = useQueryClient();
   const token = useAuthStore((state) => state.accessToken);
 
-  // 1. 초기 알림 목록 로드 (일반 API 요청) + 폴링 (3초마다 자동 갱신)
+  // 1. 초기 알림 목록 로드 (일반 API 요청)
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['notifications'],
     queryFn: fetchNotifications,
     enabled: !!token,
-    refetchInterval: 3000, // 3초마다 폴링으로 알림 확인 (SSE 실패 대비)
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지 (읽음 처리 후 바로 사라짐 방지)
+    gcTime: 10 * 60 * 1000,
   });
 
   // 2. SSE 연결 및 실시간 업데이트
   useEffect(() => {
+    console.log('🔄 Init SSE Connection. Token exists:', !!token);
     if (!token) return;
 
     const eventSource = new EventSourcePolyfill('/api/notification/subscribe', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      heartbeatTimeout: 86400000, // 연결 유지 시간 설정 (필요시 조정)
+      heartbeatTimeout: 86400000,
+      withCredentials: true,
     });
 
-    eventSource.onopen = () => {
-      console.log('✅ SSE Connected');
+    eventSource.onopen = (e) => {
+      console.log('✅ SSE Connected (onopen)', e);
     };
 
-    // 이벤트 핸들러 공통화
     const handleMessage = (event: MessageEvent) => {
+      console.log('📨 SSE Received (Any):', event.data, 'Type:', event.type);
+
+      // EventStream Created 메시지 무시
+      if (
+        typeof event.data === 'string' &&
+        event.data.includes('EventStream Created')
+      ) {
+        console.log('✅ SSE Connection confirmed by server');
+        return;
+      }
+
       try {
         const newNotification = JSON.parse(event.data) as Notification;
+        console.log('🔔 Parsed Notification:', newNotification);
 
-        // 캐시 업데이트: 새 알림을 리스트 맨 앞에 추가
         queryClient.setQueryData<Notification[]>(['notifications'], (old) => {
           const currentList = old || [];
-
           if (
             currentList.some(
               (n) => n.notificationId === newNotification.notificationId,
@@ -52,34 +64,34 @@ export const useNotification = () => {
           }
           return [newNotification, ...currentList];
         });
-
-        // 쿼리 무효화로 강제 리페치 (데이터 동기화 확실히 하기 위해)
-        // queryClient.invalidateQueries({ queryKey: ['notifications'] });
       } catch (error) {
-        console.error('Failed to parse notification:', error);
+        console.error(error);
       }
     };
 
-    // 기본 메시지 수신
+    // 기본 메시지 수신 (이름 없는 이벤트)
     eventSource.onmessage = handleMessage;
 
-    // 'notification' 이름의 이벤트 수신
-    eventSource.addEventListener(
-      'notification',
-      handleMessage as EventListener,
-    );
+    // 'sse' 이름의 이벤트 수신
+    eventSource.addEventListener('sse', handleMessage as EventListener);
+
+    // 'connect' 이름의 이벤트 수신 (초기 연결 확인용)
+    eventSource.addEventListener('connect', ((e: MessageEvent) => {
+      console.log('🔗 SSE Connect Event:', e.data);
+    }) as EventListener);
 
     eventSource.onerror = (error) => {
-      console.error('SSE Error:', error);
-      eventSource.close();
+      console.error('❌ SSE Error:', error);
+      // @ts-expect-error: error type check
+      if (error?.status === 401) {
+        console.error('SSE 401 Unauthorized, closing connection');
+        eventSource.close();
+      }
     };
 
     return () => {
       console.log('🔌 SSE Disconnected');
-      eventSource.removeEventListener(
-        'notification',
-        handleMessage as EventListener,
-      );
+      eventSource.removeEventListener('sse', handleMessage as EventListener);
       eventSource.close();
     };
   }, [token, queryClient]);
