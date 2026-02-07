@@ -9,6 +9,7 @@ import {
   getBookDetail,
   registerCompletedBook,
   registerReadingBook,
+  deleteReadingBook,
   searchBook,
   toggleWishlist,
 } from '@/api/book.api';
@@ -139,6 +140,18 @@ export const useRegisterCompletedBook = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['user', 'books'],
+      });
+    },
+  });
+};
+
+export const useDeleteReadingBook = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (isbn: string) => deleteReadingBook(isbn),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['user', 'books', 'READING'],
       });
     },
   });

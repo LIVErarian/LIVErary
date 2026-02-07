@@ -24,9 +24,9 @@ interface BookCardProps {
   book: UserBook | Book;
   showWishButton?: boolean; // Optional: 찜 버튼 표시 여부
   onToggleWish?: (id: string) => Promise<boolean>; // Optional: 찜 토글 (isbn or bookId)
-  // Force update
   onClick?: () => void; // Optional: 카드 클릭 이벤트
   onComplete?: (id: string, e: React.MouseEvent) => void; // 완독 처리 핸들러
+  onDelete?: (id: string, e: React.MouseEvent) => void; // 삭제 처리 핸들러
 }
 
 /**
@@ -42,6 +42,7 @@ export const BookCard = ({
   onToggleWish,
   onClick,
   onComplete,
+  onDelete,
 }: BookCardProps) => {
   // 이미지 로딩 실패 상태
   const [imageError, setImageError] = useState(false);
@@ -83,10 +84,8 @@ export const BookCard = ({
         if ('isbn' in book && book.isbn) {
           id = book.isbn;
         } else if ('bookId' in book) {
-          // UserBook fallback
           id = book.bookId;
         } else {
-          // Should not happen for Book (has isbn)
           id = '';
         }
 
@@ -145,17 +144,32 @@ export const BookCard = ({
                 <div className={styles.readingBadge}>📖 읽는 중</div>
                 {onComplete && (
                   <div className={styles.completeOverlay}>
-                    <button
-                      className={styles.completeButton}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // isbn이 있으면 isbn, 없으면 bookId 사용
-                        const id = book.isbn || book.bookId;
-                        onComplete(id, e);
-                      }}
-                    >
-                      완독하기
-                    </button>
+                    <div className={styles.buttonGroup}>
+                      {onComplete && (
+                        <button
+                          className={styles.completeButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const id = book.isbn || book.bookId;
+                            onComplete(id, e);
+                          }}
+                        >
+                          완독하기
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button
+                          className={styles.deleteButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const id = book.isbn || book.bookId;
+                            onDelete(id, e);
+                          }}
+                        >
+                          삭제하기
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </>

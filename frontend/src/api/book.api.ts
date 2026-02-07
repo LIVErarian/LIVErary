@@ -82,3 +82,8 @@ export const registerReadingBook = async (isbn: string): Promise<void> => {
 export const registerCompletedBook = async (isbn: string): Promise<void> => {
   await updateBookStatus(isbn, 'COMPLETED');
 };
+
+// 읽고 있는 책 삭제
+export const deleteReadingBook = async (isbn: string): Promise<void> => {
+  await api.delete(`/book-history/reading/${isbn}`);
+};
