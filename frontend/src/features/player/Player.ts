@@ -17,6 +17,13 @@ export class Player extends Container {
   private _nicknameText: Text;
   private _userId: string;
 
+  // 보간 이동
+  private _startX: number;
+  private _startY: number;
+  private _targetX: number;
+  private _targetY: number;
+  private _lerpTime: number = 0; // 현재 이동 시간 누적
+
   // 현재 상태 저장
   private _currentDirection: Direction = 'DOWN';
   private _isMoving: boolean = false;
@@ -24,6 +31,7 @@ export class Player extends Container {
   // Readonly 상수
   private readonly FRAME_SIZE = 64;
   private readonly DEFAULT_SCALE_FACTOR = 2;
+  private readonly LERP_DURATION = 15; // 프레임 단위 목표 도달 시간
   // 실제 사이즈
   private readonly ACTUAL_WIDTH = 15;
   private readonly ACTUAL_HEIGHT = 24;
@@ -43,6 +51,11 @@ export class Player extends Container {
     this.x = x;
     this.y = y;
     this._userId = userId;
+
+    this._startX = x;
+    this._startY = y;
+    this._targetX = x;
+    this._targetY = y;
 
     // 캐릭터 컨테이너 생성 (파츠 묶어서 관리)
     this._container = new Container();
@@ -227,6 +240,26 @@ export class Player extends Container {
     return result;
   }
 
+  public updatePosition(deltaTime: number) {
+    // 이미 목표에 도착했으면 연산 X
+    if (this._lerpTime >= this.LERP_DURATION) {
+      // 목표 위치에 정확히 안착
+      this.x = this._targetX;
+      this.y = this._targetY;
+      return;
+    }
+
+    // 시간 누적
+    this._lerpTime += deltaTime;
+
+    // 진행률 계산 (0.0 ~ 1.0)
+    const t = Math.min(this._lerpTime / this.LERP_DURATION, 1);
+
+    // 선형 보간 공식
+    this.x = this._startX + (this._targetX - this._startX) * t;
+    this.y = this._startY + (this._targetY - this._startY) * t;
+  }
+
   // Getter
   public get playerWidth() {
     return this.ACTUAL_WIDTH * this._scaleFactor;
@@ -249,6 +282,34 @@ export class Player extends Container {
     });
 
     this.updateNicknamePosition();
+  }
+
+  /**
+   * 서버에서 새로운 위치 데이터를 받았을 때 호출
+   * @param x
+   * @param y
+   */
+  public setTargetPosition(x: number, y: number) {
+    //  현재 위치를 '시작점'으로 고정
+    this._startX = this.x;
+    this._startY = this.y;
+
+    // 새로운 목표 설정
+    this._targetX = x;
+    this._targetY = y;
+
+    // 시간 초기화
+    this._lerpTime = 0;
+
+    // 거리가 너무 멀면 그냥 순간이동 시키기
+    const dist = Math.sqrt(Math.pow(x - this.x, 2) + Math.pow(y - this.y, 2));
+    if (dist > 100) {
+      this.x = x;
+      this.y = y;
+      this._startX = x;
+      this._startY = y;
+      this._lerpTime = this.LERP_DURATION; // 완료 처리
+    }
   }
 
   private updateNicknamePosition() {

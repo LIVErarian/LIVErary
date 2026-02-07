@@ -451,6 +451,11 @@ export class GameApp {
     if (this._mapManager.currentFloorType === 'readingFloor') {
       this.refreshReadingTimerUI();
     }
+
+    // PlayerManager의 update 호출
+    if (this._playerManager) {
+      this._playerManager.update(ticker.deltaTime);
+    }
   }
 
   private sendMyPosition(isMoving: boolean) {
@@ -685,12 +690,10 @@ export class GameApp {
                   .setSpawnPoint(this.CONFERENCE_ENTRY_SPAWN);
                 useGameStore.getState().setCurrentFloor('conferenceFloor');
               } else {
-                useModalStore
-                  .getState()
-                  .openModal('alert', {
-                    title: '알림',
-                    message: '현재 입장 가능한 방이 없습니다.',
-                  });
+                useModalStore.getState().openModal('alert', {
+                  title: '알림',
+                  message: '현재 입장 가능한 방이 없습니다.',
+                });
                 bounceOutFromZone();
               }
             } catch (error: unknown) {
