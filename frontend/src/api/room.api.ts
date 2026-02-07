@@ -62,7 +62,7 @@ export const roomApi = {
   },
 
   /**
-   * [GET] 방 코드로 검색 (추가됨)
+   * [GET] 방 코드로 검색
    */
   searchRoom: async (req: GetRoomSearchRequest): Promise<ROOM_DETAIL> => {
     const { data } = await api.get<GetRoomSearchResponse>('/room/search', {
@@ -90,7 +90,7 @@ export const roomApi = {
     categoryId?: string,
   ): Promise<RECOMMENDED_ROOM[]> => {
     const { data } = await api.get<GetRecommendedRoomResponse>(
-      '/room/recommend',
+      '/ai/recommend',
       {
         params: { categoryId },
       },
