@@ -49,11 +49,9 @@ public class ReviewEventListener {
                             .orElseThrow(()->new BaseException(ErrorCode.BOARD_NOT_FOUND));
 
 
+            log.info("🚀 NotificationService 호출 직전 - receiverId={}, boardId={}", receiver.getUserId(), board.getBoardId());
             sendNotification(receiver, board);
-
-
-            log.info("🚀 NotificationService 호출 직전");
-            sendNotification(receiver, board);
+            log.info("✅ NotificationService 호출 완료");
 
         }
         catch (Exception e){
@@ -85,7 +83,7 @@ public class ReviewEventListener {
         }
 
         // 알림 서비스 호출
-        notificationService.send(receiver, notificationType, notificationContent);
+        notificationService.send(receiver, notificationType, notificationContent, board.getBoardId());
 
     }
 

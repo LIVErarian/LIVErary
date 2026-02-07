@@ -66,12 +66,18 @@ public class NotificationService {
      */
     @Transactional
     public void send(User user, NotificationType type, String content) {
+        this.send(user, type, content, null);
+    }
+
+    @Transactional
+    public void send(User user, NotificationType type, String content, UUID targetId) {
         // 1. DB에 알림 저장 (로그 남기기용)
         Notification notification = notificationRepository.save(
                 Notification.builder()
                 .user(user)
                 .type(type)
                 .content(content)
+                .targetId(targetId)
                 .isRead(false)
                 .build()
         );
@@ -104,7 +110,7 @@ public class NotificationService {
                     .name("sse")
                     .data(data));
         }
-        catch(IOException e){
+        catch(Exception e){
             // 전송 실패 시 리소스 정리
             emitterRepository.deleteById(id);
             log.error("SSE connection error (emitterId={})", id, e);
