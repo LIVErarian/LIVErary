@@ -78,6 +78,20 @@ public class BookHistoryController {
     }
 
     /**
+     * 읽고 있는 책 삭제 API
+     * - DELETE /api/book-history/reading/{isbn}
+     */
+    @DeleteMapping("/reading/{isbn}")
+    public BaseResponse<Void> deleteReading(
+            @PathVariable String isbn,
+            @AuthenticationPrincipal UserDetails user
+    ){
+        UUID userId = getUserId(user);
+        bookHistoryService.deleteReadingBook(isbn, userId);
+        return BaseResponse.success();
+    }
+
+    /**
      * 다 읽은 책 등록 API
      * - POST /api/book-history/completed/{isbn}
      */
