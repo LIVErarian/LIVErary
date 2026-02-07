@@ -1,10 +1,10 @@
 export interface Notification {
   notificationId: string;
   content: string;
-  relatedUrl: string;
-  read: boolean;
   type: 'FRIEND_REQUEST' | 'INQUIRY_REVIEW' | 'BOARD_REVIEW';
+  isRead: boolean;
   createdAt: string;
+  targetId?: string;
 }
 
 export interface NotificationResponse {

@@ -35,10 +35,8 @@ export const NotificationModal = () => {
   };
 
   const handleNotificationClick = (noti: (typeof notifications)[0]) => {
-    console.log('🖱️ Notification Clicked:', noti); // Debug log
-
     // 읽지 않은 알림이면 읽음 처리
-    if (!noti.read) {
+    if (!noti.isRead) {
       markAsRead(noti.notificationId);
     }
 
@@ -46,6 +44,16 @@ export const NotificationModal = () => {
     if (noti.type === 'FRIEND_REQUEST') {
       closeModal();
       openModal('friendList', { initialTab: 'REQUESTS' });
+      return;
+    }
+
+    // 게시글 (홍보 / 문의) 댓글 알림인 경우 게시글 상세 모달 열기
+    if (
+      (noti.type === 'BOARD_REVIEW' || noti.type === 'INQUIRY_REVIEW') &&
+      noti.targetId
+    ) {
+      closeModal();
+      openModal('boardDetail', { boardId: noti.targetId });
       return;
     }
   };
@@ -97,7 +105,8 @@ export const NotificationModal = () => {
                   key={noti.notificationId}
                   className={clsx(
                     notiStyles.item,
-                    !noti.read && notiStyles.unread,
+                    notiStyles.item,
+                    !noti.isRead && notiStyles.unread,
                   )}
                   onClick={() => handleNotificationClick(noti)}
                 >
@@ -108,7 +117,7 @@ export const NotificationModal = () => {
                       {formatDate(noti.createdAt)}
                     </span>
                   </div>
-                  {!noti.read && <div className={notiStyles.dot} />}
+                  {!noti.isRead && <div className={notiStyles.dot} />}
                 </li>
               ))}
             </ul>
