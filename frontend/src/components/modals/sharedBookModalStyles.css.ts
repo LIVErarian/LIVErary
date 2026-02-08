@@ -40,6 +40,7 @@ export const emptyState = style({
   justifyContent: 'center',
   gap: '16px',
   width: '100%',
+  height: '100%',
   flex: 1, // 남은 공간 채우기
   color: theme.colors.beigeText,
   textAlign: 'center',
@@ -65,7 +66,6 @@ export const paginationContainer = style({
   justifyContent: 'center',
   gap: '8px',
   paddingTop: '16px',
-  borderTop: `2px solid ${theme.colors.beigeMain}`,
 });
 
 /**
