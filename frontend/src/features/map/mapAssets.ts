@@ -19,8 +19,32 @@ export type TiledMap = {
   layers?: TiledLayer[];
 };
 
-// 충돌 계산 로직
+// 배경음악 플레이리스트
+export const READING_PLAYLIST = [
+  'calm_1',
+  'calm_2',
+  'calm_3',
+  'calm_4',
+  'calm_5',
+  'rain_1',
+];
 
+export const EXTRA_PLAYLIST = ['cafe_1', 'arabian_1'];
+
+export const ROMANCE_PLYALIST = ['romantic_1', 'romantic_2'];
+
+export const FAIRY_PLAYLIST = [
+  'fairy_1',
+  'fairy_2',
+  'fairy_3',
+  'fairy_4',
+  'fairy_5',
+  'fairy_6',
+];
+
+export const SF_PLAYLIST = ['sf_1', 'alternative_1'];
+
+// 충돌 계산 로직
 const buildLayerCollision = (
   mapData: TiledMap,
   layerName: string,
@@ -131,6 +155,13 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     name: '도서관 로비',
     imgAlias: 'lobby',
     jsonAlias: 'lobbyTmj',
+    bgm: [
+      ...EXTRA_PLAYLIST,
+      ...READING_PLAYLIST,
+      ...SF_PLAYLIST,
+      ...FAIRY_PLAYLIST,
+      ...ROMANCE_PLYALIST,
+    ],
     zones: [
       {
         id: 'lobby-board-left',
@@ -246,6 +277,12 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     name: '독서실',
     imgAlias: 'readingFloor',
     jsonAlias: 'readingFloorTmj',
+    bgm: [
+      ...READING_PLAYLIST,
+      ...SF_PLAYLIST,
+      ...FAIRY_PLAYLIST,
+      ...ROMANCE_PLYALIST,
+    ],
     zones: [
       {
         id: 'reading-elevator',
@@ -358,6 +395,13 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     name: '독서 모임',
     imgAlias: 'bookTalkBasic',
     jsonAlias: 'bookTalkTmj',
+    bgm: [
+      ...EXTRA_PLAYLIST,
+      ...READING_PLAYLIST,
+      ...SF_PLAYLIST,
+      ...FAIRY_PLAYLIST,
+      ...ROMANCE_PLYALIST,
+    ],
     categoryImgAliases: {
       science: 'bookTalkScience',
       comic: 'bookTalkComic',
@@ -474,6 +518,13 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     name: '북 콘서트 홀',
     imgAlias: 'bookConcert',
     jsonAlias: 'bookConcertTmj',
+    bgm: [
+      ...EXTRA_PLAYLIST,
+      ...READING_PLAYLIST,
+      ...SF_PLAYLIST,
+      ...FAIRY_PLAYLIST,
+      ...ROMANCE_PLYALIST,
+    ],
     zones: [
       {
         id: 'concert-whiteboard',
@@ -510,6 +561,13 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
     name: '내 서재',
     imgAlias: 'myRoom',
     // myRoom은 JSON 맵 데이터가 없으므로 jsonAlias 생략
+    bgm: [
+      ...EXTRA_PLAYLIST,
+      ...READING_PLAYLIST,
+      ...SF_PLAYLIST,
+      ...FAIRY_PLAYLIST,
+      ...ROMANCE_PLYALIST,
+    ],
     zones: [
       {
         id: 'myRoom-bookshelf-left',

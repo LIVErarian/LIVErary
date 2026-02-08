@@ -97,6 +97,7 @@ export interface MapConfig {
   name: string;
   imgAlias: string;
   jsonAlias?: string;
+  bgm?: string[];
   categoryImgAliases?: Record<string, string>;
   width?: number;
   height?: number;
