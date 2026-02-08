@@ -22,6 +22,42 @@ export const description = style({
   textAlign: 'center',
 });
 
+// 탭 컨테이너
+export const tabContainer = style({
+  display: 'flex',
+  width: '100%',
+  gap: '8px',
+  marginBottom: '0.5rem',
+  alignItems: 'center',
+});
+
+export const tabButton = style({
+  flex: 1,
+  height: '40px',
+  transition: 'all 0.2s',
+  border: 'none',
+  borderRadius: '6px',
+  backgroundColor: theme.colors.beigeLight,
+  color: theme.colors.beigeText,
+  fontFamily: 'inherit',
+  fontWeight: 'bold',
+  fontSize: '1rem',
+  cursor: 'pointer',
+  opacity: 0.8,
+
+  selectors: {
+    '&:hover': {
+      opacity: 1,
+    },
+  },
+});
+
+export const activeTab = style({
+  backgroundColor: theme.colors.primary,
+  color: theme.colors.white,
+  opacity: 1,
+});
+
 export const completionCheck = style({
   padding: '8px 12px',
   backgroundColor: theme.colors.beigeLight,
