@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { attendanceApi } from '@/api/attendanceApi';
+import { rankingApi } from '@/api/ranking.api';
+import { recordReadingTime } from '@/api/reading.api';
 import { PixelButton } from '@/components/common/PixelButton';
 import { useModalStore } from '@/store/useModalStore';
+import { useReadingStore } from '@/store/useReadingStore';
 
 import type { AttendanceHistoryResponse } from '@/types/attendance.types';
 
@@ -23,9 +26,32 @@ interface AttendanceModalProps {
 export function AttendanceModal({ isOpen }: AttendanceModalProps) {
   const queryClient = useQueryClient();
   const { openModal } = useModalStore();
+  const consumeMinutes = useReadingStore((state) => state.consumeMinutes);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const yearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+
+  // 디버깅용: 일간 랭킹(오늘 독서 시간) 조회
+  const { data: dailyRanking } = useQuery({
+    queryKey: ['ranking', 'DAILY'],
+    queryFn: () => rankingApi.getRanking('DAILY'),
+    enabled: isOpen,
+  });
+
+  // 모달이 열릴 때 독서 시간 동기화
+  useEffect(() => {
+    if (isOpen) {
+      const minutes = consumeMinutes();
+      console.log(`[AttendanceModal] Consumed reading minutes: ${minutes}`);
+      if (minutes > 0) {
+        recordReadingTime(minutes).then(() => {
+          console.log('[AttendanceModal] Successfully recorded reading time');
+          queryClient.invalidateQueries({ queryKey: ['attendance'] });
+          queryClient.invalidateQueries({ queryKey: ['user', 'me'] });
+        });
+      }
+    }
+  }, [isOpen, consumeMinutes, queryClient]);
 
   // 출석 이력 조회
   const { data: attendanceHistory, isLoading } = useQuery({
@@ -165,7 +191,23 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
           const dateStr = day.toISOString().split('T')[0];
           const isCurrentMonth = day.getMonth() === month;
           const isToday = dateStr === today;
-          const attendance = attendanceMap.get(dateStr);
+          let attendance = attendanceMap.get(dateStr);
+
+          // FIXME: 백엔드 데이터 불일치 이슈 대응
+          // 일간 랭킹(오늘 독서 시간)이 30분 이상이면, 출석 도장을 강제로 표시
+          // readingTime이 undefined일 수 있으므로 0으로 기본값 처리
+          if (isToday && (dailyRanking?.myRanking?.readingTime ?? 0) >= 30) {
+            if (attendance) {
+              attendance = { ...attendance, hasReadingAttendance: true };
+            } else {
+              // 출석 데이터가 아예 없으면 가상의 객체 생성 (독서 도장만 표시)
+              attendance = {
+                attendanceDate: dateStr,
+                hasDailyAttendance: false,
+                hasReadingAttendance: true,
+              };
+            }
+          }
 
           return (
             <div
@@ -174,20 +216,36 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
             >
               <div className={styles.dayNumber}>{day.getDate()}</div>
               {attendance && (
-                <div className={styles.attendanceIndicators}>
+                <>
+                  {/* 일일 출석 도장 */}
                   {attendance.hasDailyAttendance && (
                     <div
-                      className={`${styles.attendanceDot} ${styles.dailyDot}`}
+                      className={`${styles.dailyStamp} ${
+                        attendance.hasDailyAttendance &&
+                        attendance.hasReadingAttendance
+                          ? styles.stampOverlapLeft
+                          : styles.stampCentered
+                      }`}
                       title="일일 출석"
-                    />
+                    >
+                      🔥
+                    </div>
                   )}
+                  {/* 독서 출석 도장 */}
                   {attendance.hasReadingAttendance && (
                     <div
-                      className={`${styles.attendanceDot} ${styles.readingDot}`}
+                      className={`${styles.readingStamp} ${
+                        attendance.hasDailyAttendance &&
+                        attendance.hasReadingAttendance
+                          ? styles.stampOverlapRight
+                          : styles.stampCenteredReading
+                      }`}
                       title="독서 출석"
-                    />
+                    >
+                      📖
+                    </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           );
@@ -208,6 +266,7 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
             <span className={styles.streakDays}>{consecutiveDays}일</span>
           </div>
         )}
+
         <PixelButton
           variant={todayChecked ? 'beige' : 'primary'}
           onClick={handleCheckIn}
@@ -247,11 +306,11 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
 
         <div className={styles.legend}>
           <div className={styles.legendItem}>
-            <div className={`${styles.attendanceDot} ${styles.dailyDot}`} />
+            <div className={styles.dailyStampSmall}>🔥</div>
             <span>일일 출석</span>
           </div>
           <div className={styles.legendItem}>
-            <div className={`${styles.attendanceDot} ${styles.readingDot}`} />
+            <div className={styles.readingStampSmall}>📖</div>
             <span>독서 출석 (30분+)</span>
           </div>
         </div>

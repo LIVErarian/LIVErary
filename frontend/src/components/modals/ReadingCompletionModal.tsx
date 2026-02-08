@@ -33,8 +33,9 @@ export const ReadingCompletionModal = () => {
         await updateBookStatus(currentBook.isbn, 'COMPLETED');
       }
 
-      // 프로필 정보 갱신
+      // 프로필 정보 및 출석 상태 갱신
       queryClient.invalidateQueries({ queryKey: ['user', 'me'] });
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
 
       endReading();
       closeModal();
