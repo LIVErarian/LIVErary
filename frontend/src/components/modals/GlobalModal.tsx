@@ -5,6 +5,7 @@ import { BoardDetail } from '../board/BoardDetail';
 import { BoardList } from '../board/BoardList';
 import { BoardUpdate } from '../board/BoardUpdate';
 import { PixelModal } from '../common/PixelModal';
+import { AttendanceModal } from './AttendanceModal';
 import { BookDetailModal } from './BookDetailModal';
 import { BookSearchModal } from './BookSearchModal';
 import { BookSelectionModal } from './BookSelectionModal';
@@ -24,7 +25,7 @@ import { ReadingCompletionModal } from './ReadingCompletionModal';
 import { RoomListModal } from './RoomListModal';
 
 export const GlobalModal = () => {
-  const { modalStack, closeModal, userProfile, closeUserProfile, openModal } =
+  const { modalStack, closeModal, userProfile, closeUserProfile } =
     useModalStore();
   const { mutate: logout } = useLogout();
 
@@ -128,7 +129,7 @@ export const GlobalModal = () => {
               isOpen={currentModal === 'roomList'}
               onClose={closeModal}
               title="방 목록"
-              width="auto"
+              width="800px"
             >
               <RoomListModal />
             </PixelModal>
@@ -268,10 +269,11 @@ export const GlobalModal = () => {
               <BookDetailModal
                 isbn={modalProps.isbn}
                 onClose={() => {
-                  if (modalProps.from === 'bookSearch') {
-                    openModal('bookSearch');
-                  } else if (modalProps.from === 'bookshelf') {
-                    openModal('bookshelf');
+                  if (
+                    modalProps.from === 'bookSearch' ||
+                    modalProps.from === 'bookshelf'
+                  ) {
+                    closeModal();
                   } else {
                     closeModal();
                   }
@@ -287,6 +289,19 @@ export const GlobalModal = () => {
 
             {/* 독서 타이머: 독서 종료 모달 */}
             {currentModal === 'readingCompletion' && <ReadingCompletionModal />}
+
+            {/* 출석 체크 모달 */}
+            <PixelModal
+              isOpen={currentModal === 'attendance'}
+              onClose={closeModal}
+              title="출석 체크"
+              width="550px"
+            >
+              <AttendanceModal
+                isOpen={currentModal === 'attendance'}
+                onClose={closeModal}
+              />
+            </PixelModal>
           </div>
         );
       })}

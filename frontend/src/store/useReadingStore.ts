@@ -19,9 +19,10 @@ interface ReadingState {
   endReading: () => void;
   tick: () => void;
   updateBook: (book: ReadingBook) => void;
+  consumeMinutes: () => number;
 }
 
-export const useReadingStore = create<ReadingState>((set) => ({
+export const useReadingStore = create<ReadingState>((set, get) => ({
   // 초기 상태
   isReading: false,
   isPaused: false,
@@ -70,4 +71,16 @@ export const useReadingStore = create<ReadingState>((set) => ({
       currentBook: book,
       elapsedSeconds: 0,
     }),
+
+  // 누적된 분 단위 시간 추출 및 초기화 (나머지 초는 유지)
+  consumeMinutes: () => {
+    const { elapsedSeconds } = get();
+    const minutes = Math.floor(elapsedSeconds / 60);
+
+    if (minutes > 0) {
+      set({ elapsedSeconds: elapsedSeconds % 60 });
+    }
+
+    return minutes;
+  },
 }));

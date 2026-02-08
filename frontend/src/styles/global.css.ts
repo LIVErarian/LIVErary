@@ -1,5 +1,7 @@
 import { globalFontFace, globalStyle } from '@vanilla-extract/css';
 
+import { theme } from './theme.css';
+
 export const contentFont = 'ThinDungGeunMo';
 export const titleFont = 'NeoDunggeunmoPro-Regular';
 
@@ -44,4 +46,26 @@ globalStyle('h1, h2, h3, h4, h5, h6', {
 globalStyle('*', {
   fontFamily: contentFont,
   WebkitFontSmoothing: 'none',
+});
+
+// [추가] 전역 스크롤바 디자인 통일
+globalStyle('::-webkit-scrollbar', {
+  width: '8px', // 세로 스크롤 너비
+  height: '8px', // 가로 스크롤 높이
+  backgroundColor: 'transparent', // 트랙(배경)은 투명하게
+});
+
+globalStyle('::-webkit-scrollbar-thumb', {
+  backgroundColor: theme.colors.beigeDark, // 손잡이 색상
+  borderRadius: '4px', // 둥근 모서리
+});
+
+globalStyle('::-webkit-scrollbar-track', {
+  backgroundColor: 'transparent', // 트랙 배경 (필요 시 theme.colors.beige 등으로 변경 가능)
+});
+
+// Firefox 호환성 (선택 사항)
+globalStyle('*', {
+  scrollbarWidth: 'thin',
+  scrollbarColor: `${theme.colors.beigeDark} transparent`,
 });

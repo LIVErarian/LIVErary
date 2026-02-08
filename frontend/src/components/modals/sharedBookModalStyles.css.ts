@@ -17,20 +17,6 @@ export const contentArea = style({
   border: `1px solid ${theme.colors.beigeLight}`,
   borderRadius: '8px',
   padding: '16px',
-
-  // 스크롤바
-  '::-webkit-scrollbar': {
-    width: '12px',
-  },
-  '::-webkit-scrollbar-track': {
-    backgroundColor: theme.colors.beigeLight,
-    borderRadius: '6px',
-  },
-  '::-webkit-scrollbar-thumb': {
-    backgroundColor: theme.colors.woodMedium,
-    borderRadius: '6px',
-    border: `2px solid ${theme.colors.beigeLight}`,
-  },
 });
 
 /**
@@ -54,6 +40,7 @@ export const emptyState = style({
   justifyContent: 'center',
   gap: '16px',
   width: '100%',
+  height: '100%',
   flex: 1, // 남은 공간 채우기
   color: theme.colors.beigeText,
   textAlign: 'center',
@@ -79,7 +66,6 @@ export const paginationContainer = style({
   justifyContent: 'center',
   gap: '8px',
   paddingTop: '16px',
-  borderTop: `2px solid ${theme.colors.beigeMain}`,
 });
 
 /**

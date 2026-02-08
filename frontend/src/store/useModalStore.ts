@@ -30,6 +30,7 @@ export type ModalType =
   | 'readingCompletion'
   | 'alert' // 알림 (ErrorModal 재사용)
   | 'confirm' // 확인
+  | 'attendance' // 출석 체크
   | null;
 
 interface ModalProps {

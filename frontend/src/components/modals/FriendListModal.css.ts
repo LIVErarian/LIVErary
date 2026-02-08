@@ -3,7 +3,7 @@ import { style } from '@vanilla-extract/css';
 import { theme } from '@/styles/theme.css';
 
 export const container = style({
-  width: '500px',
+  width: '100%',
   height: '400px',
   display: 'flex',
   flexDirection: 'column',
@@ -86,18 +86,6 @@ export const listContainer = style({
   flex: 1,
   padding: '0.3rem 0',
   overflowY: 'auto',
-
-  '::-webkit-scrollbar': {
-    width: '10px',
-  },
-  '::-webkit-scrollbar-thumb': {
-    backgroundColor: theme.colors.woodMedium,
-    borderRadius: '5px',
-    border: `2px solid ${theme.colors.paper}`,
-  },
-  '::-webkit-scrollbar-track': {
-    backgroundColor: 'transparent',
-  },
 });
 
 export const listItem = style({

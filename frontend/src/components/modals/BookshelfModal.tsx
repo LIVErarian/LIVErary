@@ -12,6 +12,7 @@ import clsx from 'clsx';
 
 import { PixelButton } from '@/components/common/PixelButton';
 import {
+  useDeleteReadingBook,
   useRegisterCompletedBook,
   useRegisterReadingBook,
   useToggleWishlist,
@@ -65,10 +66,6 @@ export const BookshelfModal = () => {
   const totalBooks = booksResponse?.totalElements || 0;
   const totalPages = booksResponse?.totalPages || 0;
 
-  // 탭이나 뷰 모드 변경 시 페이지 리셋은 useEffect로 처리하지 않고 핸들러에서 처리하거나,
-  // useUserBooks의 keepPreviousData로 자연스럽게 처리됨.
-  // 단, activeTab이 바뀌면 currentPage는 0으로 가는게 맞음 -> handleTabChange에서 처리 중.
-
   // 이벤트 핸들러
   /**
    * 탭 전환 핸들러
@@ -104,13 +101,12 @@ export const BookshelfModal = () => {
   const { mutateAsync: toggleWish } = useToggleWishlist();
   const { mutateAsync: registerReading } = useRegisterReadingBook();
   const { mutateAsync: registerCompleted } = useRegisterCompletedBook();
+  const { mutateAsync: deleteReading } = useDeleteReadingBook();
 
   /**
    * 찜 토글 핸들러 (목록 뷰에서 사용)
    */
   const handleToggleWish = async (id: string): Promise<boolean> => {
-    // React Query가 자동으로 데이터를 갱신하므로 로컬 상태 수정 불필요
-    // 낙관적 업데이트는 useToggleWishlist 내부에서 처리됨
     try {
       const response = await toggleWish(id);
       return response.wished;
@@ -139,6 +135,32 @@ export const BookshelfModal = () => {
           openModal('alert', {
             title: '오류',
             message: '완독 처리에 실패했습니다.',
+          });
+        }
+      },
+    });
+  };
+
+  /**
+   * 읽고 있는 책 삭제 핸들러
+   */
+  const handleDelete = (isbn: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 방지
+    openModal('confirm', {
+      title: '책 삭제',
+      message: '이 책을 읽고 있는 책 목록에서 삭제하시겠습니까?',
+      onConfirm: async () => {
+        try {
+          await deleteReading(isbn);
+          openModal('alert', {
+            title: '알림',
+            message: '삭제되었습니다.',
+          });
+        } catch (error) {
+          console.error(error);
+          openModal('alert', {
+            title: '오류',
+            message: '삭제에 실패했습니다.',
           });
         }
       },
@@ -262,6 +284,7 @@ export const BookshelfModal = () => {
               showWishButton={activeTab === 'wished'}
               onToggleWish={handleToggleWish}
               onComplete={activeTab === 'reading' ? handleComplete : undefined}
+              onDelete={activeTab === 'reading' ? handleDelete : undefined}
             />
           ))}
         </div>

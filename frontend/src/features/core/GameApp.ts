@@ -11,6 +11,7 @@ import { Viewport } from 'pixi-viewport';
 import { roomApi } from '@/api/room.api';
 import { findRecommendedRoomByZone } from '@/features/room/bookTalkRoomMatcher';
 import { isBookTalkZone } from '@/features/room/bookTalkRoomSlots';
+import { queryClient } from '@/lib/queryClient';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
@@ -557,6 +558,11 @@ export class GameApp {
             if (roomId) {
               useSocketStore.getState().sendLeaveRoom({ roomId });
               await roomApi.leaveRoom({ roomId });
+
+              // [추가] 퇴장 성공 시 방 목록 데이터 갱신 (인원수 -1 반영)
+              // await를 붙이지 않아도 됨 (백그라운드 갱신)
+              queryClient.invalidateQueries({ queryKey: ['rooms'] });
+              queryClient.invalidateQueries({ queryKey: ['room', roomId] });
             }
 
             useGameStore.getState().setRoomId(null);
@@ -676,10 +682,12 @@ export class GameApp {
                   .setSpawnPoint(this.CONFERENCE_ENTRY_SPAWN);
                 useGameStore.getState().setCurrentFloor('conferenceFloor');
               } else {
-                useModalStore.getState().openModal('alert', {
-                  title: '알림',
-                  message: '현재 입장 가능한 방이 없습니다.',
-                });
+                setTimeout(() => {
+                  useModalStore.getState().openModal('alert', {
+                    title: '알림',
+                    message: '배정된 방이 없습니다.',
+                  });
+                }, 100);
                 bounceOutFromZone();
               }
             } catch (error: unknown) {
@@ -690,9 +698,11 @@ export class GameApp {
               const message =
                 apiError?.response?.data?.message ??
                 '방에 입장하지 못했습니다.';
-              useModalStore
-                .getState()
-                .openModal('alert', { title: '오류', message });
+              setTimeout(() => {
+                useModalStore
+                  .getState()
+                  .openModal('alert', { title: '오류', message });
+              }, 100);
               bounceOutFromZone();
             }
           } else {

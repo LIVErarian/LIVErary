@@ -142,30 +142,21 @@ export const RoomListModal = () => {
 
         {/* 탭 버튼 */}
         <div className={styles.header}>
-          <button
-            className={`${styles.tabButton} ${
-              currentTab === 'LIVE' ? styles.activeTab : ''
-            }`}
-            onClick={() => handleTabChange('LIVE')}
-          >
-            진행 중
-          </button>
-          <button
-            className={`${styles.tabButton} ${
-              currentTab === 'SCHEDULED' ? styles.activeTab : ''
-            }`}
-            onClick={() => handleTabChange('SCHEDULED')}
-          >
-            진행 예정
-          </button>
-          <button
-            className={`${styles.tabButton} ${
-              currentTab === 'MY' ? styles.activeTab : ''
-            }`}
-            onClick={() => handleTabChange('MY')}
-          >
-            내 예약
-          </button>
+          {(['LIVE', 'SCHEDULED', 'MY'] as const).map((tab) => (
+            <PixelButton
+              key={tab}
+              onClick={() => handleTabChange(tab)}
+              className={`${styles.tabButton} ${
+                currentTab === tab ? styles.activeTab : ''
+              }`}
+            >
+              {tab === 'LIVE'
+                ? '진행 중'
+                : tab === 'SCHEDULED'
+                  ? '진행 예정'
+                  : '내 예약'}
+            </PixelButton>
+          ))}
         </div>
 
         {/* 리스트 영역 */}

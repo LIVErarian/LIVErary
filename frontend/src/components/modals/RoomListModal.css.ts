@@ -4,7 +4,7 @@ import { theme } from '@/styles/theme.css';
 
 // 전체 컨테이너 (BoardList와 동일)
 export const container = style({
-  width: '800px',
+  width: '100%',
   height: '500px',
   display: 'flex',
   flexDirection: 'column',
@@ -97,15 +97,6 @@ export const listBody = style({
   overflowY: 'auto',
   display: 'flex',
   flexDirection: 'column',
-
-  // 스크롤바 커스텀
-  '::-webkit-scrollbar': {
-    width: '8px',
-  },
-  '::-webkit-scrollbar-thumb': {
-    backgroundColor: theme.colors.beigeDark,
-    borderRadius: '4px',
-  },
 });
 
 // 테이블 행 (리스트 아이템) - BoardList와 동일

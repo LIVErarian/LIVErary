@@ -1,7 +1,5 @@
 import { style } from '@vanilla-extract/css';
 
-import { theme } from '@/styles/theme.css';
-
 export {
   booksGrid,
   contentArea,
@@ -46,7 +44,6 @@ export const searchContainer = style({
   gap: '8px',
   width: '100%',
   paddingBottom: '16px',
-  borderBottom: `2px solid ${theme.colors.beigeMain}`,
 });
 
 /**

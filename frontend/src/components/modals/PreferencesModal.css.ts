@@ -25,22 +25,6 @@ export const list = style({
   padding: '6px',
   maxHeight: '400px',
   overflowY: 'auto',
-  // border: `2px solid ${theme.colors.beigeMain}`, // 테두리도 원하면 제거 가능하지만 일단 배경만
-  // borderRadius: '8px',
-  // backgroundColor: theme.colors.paper, // 흰색(종이색) 배경 제거
-
-  '::-webkit-scrollbar': {
-    width: '10px',
-  },
-  '::-webkit-scrollbar-track': {
-    backgroundColor: theme.colors.beigeLight,
-    borderRadius: '6px',
-  },
-  '::-webkit-scrollbar-thumb': {
-    backgroundColor: theme.colors.woodMedium,
-    borderRadius: '6px',
-    border: `2px solid ${theme.colors.beigeLight}`,
-  },
 });
 
 export const emptyState = style({

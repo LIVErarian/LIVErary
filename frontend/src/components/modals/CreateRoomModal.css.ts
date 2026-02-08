@@ -20,15 +20,6 @@ export const scrollContent = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '20px',
-
-  // 스크롤바 커스텀
-  '::-webkit-scrollbar': {
-    width: '6px',
-  },
-  '::-webkit-scrollbar-thumb': {
-    backgroundColor: theme.colors.woodMedium,
-    borderRadius: '3px',
-  },
 });
 
 // 가로 배치 그리드

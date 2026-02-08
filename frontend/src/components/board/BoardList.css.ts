@@ -4,7 +4,7 @@ import { theme } from '@/styles/theme.css';
 
 // 전체 컨테이너
 export const container = style({
-  width: '800px',
+  width: '100%',
   height: '500px',
   display: 'flex',
   flexDirection: 'column',

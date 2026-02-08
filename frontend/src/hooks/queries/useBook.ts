@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query';
 
 import {
+  deleteReadingBook,
   getBookDetail,
   registerCompletedBook,
   registerReadingBook,
@@ -139,6 +140,18 @@ export const useRegisterCompletedBook = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['user', 'books'],
+      });
+    },
+  });
+};
+
+export const useDeleteReadingBook = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (isbn: string) => deleteReadingBook(isbn),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['user', 'books', 'READING'],
       });
     },
   });
