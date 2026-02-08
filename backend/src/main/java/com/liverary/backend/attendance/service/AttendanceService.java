@@ -107,19 +107,22 @@ public class AttendanceService {
     }
 
     /**
-     * 출석 이력 조회
+     * 출석 이력 조회 (월별)
      *
      * @param userId    사용자 ID
-     * @param startDate 시작 날짜
-     * @param endDate   종료 날짜
-     * @return 출석 이력 리스트
+     * @param yearMonth 조회할 년월 (YYYY-MM 형식)
+     * @return 해당 월의 출석 이력 리스트
      */
     public List<AttendanceHistoryResponse> getAttendanceHistory(
             UUID userId,
-            LocalDate startDate,
-            LocalDate endDate) {
+            String yearMonth) {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        // yearMonth를 LocalDate로 파싱 (YYYY-MM)
+        LocalDate startDate = LocalDate.parse(yearMonth + "-01");
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
         List<Attendance> attendances = attendanceRepository.findByUserAndAttendedAtBetween(
                 user, startDate, endDate);

@@ -12,7 +12,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,23 +50,21 @@ public class AttendanceController {
     }
 
     /**
-     * 출석 이력 조회
+     * 출석 이력 조회 (월별)
      *
      * @param user      인증된 사용자 정보
-     * @param startDate 시작 날짜 (YYYY-MM-DD)
-     * @param endDate   종료 날짜 (YYYY-MM-DD)
-     * @return 출석 이력 리스트
+     * @param yearMonth 조회할 년월 (YYYY-MM 형식, 예: 2026-02)
+     * @return 해당 월의 출석 이력 리스트
      */
     @GetMapping("/history")
     public BaseResponse<List<AttendanceHistoryResponse>> getAttendanceHistory(
             @AuthenticationPrincipal UserDetails user,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM") String yearMonth) {
 
         UUID userId = getUserId(user);
 
         List<AttendanceHistoryResponse> response = attendanceService.getAttendanceHistory(
-                userId, startDate, endDate);
+                userId, yearMonth);
 
         return BaseResponse.success(response);
     }
