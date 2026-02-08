@@ -2,6 +2,7 @@ import { PixelButton } from '@/components/common/PixelButton';
 import { PixelInput } from '@/components/common/PixelInput';
 import { useCreateRoomForm } from '@/hooks/useCreateRoomForm';
 import { useModalStore } from '@/store/useModalStore';
+import { getLocalDateString } from '@/utils/date';
 
 import * as styles from './CreateRoomModal.css';
 
@@ -126,7 +127,7 @@ export const CreateRoomModal = () => {
             type="date"
             className={styles.dateInput}
             value={startDate}
-            min={new Date().toISOString().split('T')[0]}
+            min={getLocalDateString()}
             onChange={(e) => setters.setStartDate(e.target.value)}
           />
           <select
@@ -150,7 +151,7 @@ export const CreateRoomModal = () => {
             type="date"
             className={styles.dateInput}
             value={endDate}
-            min={startDate || new Date().toISOString().split('T')[0]}
+            min={startDate || getLocalDateString()}
             onChange={(e) => setters.setEndDate(e.target.value)}
           />
           <select
