@@ -12,7 +12,7 @@ export const GamePage = () => {
     const initAssets = async () => {
       try {
         const minTimePromise = new Promise(
-          (resolve) => setTimeout(resolve, 5000), // 5초 대기
+          (resolve) => setTimeout(resolve, 2000), // 2초 대기
         );
 
         const assetLoadPromise = preloadAssets((progress) => {
