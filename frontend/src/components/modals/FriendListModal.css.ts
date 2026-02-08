@@ -3,7 +3,7 @@ import { style } from '@vanilla-extract/css';
 import { theme } from '@/styles/theme.css';
 
 export const container = style({
-  width: '500px',
+  width: '100%',
   height: '400px',
   display: 'flex',
   flexDirection: 'column',

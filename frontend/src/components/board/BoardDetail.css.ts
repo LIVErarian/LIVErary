@@ -3,7 +3,7 @@ import { style } from '@vanilla-extract/css';
 import { theme } from '@/styles/theme.css';
 
 export const container = style({
-  width: '800px',
+  width: '100%',
   height: '500px',
   display: 'flex',
   flexDirection: 'column',
@@ -156,7 +156,7 @@ export const reservationCodeText = style({
 // ============================================================
 
 export const loadingContainer = style({
-  width: '800px',
+  width: '100%',
   height: '500px',
   display: 'flex',
   justifyContent: 'center',
