@@ -17,20 +17,6 @@ export const contentArea = style({
   border: `1px solid ${theme.colors.beigeLight}`,
   borderRadius: '8px',
   padding: '16px',
-
-  // 스크롤바
-  '::-webkit-scrollbar': {
-    width: '12px',
-  },
-  '::-webkit-scrollbar-track': {
-    backgroundColor: theme.colors.beigeLight,
-    borderRadius: '6px',
-  },
-  '::-webkit-scrollbar-thumb': {
-    backgroundColor: theme.colors.woodMedium,
-    borderRadius: '6px',
-    border: `2px solid ${theme.colors.beigeLight}`,
-  },
 });
 
 /**

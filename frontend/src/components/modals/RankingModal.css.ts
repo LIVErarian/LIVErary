@@ -92,18 +92,6 @@ export const listContainer = style({
   flex: 1,
   padding: '0.3rem 0',
   overflowY: 'auto',
-
-  '::-webkit-scrollbar': {
-    width: '10px',
-  },
-  '::-webkit-scrollbar-thumb': {
-    backgroundColor: theme.colors.woodMedium,
-    borderRadius: '5px',
-    border: `2px solid ${theme.colors.paper}`,
-  },
-  '::-webkit-scrollbar-track': {
-    backgroundColor: 'transparent',
-  },
 });
 
 // 랭킹 리스트 아이템
