@@ -34,6 +34,7 @@ import type { Direction, MoveRequest } from '@/types/socket.types';
 
 import { contentFont } from '@/styles/global.css.ts';
 import { palette } from '@/styles/theme.css.ts';
+import { queryClient } from '@/lib/queryClient';
 
 extensions.add({
   name: 'tmj-loader',
@@ -577,6 +578,11 @@ export class GameApp {
             if (roomId) {
               useSocketStore.getState().sendLeaveRoom({ roomId });
               await roomApi.leaveRoom({ roomId });
+
+              // [추가] 퇴장 성공 시 방 목록 데이터 갱신 (인원수 -1 반영)
+              // await를 붙이지 않아도 됨 (백그라운드 갱신)
+              queryClient.invalidateQueries({ queryKey: ['rooms'] });
+              queryClient.invalidateQueries({ queryKey: ['room', roomId] });
             }
 
             useGameStore.getState().setRoomId(null);

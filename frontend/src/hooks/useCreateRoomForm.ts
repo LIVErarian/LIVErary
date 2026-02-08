@@ -9,9 +9,10 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
 
 import type { Book } from '@/types/book.types';
-import type { AccessType, RoomType } from '@/types/room.types';
+import type { AccessType, RECOMMENDED_ROOM, RoomType } from '@/types/room.types';
 import { roomApi } from '@/api/room.api';
 import { useGameStore } from '@/store/useGameStore';
+import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 
 export const useCreateRoomForm = (closeModal: () => void) => {
   const { openModal } = useModalStore();
@@ -24,6 +25,7 @@ export const useCreateRoomForm = (closeModal: () => void) => {
   const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
   const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
 
+  const setRoom4Room = useBookTalkRoomStore((state) => state.setRoom4Room);
   const initialRoomType: RoomType = user?.role === 'ADMIN' ? 'CONCERT' : 'TALK';
 
   const [title, setTitle] = useState('');
@@ -215,6 +217,20 @@ export const useCreateRoomForm = (closeModal: () => void) => {
           // 성공하자마자 방 생성 모달 닫기
           closeModal();
 
+          // [수정] 방 생성 성공 시, 아직 입장 전이므로 count: 0으로 설정
+          // MapManager 등에서 room-4 슬롯에 0명으로 표시되도록 함
+          const roomData: RECOMMENDED_ROOM = {
+            roomId: response.roomId,
+            title,
+            roomType,
+            accessType,
+            status: isScheduled ? 'SCHEDULED' : 'LIVE',
+            categoryName: categories.find((c) => c.categoryId === categoryId)?.name || '기타',
+            currentCount: 0, // 입장 전 0명
+            maxUser,
+          };
+          setRoom4Room(roomData);
+
           // 입장 확인 모달
           openModal('entrance', {
             title: '방 생성 완료',
@@ -230,8 +246,16 @@ export const useCreateRoomForm = (closeModal: () => void) => {
 
                   // [API] 방 입장 요청
                   await roomApi.joinRoom(response.roomId, joinReqBody);
+                  setRoom4Room({ ...roomData, currentCount: 1 });
+
+                  // 데이터 즉시 갱신 (방 목록 + 상세 정보)
+                  // 'rooms': 방 목록의 인원수 갱신
+                  // 'room': 입장 후 우측 패널(InfoPanel)의 인원수 갱신
+                  await Promise.all([
+                    queryClient.invalidateQueries({ queryKey: ['rooms'] }),
+                    queryClient.invalidateQueries({ queryKey: ['room', response.roomId] })
+                  ]);
                   
-                  queryClient.invalidateQueries({ queryKey: ['rooms'] });
                   setRoomId(response.roomId);
                   setRoomCode(response.code ?? null);
                   setSpawnPoint({ x: 0.88, y: 0.5 });
