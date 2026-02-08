@@ -2,115 +2,150 @@ import { Assets } from 'pixi.js';
 import { create } from 'zustand';
 
 interface SoundState {
-  // 상태 (State)
-  bgm: HTMLAudioElement | null; // 현재 재생 중인 오디오 객체
-  currentKey: string | null; // 현재 재생 중인 곡의 키 (예: 'calm_1')
-  volume: number; // 0.0 ~ 1.0
-  isMuted: boolean; // 음소거 여부
+  bgm: HTMLAudioElement | null;
+  currentKey: string | null;
+  currentPlaylist: string[];
+  volume: number;
+  isBgmMuted: boolean;
+  incomingAudioMuted: boolean;
+  playId: number;
+  localStream: MediaStream | null;
 
-  // 액션 (Actions)
-  playBGM: (key: string) => Promise<void>;
+  playPlaylist: (playlist: string[]) => Promise<void>;
   stopBGM: () => void;
   setVolume: (volume: number) => void;
-  toggleMute: () => void;
+  toggleBgmMute: () => void;
+  toggleIncomingMute: () => void;
+  setLocalStream: (stream: MediaStream | null) => void;
+
+  _playNext: () => void;
 }
 
 export const useSoundStore = create<SoundState>((set, get) => ({
   bgm: null,
   currentKey: null,
-  volume: 0.5, // 기본 볼륨 50%
-  isMuted: false,
+  currentPlaylist: [],
+  volume: 0.5,
+  isBgmMuted: false,
+  incomingAudioMuted: false,
+  playId: 0,
+  localStream: null,
 
-  /**
-   * 🎵 BGM 재생 (Assets에 로드된 파일 사용)
-   */
-  playBGM: async (key: string) => {
-    const { bgm, currentKey, volume, isMuted } = get();
+  playPlaylist: async (playlist: string[]) => {
+    const { currentPlaylist, bgm } = get();
 
-    // 이미 같은 노래가 재생 중이면 무시 (끊김 방지)
-    if (bgm && currentKey === key && !bgm.paused) {
-      return;
+    // 동일한 리스트면 무시
+    if (JSON.stringify(playlist) === JSON.stringify(currentPlaylist)) {
+      // 단, 현재 재생 중인 오디오가 멈춰있거나 없으면 실행해야 함
+      if (bgm && !bgm.paused) return;
     }
 
-    // 기존 노래 정지
-    if (bgm) {
-      bgm.pause();
-      bgm.currentTime = 0; // 되감기
-    }
+    //  새 리스트 저장 및 ID 증가
+    const newId = Date.now(); // 유니크한 ID 생성
+    set({ currentPlaylist: playlist, playId: newId });
+
+    // 재생 시작
+    get()._playNext();
+  },
+
+  _playNext: async () => {
+    // 함수 시작 시점의 ID를 캡처 (클로저)
+    const { playId: currentRequestPlayId } = get();
+
+    // 재생 할 곡 뽑기
+    const { currentPlaylist } = get();
+    if (currentPlaylist.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * currentPlaylist.length);
+    const nextKey = currentPlaylist[randomIndex];
 
     try {
-      // Pixi Assets에서 URL 가져오기
-      const resource = await Assets.get(key);
-
-      // 만약 resource가 없거나 이상하면 에러 방지
+      // 파일 로딩
+      const resource = await Assets.get(nextKey);
       const src = typeof resource === 'string' ? resource : resource?.src;
 
       if (!src) {
-        console.warn(`[SoundStore] ❌ 오디오 파일을 찾을 수 없습니다: ${key}`);
+        console.warn(`[SoundStore] ❌ 파일 없음: ${nextKey}`);
         return;
       }
 
-      // 새 오디오 객체 생성 및 설정
-      const newAudio = new Audio(src);
-      newAudio.volume = isMuted ? 0 : volume;
-
-      // 재생 시도 (브라우저 정책 예외 처리)
-      const playPromise = newAudio.play();
-
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          console.warn(
-            '[SoundStore] ⚠️ 자동 재생이 차단되었습니다 (사용자 클릭 필요):',
-            error,
-          );
-        });
+      // 로딩이 끝난 후에도 요청이 유효한지 확인
+      if (get().playId !== currentRequestPlayId) {
+        console.log(`[SoundStore] 🚫 이전 요청 취소됨: ${nextKey}`);
+        return;
       }
 
-      // 상태 업데이트
-      set({ bgm: newAudio, currentKey: key });
-      console.log(`[SoundStore] 🎵 재생 시작: ${key}`);
+      // 기존 BGM 확실하게 죽이기
+      const { bgm: prevBgm, volume, isBgmMuted } = get();
+      if (prevBgm) {
+        prevBgm.pause();
+        prevBgm.onended = null;
+        prevBgm.src = '';
+      }
+
+      // 새 오디오 생성 및 재생
+      const newAudio = new Audio(src);
+      newAudio.loop = false;
+
+      newAudio.onended = () => {
+        // 노래가 끝나서 다음 곡 넘어갈 때는 ID 유지
+        console.log('🎵 노래 끝! 다음 곡 재생...');
+        get()._playNext();
+      };
+
+      newAudio.volume = isBgmMuted ? 0 : volume;
+      newAudio.muted = isBgmMuted || volume < 0.01;
+
+      await newAudio.play();
+
+      set({ bgm: newAudio, currentKey: nextKey });
+      console.log(`[SoundStore] ▶️ 재생 성공: ${nextKey}`);
     } catch (error) {
-      console.error(`[SoundStore] 재생 실패: ${key}`, error);
+      console.error(`[SoundStore] 재생 실패:`, error);
     }
   },
 
-  /**
-   * 🛑 정지
-   */
   stopBGM: () => {
     const { bgm } = get();
     if (bgm) {
       bgm.pause();
+      bgm.onended = null;
       bgm.currentTime = 0;
     }
-    set({ bgm: null, currentKey: null });
+    // playId를 갱신해서 로딩 중인 음악도 취소시킴
+    set({
+      bgm: null,
+      currentKey: null,
+      currentPlaylist: [],
+      playId: Date.now(),
+    });
   },
 
-  /**
-   * 🔊 볼륨 조절 (0.0 ~ 1.0)
-   */
   setVolume: (val: number) => {
-    const { bgm, isMuted } = get();
-    // 범위 제한 (0~1)
+    const { bgm, isBgmMuted } = get();
     const newVol = Math.max(0, Math.min(1, val));
 
-    // 현재 재생 중인 오디오에도 즉시 반영
-    if (bgm && !isMuted) {
+    if (bgm && !isBgmMuted) {
       bgm.volume = newVol;
+      bgm.muted = newVol < 0.01;
     }
     set({ volume: newVol });
   },
 
-  /**
-   * 🔇 음소거 토글
-   */
-  toggleMute: () => {
-    const { bgm, isMuted, volume } = get();
-    const nextMuteState = !isMuted;
+  toggleBgmMute: () => {
+    const { bgm, isBgmMuted, volume } = get();
+    const nextState = !isBgmMuted;
 
     if (bgm) {
-      bgm.volume = nextMuteState ? 0 : volume;
+      bgm.volume = nextState ? 0 : volume;
+      bgm.muted = nextState || volume < 0.01;
     }
-    set({ isMuted: nextMuteState });
+    set({ isBgmMuted: nextState });
   },
+
+  toggleIncomingMute: () => {
+    set((state) => ({ incomingAudioMuted: !state.incomingAudioMuted }));
+  },
+
+  setLocalStream: (stream) => set({ localStream: stream }),
 }));

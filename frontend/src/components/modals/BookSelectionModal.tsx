@@ -79,10 +79,16 @@ export const BookSelectionModal = ({
       await updateBookStatus(selectedIsbn, 'COMPLETED');
     }
 
+    const bookInfo = {
+      isbn: book.isbn,
+      title: book.title,
+      category: book.categoryName,
+    };
+
     if (isChanging) {
-      updateBook({ isbn: book.isbn, title: book.title });
+      updateBook(bookInfo);
     } else {
-      startReading({ isbn: book.isbn, title: book.title });
+      startReading(bookInfo);
     }
 
     closeModal();

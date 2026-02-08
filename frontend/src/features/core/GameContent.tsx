@@ -2,7 +2,12 @@ import { useEffect, useRef } from 'react';
 
 import { GameLayout } from '@/components/layout/GameLayout';
 import { useGame } from '@/features/core/useGame';
-import { CATEGORY_MAP, MAP_DATA } from '@/features/map/mapAssets';
+import {
+  CATEGORY_MAP,
+  FAIRY_PLAYLIST,
+  MAP_DATA,
+  SF_PLAYLIST,
+} from '@/features/map/mapAssets';
 import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown';
 import { ConferenceRoomInfoPanel } from '@/features/ui/ConferenceRoomInfoPanel';
 import { GameSidebar } from '@/features/ui/GameSidebar';
@@ -12,6 +17,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
+import { useReadingStore } from '@/store/useReadingStore';
 import { useSocketStore } from '@/store/useSocketStore';
 import { useSoundStore } from '@/store/useSoundStore';
 
@@ -36,7 +42,8 @@ export const GameContent = () => {
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
 
-  const { playBGM, stopBGM } = useSoundStore();
+  const { playPlaylist, stopBGM } = useSoundStore();
+  const currentBook = useReadingStore((state) => state.currentBook);
 
   const selectedCategoryId = useBookTalkRoomStore(
     (state) => state.selectedCategoryId,
@@ -168,26 +175,30 @@ export const GameContent = () => {
 
     let targetPlaylist: string[] = [];
 
-    // 독서실에서 특정 장르의 책을 읽을 때
-    if (currentFloor === 'readingFloor') {
-      // 카테고리별 음악 선택
+    // 독서실 + 책 카테고리
+    if (currentFloor === 'readingFloor' && currentBook?.category) {
+      const category = currentBook.category;
+      if (category === '과학') {
+        targetPlaylist = SF_PLAYLIST;
+      } else if (category === '유아' || category === '어린이') {
+        targetPlaylist = FAIRY_PLAYLIST;
+      } else {
+        targetPlaylist = MAP_DATA['readingFloor'].bgm || [];
+      }
     }
-    // 독서실 제외한 일반 층
+    // 일반 층 이동
     else {
       const mapConfig = MAP_DATA[currentFloor];
       targetPlaylist = mapConfig?.bgm || [];
     }
 
+    // 플레이리스트 넘기기
     if (targetPlaylist.length > 0) {
-      const randomIndex = Math.floor(Math.random() * targetPlaylist.length);
-      const nextBgm = targetPlaylist[randomIndex];
-
-      playBGM(nextBgm);
+      playPlaylist(targetPlaylist);
     } else {
       stopBGM();
     }
-  }, [currentFloor, playBGM, stopBGM]);
-
+  }, [currentFloor, currentBook, playPlaylist, stopBGM]);
   return (
     <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />}>
       <BookTalkCategoryDropdown />

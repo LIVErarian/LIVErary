@@ -1,5 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 
+import { useSoundStore } from '@/store/useSoundStore';
+
 interface RemoteAudioProps {
   stream: MediaStream;
   userId: string;
@@ -9,6 +11,11 @@ interface RemoteAudioProps {
 export const RemoteAudio = memo(({ stream, userId }: RemoteAudioProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  const isIncomingAudioMuted = useSoundStore(
+    (state) => state.incomingAudioMuted,
+  );
+
+  // 스트림 연결 및 재생 로직
   useEffect(() => {
     if (audioRef.current && stream) {
       audioRef.current.srcObject = stream;
@@ -26,6 +33,13 @@ export const RemoteAudio = memo(({ stream, userId }: RemoteAudioProps) => {
       }
     }
   }, [stream, userId]);
+
+  // 음소거 상태 동기화 로직
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.muted = isIncomingAudioMuted;
+    }
+  }, [isIncomingAudioMuted]);
 
   return (
     <audio
