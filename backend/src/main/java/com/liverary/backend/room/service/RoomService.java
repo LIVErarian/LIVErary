@@ -1,5 +1,6 @@
 package com.liverary.backend.room.service;
 
+import com.liverary.backend.attendance.service.AttendanceService;
 import com.liverary.backend.board.repository.BoardRepository;
 import com.liverary.backend.book.domain.Book;
 import com.liverary.backend.book.service.BookService;
@@ -7,6 +8,7 @@ import com.liverary.backend.category.domain.Category;
 import com.liverary.backend.category.repository.CategoryRepository;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.ranking.service.RankingService;
 import com.liverary.backend.room.domain.*;
 import com.liverary.backend.room.dto.request.*;
 import com.liverary.backend.room.dto.response.*;
@@ -32,8 +34,10 @@ import java.util.stream.Collectors;
 /**
  * Room 도메인의 비즈니스 로직을 처리하는 서비스 클래스입니다.
  *
- * <p>방 생성, 조회, 참여 및 퇴장과 관련된 유스케이스를 담당하며,
- * 트랜잭션 경계를 정의합니다.</p>
+ * <p>
+ * 방 생성, 조회, 참여 및 퇴장과 관련된 유스케이스를 담당하며,
+ * 트랜잭션 경계를 정의합니다.
+ * </p>
  */
 @Service
 @RequiredArgsConstructor
@@ -49,14 +53,18 @@ public class RoomService {
     private final UserService userService;
     private final RoomReservationRepository roomReservationRepository;
     private final BookService bookService;
+    private final RankingService rankingService;
+    private final AttendanceService attendanceService;
 
     /**
      * 새로운 방(Room)을 생성합니다.
      *
-     * <p>요청에 포함된 책(Book) 정보의 유무에 따라 카테고리를 자동으로 결정합니다.
+     * <p>
+     * 요청에 포함된 책(Book) 정보의 유무에 따라 카테고리를 자동으로 결정합니다.
      * 책이 선택된 경우 해당 책의 카테고리를 따르며,
      * 책이 없는 경우 별도로 입력된 카테고리 정보를 사용하고,
-     * 책과 카테고리를 모두 선택하지 않은 경우 '기타'로 설정합니다.</p>
+     * 책과 카테고리를 모두 선택하지 않은 경우 '기타'로 설정합니다.
+     * </p>
      *
      * @param userId  방을 생성하는 유저의 고유 식별자(UUID)
      * @param request 방 생성 요청 정보가 담긴 DTO
@@ -77,7 +85,8 @@ public class RoomService {
 
         // 동일 시간대에 중복 예약을 방지
         if (request.getStatus() == RoomStatus.SCHEDULED) {
-            boolean isOverlapped = roomReservationRepository.existsOverlappingReservation(user, request.getStartAt(), request.getEndAt());
+            boolean isOverlapped = roomReservationRepository.existsOverlappingReservation(user, request.getStartAt(),
+                    request.getEndAt());
             if (isOverlapped) {
                 throw new BaseException(ErrorCode.RESERVATION_CONFLICT);
             }
@@ -144,13 +153,14 @@ public class RoomService {
     /**
      * 방의 예약 정보(제목, 시간, 정원, 책/카테고리 등)를 수정합니다.
      *
-     * <p>방장(Creator)만 예약 정보를 수정할 수 있으며,
+     * <p>
+     * 방장(Creator)만 예약 정보를 수정할 수 있으며,
      * 방장 외에 다른 참여자가 존재하는 경우(총원 > 1), 시작 및 종료 시각을 변경할 수 없습니다.
      * 책(BookId)이 입력된 경우 해당 책의 카테고리를 따르며, 책 없이 카테고리만 입력된 경우 해당 카테고리로 변경됩니다.
      * </p>
      *
-     * @param roomId 수정하려는 방의 고유 식별자(UUID)
-     * @param userId 수정을 요청한 유저(방장)의 고유 식별자(UUID)
+     * @param roomId  수정하려는 방의 고유 식별자(UUID)
+     * @param userId  수정을 요청한 유저(방장)의 고유 식별자(UUID)
      * @param request 수정할 제목, 정원, 시간, 책/카테고리 정보가 담긴 DTO
      * @return 수정된 방의 ID와 초대 코드를 포함한 응답 객체
      * @throws BaseException 시간 설정이 잘못되었거나, 중복된 예약이 있을 경우 발생
@@ -169,8 +179,7 @@ public class RoomService {
         }
 
         // 시간 변경 여부 확인
-        boolean isTimeUpdate =
-                (request.getStartAt() != null && !request.getStartAt().equals(room.getStartAt())) ||
+        boolean isTimeUpdate = (request.getStartAt() != null && !request.getStartAt().equals(room.getStartAt())) ||
                 (request.getEndAt() != null && !request.getEndAt().equals(room.getEndAt()));
 
         if (isTimeUpdate) {
@@ -190,7 +199,8 @@ public class RoomService {
             }
 
             // 중복 예약 방지
-            boolean isOverlapped = roomReservationRepository.existsOverlappingReservationExcludingRoom(user, newStart, newEnd, roomId);
+            boolean isOverlapped = roomReservationRepository.existsOverlappingReservationExcludingRoom(user, newStart,
+                    newEnd, roomId);
             if (isOverlapped) {
                 throw new BaseException(ErrorCode.RESERVATION_CONFLICT);
             }
@@ -213,8 +223,7 @@ public class RoomService {
                 request.getStartAt(),
                 request.getEndAt(),
                 book,
-                category
-        );
+                category);
 
         return new UpdateReservationResponse(room.getRoomId(), room.getCode());
     }
@@ -222,9 +231,11 @@ public class RoomService {
     /**
      * 예약한 방을 취소(삭제)합니다.
      *
-     * <p>요청자가 방장(creator)이고,
+     * <p>
+     * 요청자가 방장(creator)이고,
      * 시작 시간 1시간 전일 경우 삭제할 수 있습니다.
-     * 삭제 시 연관된 예약자 명단(RoomReservation)과 방(Room) 데이터를 모두 삭제합니다.</p>
+     * 삭제 시 연관된 예약자 명단(RoomReservation)과 방(Room) 데이터를 모두 삭제합니다.
+     * </p>
      *
      * @param userId 방 삭제를 요청하는 유저의 고유 식별자(UUID)
      * @param roomId 삭제하려는 방의 고유 식별자(UUID)
@@ -257,7 +268,9 @@ public class RoomService {
     /**
      * 예약 전용 방에 참여를 신청합니다.
      *
-     * <p>다음과 같은 유효성 검사를 수행합니다.</p>
+     * <p>
+     * 다음과 같은 유효성 검사를 수행합니다.
+     * </p>
      * <ul>
      * <li>방 존재 여부 및 상태(SCHEDULED) 확인</li>
      * <li>이미 신청한 내역이 있는지 확인 (중복 신청 방지)</li>
@@ -296,8 +309,7 @@ public class RoomService {
 
         // 신청자의 기존 일정과 중복되는지 확인
         boolean isTimeOverlapped = roomReservationRepository.existsOverlappingReservation(
-                user, room.getStartAt(), room.getEndAt()
-        );
+                user, room.getStartAt(), room.getEndAt());
         if (isTimeOverlapped) {
             throw new BaseException(ErrorCode.RESERVATION_CONFLICT);
         }
@@ -317,7 +329,8 @@ public class RoomService {
      *
      * @param userId 취소 신청하는 유저의 ID
      * @param roomId 취소할 방의 ID
-     * @throws BaseException 예약 내역 없음(NOT_RESERVED), 취소 가능 시간 제한(TOO_LATE_TO_CANCEL_RESERVATION) 등
+     * @throws BaseException 예약 내역 없음(NOT_RESERVED), 취소 가능 시간
+     *                       제한(TOO_LATE_TO_CANCEL_RESERVATION) 등
      */
     @Transactional
     public void cancelReservation(UUID userId, UUID roomId) {
@@ -342,15 +355,19 @@ public class RoomService {
     /**
      * 유저가 특정 방에 참여(입장)합니다.
      *
-     * <p>방 입장 전 다음과 같은 유효성 검사를 수행합니다:</p>
+     * <p>
+     * 방 입장 전 다음과 같은 유효성 검사를 수행합니다:
+     * </p>
      * <ul>
      * <li>LIVE 상태: 즉시 입장 가능</li>
      * <li>RESERVED 상태: 시작 10분 전부터 입장 가능</li>
      * <li>공통: 중복 참여, 정원 초과, PRIVATE 방의 초대 코드 검증</li>
      * </ul>
      *
-     * <p>검증이 완료되면 참여 이력(RoomHistory)을 'JOINED' 상태로 생성하고,
-     * 방의 현재 인원수를 1 증가시킵니다. 참여자의 기본 역할은 'GUEST'로 설정됩니다.</p>
+     * <p>
+     * 검증이 완료되면 참여 이력(RoomHistory)을 'JOINED' 상태로 생성하고,
+     * 방의 현재 인원수를 1 증가시킵니다. 참여자의 기본 역할은 'GUEST'로 설정됩니다.
+     * </p>
      *
      * @param roomId  참여하려는 방의 고유 식별자(UUID)
      * @param userId  참여를 요청한 유저의 고유 식별자(UUID)
@@ -433,11 +450,15 @@ public class RoomService {
     /**
      * 유저가 현재 참여 중인 방에서 퇴장합니다.
      *
-     * <p>유저의 현재 참여 기록(History)을 찾아 '퇴장(LEFT)' 상태로 변경하고,
-     * 방의 현재 인원수를 1 감소시킵니다.</p>
+     * <p>
+     * 유저의 현재 참여 기록(History)을 찾아 '퇴장(LEFT)' 상태로 변경하고,
+     * 방의 현재 인원수를 1 감소시킵니다.
+     * </p>
      *
-     * <p>퇴장 처리가 완료된 후 방의 상태가 'LIVE'이고 남은 인원이 0명 이하일 경우,
-     * 해당 방을 자동으로 종료(FINISHED/CLOSED) 처리합니다.</p>
+     * <p>
+     * 퇴장 처리가 완료된 후 방의 상태가 'LIVE'이고 남은 인원이 0명 이하일 경우,
+     * 해당 방을 자동으로 종료(FINISHED/CLOSED) 처리합니다.
+     * </p>
      *
      * @param roomId 퇴장하려는 방의 고유 식별자(UUID)
      * @param userId 퇴장을 요청한 유저의 고유 식별자(UUID)
@@ -467,6 +488,17 @@ public class RoomService {
 
         // 방을 나가는 순간 유저의 TotalReadingTime 업데이트
         userService.updateTotalReadingTime(userId, minutes);
+
+        // 랭킹 시스템에 독서 시간 반영 (Redis에 일일/주간/월간 누적)
+        rankingService.updateRanking(userId, minutes);
+
+        // 오늘의 총 독서 시간 조회 (Redis에서)
+        Long todayTotalMinutes = rankingService.getTodayReadingTime(userId);
+
+        // 30분 달성 시 독서 출석 자동 기록
+        if (todayTotalMinutes >= 30) {
+            attendanceService.checkReadingAttendance(userId);
+        }
     }
 
     /**
@@ -474,19 +506,20 @@ public class RoomService {
      *
      * @param categoryId 카테고리
      * @param accessType 공개/비공개
-     * @param keyword 검색할 키워드
-     * @param pageable 페이징 정보 (page, size, sort). 기본값: 생성일(createdAt) 기준 내림차순, 페이지당 10개
+     * @param keyword    검색할 키워드
+     * @param pageable   페이징 정보 (page, size, sort). 기본값: 생성일(createdAt) 기준 내림차순,
+     *                   페이지당 10개
      * @return 필터링 및 페이징 처리된 방 목록({@link RoomListResponse})을 포함한 공통 응답 객체
      */
-    public Page<RoomListResponse> getLiveRooms(UUID categoryId, AccessType accessType, String keyword, Pageable pageable) {
+    public Page<RoomListResponse> getLiveRooms(UUID categoryId, AccessType accessType, String keyword,
+            Pageable pageable) {
         Page<Room> rooms = roomRepository.findRoomsWithFilters(
                 RoomStatus.LIVE,
                 RoomType.TALK,
                 categoryId,
                 accessType,
                 keyword,
-                pageable
-        );
+                pageable);
         return rooms.map(RoomListResponse::from);
     }
 
@@ -494,8 +527,9 @@ public class RoomService {
      * [SCHEDULED] 예약된 독서 모임(TALK) 목록을 조회합니다.
      *
      * @param categoryId 카테고리
-     * @param keyword 검색할 키워드
-     * @param pageable 페이징 정보 (page, size, sort). 기본값: 생성일(createdAt) 기준 내림차순, 페이지당 10개
+     * @param keyword    검색할 키워드
+     * @param pageable   페이징 정보 (page, size, sort). 기본값: 생성일(createdAt) 기준 내림차순,
+     *                   페이지당 10개
      * @return 필터링 및 페이징 처리된 방 목록({@link RoomListResponse})을 포함한 공통 응답 객체
      */
     public Page<RoomListResponse> getScheduledRooms(UUID categoryId, String keyword, Pageable pageable) {
@@ -505,8 +539,7 @@ public class RoomService {
                 categoryId,
                 null,
                 keyword,
-                pageable
-        );
+                pageable);
         return rooms.map(room -> {
             long reservationCount = roomReservationRepository.countByRoom(room);
             return RoomListResponse.fromWithReservationCount(room, reservationCount);
@@ -516,8 +549,10 @@ public class RoomService {
     /**
      * 입장 코드로 방을 검색합니다.
      *
-     * <p>코드는 정확히 일치해야 합니다.
-     * 검색 결과는 단건(방 하나)으로 반환합니다.</p>
+     * <p>
+     * 코드는 정확히 일치해야 합니다.
+     * 검색 결과는 단건(방 하나)으로 반환합니다.
+     * </p>
      *
      * @param code 입장 코드
      * @return 입장 코드와 일치하는 방 객체
@@ -535,8 +570,10 @@ public class RoomService {
     /**
      * 특정 방의 상세 정보를 조회합니다.
      *
-     * <p>요청된 방 ID(UUID)에 해당하는 방 엔티티를 데이터베이스에서 조회한 후,
-     * 이를 상세 조회 응답 객체({@link RoomDetailResponse})로 변환하여 반환합니다.</p>
+     * <p>
+     * 요청된 방 ID(UUID)에 해당하는 방 엔티티를 데이터베이스에서 조회한 후,
+     * 이를 상세 조회 응답 객체({@link RoomDetailResponse})로 변환하여 반환합니다.
+     * </p>
      *
      * @param roomId 조회할 방의 고유 식별자(UUID)
      * @return 방의 상세 정보(제목, 카테고리, 인원, 책 정보 등)를 담은 DTO
@@ -578,7 +615,8 @@ public class RoomService {
     @Transactional
     public void autoCloseNoShowRooms() {
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(10);
-        List<Room> rooms = roomRepository.findAllByStatusAndStartAtLessThanEqualAndCurrentCountAndRoomTypeNot(RoomStatus.LIVE, threshold, 0, RoomType.STABLE);
+        List<Room> rooms = roomRepository.findAllByStatusAndStartAtLessThanEqualAndCurrentCountAndRoomTypeNot(
+                RoomStatus.LIVE, threshold, 0, RoomType.STABLE);
 
         for (Room room : rooms) {
             room.updateStatus(RoomStatus.FINISHED);
@@ -595,7 +633,8 @@ public class RoomService {
     @Transactional
     public void autoCloseFinishedRooms() {
         LocalDateTime now = LocalDateTime.now();
-        List<Room> rooms = roomRepository.findAllByStatusAndEndAtLessThanEqualAndRoomTypeNot(RoomStatus.LIVE, now, RoomType.STABLE);
+        List<Room> rooms = roomRepository.findAllByStatusAndEndAtLessThanEqualAndRoomTypeNot(RoomStatus.LIVE, now,
+                RoomType.STABLE);
 
         for (Room room : rooms) {
             room.updateStatus(RoomStatus.FINISHED);
@@ -604,8 +643,7 @@ public class RoomService {
                     room,
                     HistoryStatus.LEFT,
                     now,
-                    HistoryStatus.JOINED
-            );
+                    HistoryStatus.JOINED);
             log.info("Auto-closed finished room: {}", room.getRoomId());
         }
     }
