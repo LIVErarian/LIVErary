@@ -334,3 +334,39 @@ export const completeButton = style({
     transform: 'scale(0.95)',
   },
 });
+
+/**
+ * 삭제 버튼
+ */
+export const deleteButton = style({
+  marginTop: '8px',
+  padding: '8px 16px',
+  fontSize: '0.9rem',
+  fontWeight: 'bold',
+  color: theme.colors.white,
+  backgroundColor: theme.colors.red,
+  border: `2px solid ${theme.colors.woodDeep}`,
+  borderRadius: '4px',
+  cursor: 'pointer',
+  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+  transition: 'transform 0.1s, background-color 0.1s',
+
+  ':hover': {
+    transform: 'scale(1.05)',
+    backgroundColor: '#a93226',
+  },
+
+  ':active': {
+    transform: 'scale(0.95)',
+  },
+});
+
+/**
+ * 버튼 그룹 (완독하기, 삭제하기 버튼을 감싸는 컨테이너)
+ */
+export const buttonGroup = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '8px',
+});
