@@ -29,6 +29,8 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
   const consumeMinutes = useReadingStore((state) => state.consumeMinutes);
   const [currentDate, setCurrentDate] = useState(new Date());
 
+  const todayDate = new Date();
+  const currentYearMonth = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}`;
   const yearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
 
   // 디버깅용: 일간 랭킹(오늘 독서 시간) 조회
@@ -53,8 +55,16 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
     }
   }, [isOpen, consumeMinutes, queryClient]);
 
-  // 출석 이력 조회
-  const { data: attendanceHistory, isLoading } = useQuery({
+  // [헤더용] 이번 달 출석 이력 조회 (항상 현재 월 기준)
+  const { data: currentMonthHistory } = useQuery({
+    queryKey: ['attendance', 'history', currentYearMonth],
+    queryFn: () =>
+      attendanceApi.getAttendanceHistory({ yearMonth: currentYearMonth }),
+    enabled: isOpen,
+  });
+
+  // [캘린더용] 선택된 달 출석 이력 조회 (네비게이션에 따라 변경)
+  const { data: viewedMonthHistory, isLoading } = useQuery({
     queryKey: ['attendance', 'history', yearMonth],
     queryFn: () => attendanceApi.getAttendanceHistory({ yearMonth }),
     enabled: isOpen,
@@ -64,7 +74,7 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
   const checkInMutation = useMutation({
     mutationFn: attendanceApi.checkDailyAttendance,
     onSuccess: () => {
-      // 출석 이력 다시 불러오기
+      // 출석 이력 전체 다시 불러오기
       queryClient.invalidateQueries({ queryKey: ['attendance', 'history'] });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
@@ -75,44 +85,57 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
   });
 
   // 오늘 날짜의 출석 상태 및 연속 출석일 계산 (useMemo로 파생)
+  // 항상 currentMonthHistory(이번 달 데이터)를 기준으로 계산
   const { todayChecked, consecutiveDays } = useMemo(() => {
-    if (!attendanceHistory) {
+    if (!currentMonthHistory) {
       return { todayChecked: false, consecutiveDays: 0 };
     }
 
-    const today = new Date().toISOString().split('T')[0];
-    const todayData = attendanceHistory.find(
-      (item: AttendanceHistoryResponse) => item.attendanceDate === today,
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayData = currentMonthHistory.find(
+      (item: AttendanceHistoryResponse) => item.attendanceDate === todayStr,
     );
     const isTodayChecked = todayData?.hasDailyAttendance ?? false;
 
     // 연속 출석일 계산
     let consecutive = 0;
-    const sortedHistory = [...attendanceHistory]
+
+    // 날짜 내림차순 정렬
+    const sortedHistory = [...currentMonthHistory]
       .filter((item) => item.hasDailyAttendance)
       .sort((a, b) => b.attendanceDate.localeCompare(a.attendanceDate));
 
     if (sortedHistory.length > 0) {
-      const currentDate = new Date();
-      const checkDate = new Date(currentDate);
+      // 가장 최근 출석일 구하기
+      const lastAttendedDateStr = sortedHistory[0].attendanceDate;
+      const lastAttendedDate = new Date(lastAttendedDateStr);
 
-      for (let i = 0; i < sortedHistory.length; i++) {
-        const dateStr = checkDate.toISOString().split('T')[0];
-        const hasAttendance = sortedHistory.some(
-          (item) => item.attendanceDate === dateStr,
-        );
+      // 오늘 날짜
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+      lastAttendedDate.setHours(0, 0, 0, 0);
 
-        if (hasAttendance) {
-          consecutive++;
-          checkDate.setDate(checkDate.getDate() - 1);
-        } else {
-          break;
+      const diffTime = todayDate.getTime() - lastAttendedDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      // 마지막 출석이 오늘(0)이거나 어제(1)여야 연속 출석 인정 가능
+      if (diffDays <= 1) {
+        // 연속 카운트 시작
+        const checkDate = new Date(lastAttendedDateStr);
+
+        for (const item of sortedHistory) {
+          if (item.attendanceDate === checkDate.toISOString().split('T')[0]) {
+            consecutive++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else {
+            break;
+          }
         }
       }
     }
 
     return { todayChecked: isTodayChecked, consecutiveDays: consecutive };
-  }, [attendanceHistory]);
+  }, [currentMonthHistory]);
 
   const handleCheckIn = () => {
     checkInMutation.mutate();
@@ -135,7 +158,7 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
       return <div className={styles.loadingMessage}>로딩 중...</div>;
     }
 
-    if (!attendanceHistory) {
+    if (!viewedMonthHistory) {
       return (
         <div className={styles.errorMessage}>
           출석 데이터를 불러올 수 없습니다.
@@ -171,7 +194,7 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
 
     // 출석 데이터를 맵으로 변환
     const attendanceMap = new Map<string, AttendanceHistoryResponse>();
-    attendanceHistory.forEach((item: AttendanceHistoryResponse) => {
+    viewedMonthHistory.forEach((item: AttendanceHistoryResponse) => {
       attendanceMap.set(item.attendanceDate, item);
     });
 
