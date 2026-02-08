@@ -5,6 +5,7 @@ import { BoardDetail } from '../board/BoardDetail';
 import { BoardList } from '../board/BoardList';
 import { BoardUpdate } from '../board/BoardUpdate';
 import { PixelModal } from '../common/PixelModal';
+import { AttendanceModal } from './AttendanceModal';
 import { BookDetailModal } from './BookDetailModal';
 import { BookSearchModal } from './BookSearchModal';
 import { BookSelectionModal } from './BookSelectionModal';
@@ -287,6 +288,19 @@ export const GlobalModal = () => {
 
             {/* 독서 타이머: 독서 종료 모달 */}
             {currentModal === 'readingCompletion' && <ReadingCompletionModal />}
+
+            {/* 출석 체크 모달 */}
+            <PixelModal
+              isOpen={currentModal === 'attendance'}
+              onClose={closeModal}
+              title="출석 체크"
+              width="550px"
+            >
+              <AttendanceModal
+                isOpen={currentModal === 'attendance'}
+                onClose={closeModal}
+              />
+            </PixelModal>
           </div>
         );
       })}

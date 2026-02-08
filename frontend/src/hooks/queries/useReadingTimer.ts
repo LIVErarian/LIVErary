@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { recordReadingTime } from '@/api/reading.api';
 import { useGameStore } from '@/store/useGameStore';
 import { useReadingStore } from '@/store/useReadingStore';
 
 export const useReadingTimer = () => {
+  const queryClient = useQueryClient();
   const { isReading, elapsedSeconds, tick, endReading } = useReadingStore();
   const currentFloor = useGameStore((state) => state.currentFloor);
   const previousFloor = useRef<string | null>(null);
@@ -35,7 +37,10 @@ export const useReadingTimer = () => {
 
       if (minutes > 0) {
         recordReadingTime(minutes)
-          .then(() => console.log(`독서 시간 ${minutes}분 저장 완료`))
+          .then(() => {
+            console.log(`독서 시간 ${minutes}분 저장 완료`);
+            queryClient.invalidateQueries({ queryKey: ['attendance'] });
+          })
           .catch((error) => console.error('저장 실패:', error));
       }
 
@@ -43,7 +48,7 @@ export const useReadingTimer = () => {
     }
 
     previousFloor.current = currentFloor;
-  }, [currentFloor, isReading, elapsedSeconds, endReading]);
+  }, [currentFloor, isReading, elapsedSeconds, endReading, queryClient]);
 
   // 페이지 이탈 시 자동 저장
   useEffect(() => {

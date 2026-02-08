@@ -548,8 +548,7 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         trigger: 'interact',
         action: {
           type: 'openModal',
-          // modalType: 'attendance',
-          modalType: 'userProfile',
+          modalType: 'attendance',
         },
       },
     ],
