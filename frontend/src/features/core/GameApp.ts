@@ -696,10 +696,12 @@ export class GameApp {
                   .setSpawnPoint(this.CONFERENCE_ENTRY_SPAWN);
                 useGameStore.getState().setCurrentFloor('conferenceFloor');
               } else {
-                useModalStore.getState().openModal('alert', {
-                  title: '알림',
-                  message: '현재 입장 가능한 방이 없습니다.',
-                });
+                setTimeout(() => {
+                  useModalStore.getState().openModal('alert', {
+                    title: '알림',
+                    message: '배정된 방이 없습니다.',
+                  });
+                }, 100);
                 bounceOutFromZone();
               }
             } catch (error: unknown) {
@@ -710,9 +712,11 @@ export class GameApp {
               const message =
                 apiError?.response?.data?.message ??
                 '방에 입장하지 못했습니다.';
-              useModalStore
-                .getState()
-                .openModal('alert', { title: '오류', message });
+              setTimeout(() => {
+                useModalStore
+                  .getState()
+                  .openModal('alert', { title: '오류', message });
+              }, 100);
               bounceOutFromZone();
             }
           } else {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { searchBook } from '@/api/book.api';
 import { categoryApi } from '@/api/category.api';
@@ -10,11 +10,19 @@ import { useModalStore } from '@/store/useModalStore';
 
 import type { Book } from '@/types/book.types';
 import type { AccessType, RoomType } from '@/types/room.types';
+import { roomApi } from '@/api/room.api';
+import { useGameStore } from '@/store/useGameStore';
 
 export const useCreateRoomForm = (closeModal: () => void) => {
   const { openModal } = useModalStore();
   const { mutate: createRoom, isPending } = useCreateRoom();
   const user = useAuthStore((state) => state.user);
+  const queryClient = useQueryClient();
+  
+  const setRoomId = useGameStore((state) => state.setRoomId);
+  const setRoomCode = useGameStore((state) => state.setRoomCode);
+  const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
+  const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
 
   const initialRoomType: RoomType = user?.role === 'ADMIN' ? 'CONCERT' : 'TALK';
 
@@ -203,7 +211,42 @@ export const useCreateRoomForm = (closeModal: () => void) => {
         endAt: formattedEnd,
       },
       {
-        onSuccess: () => closeModal(),
+        onSuccess: (response) => {
+          // 성공하자마자 방 생성 모달 닫기
+          closeModal();
+
+          // 입장 확인 모달
+          openModal('entrance', {
+            title: '방 생성 완료',
+            message: `"${title}" 방이 생성되었습니다.\n바로 입장하시겠습니까?`,
+            onConfirm: async () => {
+              try {
+                closeModal();
+
+                if (response?.roomId) {
+                  const joinReqBody = accessType === 'PRIVATE' && response.code 
+                      ? { code: response.code } 
+                      : {};
+
+                  // [API] 방 입장 요청
+                  await roomApi.joinRoom(response.roomId, joinReqBody);
+                  
+                  queryClient.invalidateQueries({ queryKey: ['rooms'] });
+                  setRoomId(response.roomId);
+                  setRoomCode(response.code ?? null);
+                  setSpawnPoint({ x: 0.88, y: 0.5 });
+                  setCurrentFloor('conferenceFloor');
+                }
+              } catch (error) {
+                console.error(error);
+                openModal('alert', { 
+                  title: '입장 실패', 
+                  message: '방 입장에 실패했습니다. 잠시 후 다시 시도해주세요.' 
+                });
+              }
+            },
+          });
+        },
       },
     );
   };
