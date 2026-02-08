@@ -346,10 +346,18 @@ export const ProfileModal = ({
                     + 선호 카테고리 추가
                   </button>
                 )
+              ) : // 타인 프로필일 경우 - 카테고리 표시 (클릭 불가)
+              otherProfile?.preferences &&
+                otherProfile.preferences.length > 0 &&
+                otherProfile.preferences.length < 23 ? (
+                otherProfile.preferences.map((pref: string, index: number) => (
+                  <span key={index} style={{ marginRight: '6px' }}>
+                    #{pref}
+                  </span>
+                ))
               ) : (
-                // 타인 프로필일 경우
                 <span style={{ color: '#aaa', fontSize: '0.8rem' }}>
-                  {/* 타인의 선호 카테고리는 표시하지 않음 */}
+                  선호하는 카테고리 없음
                 </span>
               )}
             </div>

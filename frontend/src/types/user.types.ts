@@ -23,6 +23,7 @@ export interface OtherProfile {
   email: string;
   nickname: string;
   role: UserRole;
+  preferences: string[] | null; // 선호 카테고리 추가
   totalReadingTime: number;
   bookCounts: {
     wish: number;
