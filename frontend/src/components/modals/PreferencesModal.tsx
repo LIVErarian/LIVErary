@@ -5,18 +5,16 @@ import { PixelModal } from '@/components/common/PixelModal';
 import { useCategoryList } from '@/hooks/queries/useCategory';
 import { useSavePreferences } from '@/hooks/queries/useUserPreferences';
 import { useAuthStore } from '@/store/useAuthStore';
-import { type ModalType, useModalStore } from '@/store/useModalStore';
+import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './PreferencesModal.css';
 
 interface PreferencesModalProps {
   preferences?: string[];
-  from?: ModalType;
 }
 
 export const PreferencesModal = ({
   preferences: initialPreferences,
-  from,
 }: PreferencesModalProps) => {
   const { closeModal } = useModalStore();
   const userId = useAuthStore((state) => state.user?.userId);
@@ -48,12 +46,9 @@ export const PreferencesModal = ({
   }, [categories, initialPreferences]);
 
   const closeOrReturn = () => {
-    if (from === 'profile') {
-      // 프로필에서 왔으면 프로필 모달 다시 열기 (내 프로필)
-      useModalStore.getState().openModal('profile');
-    } else {
-      closeModal();
-    }
+    // 모달 스택 시스템이 자동으로 이전 모달로 복원하므로
+    // closeModal()만 호출하면 됨
+    closeModal();
   };
 
   const handleClose = () => {
