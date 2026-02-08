@@ -55,7 +55,14 @@ export class PlayerManager {
     return this.me;
   }
 
-  // 다른 플레이어들 위치 업데이트
+  public update(deltaTime: number) {
+    this._otherPlayers.forEach((player) => {
+      // 각 플레이어 객체의 보간 이동 함수 호출
+      player.updatePosition(deltaTime);
+    });
+  }
+
+  // 다른 플레이어들 위치 업데이트 -> x, y를 바로 대입하지 않고 setTargetPosition을 이용해서 선형 보간
   public updateOtherPlayers(moves: MoveBroadcast[]) {
     if (!moves) return;
 
@@ -107,10 +114,8 @@ export class PlayerManager {
         this._otherPlayers.set(data.userId, otherPlayer);
       }
 
-      // 있으면 위치 이동
       if (otherPlayer) {
-        otherPlayer.x = data.x;
-        otherPlayer.y = data.y;
+        otherPlayer.setTargetPosition(data.x, data.y);
         otherPlayer.setAnimation(data.direction, data.isMoving);
       }
     });
