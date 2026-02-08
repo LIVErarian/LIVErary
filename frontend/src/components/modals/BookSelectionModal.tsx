@@ -10,8 +10,10 @@ import { useReadingStore } from '@/store/useReadingStore';
 import { BookSearchModal } from './BookSearchModal';
 
 import type { Book } from '@/types/book.types';
+import type { UserBookStatus } from '@/types/bookshelf.types';
 
 import {
+  activeTab as activeTabStyle,
   addBookButton,
   addIcon,
   bookAuthor,
@@ -36,9 +38,12 @@ import {
   searchTitle,
   searchViewContainer,
   sectionLabel,
+  tabButton,
+  tabContainer,
 } from './BookSelectionModal.css.ts';
 
 type ViewMode = 'list' | 'search';
+type BookTab = 'READING' | 'WISH'; // UserBookStatus와 일치하도록 수정
 
 interface BookSelectionModalProps {
   isChanging?: boolean;
@@ -54,12 +59,15 @@ export const BookSelectionModal = ({
     updateBook,
     currentBook: readingStoreBook,
   } = useReadingStore();
-  const { data: booksData } = useUserBooks('READING', 0, 10);
-  const { mutateAsync: registerReading } = useRegisterReadingBook();
 
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [activeTab, setActiveTab] = useState<BookTab>('READING');
   const [selectedIsbn, setSelectedIsbn] = useState('');
   const [isCompleted, setIsCompleted] = useState(false);
+
+  // 탭에 따라 다른 status로 책 목록 가져오기
+  const { data: booksData } = useUserBooks(activeTab as UserBookStatus, 0, 10);
+  const { mutateAsync: registerReading } = useRegisterReadingBook();
 
   // 현재 읽고 있는 책의 전체 정보를 booksData에서 찾음
   const currentBookInfoData = readingStoreBook
@@ -173,10 +181,34 @@ export const BookSelectionModal = ({
               <span>새로운 책 검색하기</span>
             </div>
 
+            {/* 탭 버튼 */}
+            <div className={tabContainer}>
+              <PixelButton
+                className={`${tabButton} ${activeTab === 'READING' ? activeTabStyle : ''}`}
+                onClick={() => {
+                  setActiveTab('READING');
+                  setSelectedIsbn(''); // 탭 변경 시 선택 초기화
+                }}
+              >
+                읽는 중인 책
+              </PixelButton>
+              <PixelButton
+                className={`${tabButton} ${activeTab === 'WISH' ? activeTabStyle : ''}`}
+                onClick={() => {
+                  setActiveTab('WISH');
+                  setSelectedIsbn(''); // 탭 변경 시 선택 초기화
+                }}
+              >
+                찜한 책
+              </PixelButton>
+            </div>
+
             <div className={bookList}>
               {books.length === 0 && (
                 <div className={emptyState}>
-                  "읽는 중" 상태인 책이 없습니다.
+                  {activeTab === 'READING'
+                    ? '"읽는 중" 상태인 책이 없습니다.'
+                    : '"찜한 책"이 없습니다.'}
                 </div>
               )}
 
