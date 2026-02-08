@@ -100,8 +100,26 @@ public class BookHistoryService {
                 .book(book)
                 .status(BookStatus.READING)
                 .build();
-        
+
         bookHistoryRepository.save(history);
+    }
+
+    /**
+     * 읽고 있는 책 삭제
+     * @param isbn 도서 ISBN
+     * @param userId 유저 ID
+     */
+    @Transactional
+    public void deleteReadingBook(String isbn, UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        Book book = bookService.getOrSaveBook(isbn);
+
+        BookHistory history = bookHistoryRepository.findByUserAndBookAndStatus(user, book, BookStatus.READING)
+                .orElseThrow(() -> new BaseException(ErrorCode.BOOK_NOT_FOUND));
+
+        bookHistoryRepository.delete(history);
     }
 
     /**
