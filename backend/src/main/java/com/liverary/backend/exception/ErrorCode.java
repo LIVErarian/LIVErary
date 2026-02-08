@@ -40,7 +40,7 @@ public enum ErrorCode {
     VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "A010", "인증 번호가 일치하지 않습니다."),
     EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "A011", "이메일 인증이 완료되지 않았습니다."),
 
-    INVALID_UUID_FORMAT(HttpStatus.BAD_REQUEST, "A012", "유효한 UUID 형식이 아닙니다" ),
+    INVALID_UUID_FORMAT(HttpStatus.BAD_REQUEST, "A012", "유효한 UUID 형식이 아닙니다"),
     SOCKET_ROOM_MISMATCH(HttpStatus.BAD_REQUEST, "WS001", "동일한 방의 사용자만 연결할 수 있습니다."),
 
     CANNOT_FRIEND_SELF(HttpStatus.BAD_REQUEST, "F001", "자기 자신에게 친구 요청을 보낼 수 없습니다."),
@@ -55,7 +55,6 @@ public enum ErrorCode {
     TOKEN_MALFORMED(HttpStatus.UNAUTHORIZED, "A005", "잘못된 형식의 토큰입니다."),
 
     PASSWORD_INVALID(HttpStatus.UNAUTHORIZED, "U003", "비밀번호가 일치하지 않습니다."),
-
 
     // 403 FORBIDDEN: 권한 없음
     FORBIDDEN(HttpStatus.FORBIDDEN, "A003", "접근 권한이 없습니다."),
@@ -106,12 +105,13 @@ public enum ErrorCode {
 
     ALREADY_FRIEND_REQUEST(HttpStatus.CONFLICT, "F005", "이미 친구 상태이거나 수락 대기 중인 요청이 존재합니다."),
 
+    ALREADY_ATTENDED(HttpStatus.CONFLICT, "AT001", "이미 출석했습니다."),
+
     // 500 INTERNAL_SERVER_ERROR: 서버 에러
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S001", "서버 내부 오류가 발생했습니다."),
     EXTERNAL_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S002", "외부 API 연동 중 오류가 발생했습니다."),
     FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "S003", "파일 처리 중 오류가 발생했습니다."),
     AI_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI001", "AI 서버 통신 중 오류가 발생했습니다.");
-
 
     // 응답으로 반환할 HTTP 상태 코드
     private final HttpStatus status;
