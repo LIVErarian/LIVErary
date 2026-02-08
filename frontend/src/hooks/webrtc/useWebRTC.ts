@@ -2,11 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Client } from '@stomp/stompjs';
 
 import { getHeaders, useSocketStore } from '@/store/useSocketStore';
+import { useSoundStore } from '@/store/useSoundStore';
 
 import type { SignalingMessage } from '@/types/socket.types';
 
 export const useWebRTC = (roomId: string, myUserId: string) => {
   const { client, isConnected } = useSocketStore();
+
+  const setLocalStreamGlobal = useSoundStore((state) => state.setLocalStream);
 
   // 다른 사람들의 목소리 데이터 모음
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(
@@ -36,6 +39,8 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
     });
     subscriberPCs.current.clear();
 
+    setLocalStreamGlobal(null);
+
     if (localStream.current) {
       localStream.current.getTracks().forEach((track) => track.stop());
       localStream.current = null;
@@ -44,7 +49,7 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
     setRemoteStreams(new Map());
 
     isCleaningUp.current = false;
-  }, [setRemoteStreams]);
+  }, [setRemoteStreams, setLocalStreamGlobal]);
 
   // 마이크 초기화 (useCallback을 이용해서 함수 저장)
   const initLocalStream = useCallback(async () => {
@@ -65,12 +70,16 @@ export const useWebRTC = (roomId: string, myUserId: string) => {
       });
 
       localStream.current = stream;
+
+      // 획득한 스트림을 전역 스토어에 저장 (SettingsModal 시각화용)
+      setLocalStreamGlobal(stream);
+
       return stream;
     } catch (error) {
       console.error('마이크 권한 실패', error);
       return null;
     }
-  }, []);
+  }, [setLocalStreamGlobal]); // 의존성 추가
 
   // 마이크 토글
   const toggleMic = useCallback((enabled: boolean) => {

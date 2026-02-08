@@ -1,25 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
-import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { searchBook } from '@/api/book.api';
 import { categoryApi } from '@/api/category.api';
+import { roomApi } from '@/api/room.api';
 import { useDebounce } from '@/hooks/common/useDebounce';
 import { useCreateRoom } from '@/hooks/mutations/useRoomMutations';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
+import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 
 import type { Book } from '@/types/book.types';
-import type { AccessType, RECOMMENDED_ROOM, RoomType } from '@/types/room.types';
-import { roomApi } from '@/api/room.api';
-import { useGameStore } from '@/store/useGameStore';
-import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
+import type {
+  AccessType,
+  RECOMMENDED_ROOM,
+  RoomType,
+} from '@/types/room.types';
 
 export const useCreateRoomForm = (closeModal: () => void) => {
   const { openModal } = useModalStore();
   const { mutate: createRoom, isPending } = useCreateRoom();
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
-  
+
   const setRoomId = useGameStore((state) => state.setRoomId);
   const setRoomCode = useGameStore((state) => state.setRoomCode);
   const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
@@ -225,7 +229,9 @@ export const useCreateRoomForm = (closeModal: () => void) => {
             roomType,
             accessType,
             status: isScheduled ? 'SCHEDULED' : 'LIVE',
-            categoryName: categories.find((c) => c.categoryId === categoryId)?.name || '기타',
+            categoryName:
+              categories.find((c) => c.categoryId === categoryId)?.name ||
+              '기타',
             currentCount: 0, // 입장 전 0명
             maxUser,
           };
@@ -240,8 +246,9 @@ export const useCreateRoomForm = (closeModal: () => void) => {
                 closeModal();
 
                 if (response?.roomId) {
-                  const joinReqBody = accessType === 'PRIVATE' && response.code 
-                      ? { code: response.code } 
+                  const joinReqBody =
+                    accessType === 'PRIVATE' && response.code
+                      ? { code: response.code }
                       : {};
 
                   // [API] 방 입장 요청
@@ -253,9 +260,11 @@ export const useCreateRoomForm = (closeModal: () => void) => {
                   // 'room': 입장 후 우측 패널(InfoPanel)의 인원수 갱신
                   await Promise.all([
                     queryClient.invalidateQueries({ queryKey: ['rooms'] }),
-                    queryClient.invalidateQueries({ queryKey: ['room', response.roomId] })
+                    queryClient.invalidateQueries({
+                      queryKey: ['room', response.roomId],
+                    }),
                   ]);
-                  
+
                   setRoomId(response.roomId);
                   setRoomCode(response.code ?? null);
                   setSpawnPoint({ x: 0.88, y: 0.5 });
@@ -263,9 +272,9 @@ export const useCreateRoomForm = (closeModal: () => void) => {
                 }
               } catch (error) {
                 console.error(error);
-                openModal('alert', { 
-                  title: '입장 실패', 
-                  message: '방 입장에 실패했습니다. 잠시 후 다시 시도해주세요.' 
+                openModal('alert', {
+                  title: '입장 실패',
+                  message: '방 입장에 실패했습니다. 잠시 후 다시 시도해주세요.',
                 });
               }
             },

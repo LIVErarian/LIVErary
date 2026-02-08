@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { roomApi } from '@/api/room.api';
 import { PixelButton } from '@/components/common/PixelButton';
 import { useNotification } from '@/hooks/queries/useNotification';
-import { RemoteAudio } from '@/hooks/webrtc/RemoteAudio'; // 경로 확인 필요
+import { RemoteAudio } from '@/hooks/webrtc/RemoteAudio';
 import { useWebRTC } from '@/hooks/webrtc/useWebRTC';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
+import { useSoundStore } from '@/store/useSoundStore';
 
 import type { FloorType } from '@/types/map.types';
 
@@ -31,6 +32,8 @@ export const GameSidebar = () => {
   const sendLeaveRoom = useSocketStore((state) => state.sendLeaveRoom);
 
   const roomId = useGameStore((state) => state.roomId);
+
+  const { incomingAudioMuted, toggleIncomingMute } = useSoundStore();
 
   const { unreadCount } = useNotification();
   const [isMicOn, setIsMicOn] = useState(false);
@@ -331,12 +334,31 @@ export const GameSidebar = () => {
             )}
           </div>
           <PixelButton
+            variant="beige"
+            shape="circle"
+            size="sm"
+            onClick={() => openModal('settings')}
+          >
+            ⚙️
+          </PixelButton>
+        </div>
+        <div className={styles.mediaRow}>
+          <PixelButton
             variant={isMicOn ? 'primary' : 'beige'}
             shape="circle"
             size="sm"
             onClick={handleMicClick}
           >
             {isMicOn ? '🔊' : '🔇'}
+          </PixelButton>
+          <PixelButton
+            variant={!incomingAudioMuted ? 'primary' : 'beige'}
+            shape="circle"
+            size="sm"
+            onClick={toggleIncomingMute}
+            title={incomingAudioMuted ? '소리 켜기' : '소리 끄기'}
+          >
+            {!incomingAudioMuted ? '🎧' : '❌'}
           </PixelButton>
         </div>
 

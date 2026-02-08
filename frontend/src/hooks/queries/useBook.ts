@@ -6,10 +6,10 @@ import {
 } from '@tanstack/react-query';
 
 import {
+  deleteReadingBook,
   getBookDetail,
   registerCompletedBook,
   registerReadingBook,
-  deleteReadingBook,
   searchBook,
   toggleWishlist,
 } from '@/api/book.api';

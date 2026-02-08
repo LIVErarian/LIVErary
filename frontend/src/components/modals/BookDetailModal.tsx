@@ -84,7 +84,11 @@ export const BookDetailModal = ({
     <div className={styles.modalOverlay} onClick={handleOverlayClick}>
       <div className={styles.modalContainer}>
         {/* 닫기 버튼 */}
-        <button className={styles.closeButton} onClick={onClose} aria-label="닫기">
+        <button
+          className={styles.closeButton}
+          onClick={onClose}
+          aria-label="닫기"
+        >
           ×
         </button>
 

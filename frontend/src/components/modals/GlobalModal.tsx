@@ -23,6 +23,7 @@ import { QuoteModal } from './QuoteModal';
 import { RankingModal } from './RankingModal';
 import { ReadingCompletionModal } from './ReadingCompletionModal';
 import { RoomListModal } from './RoomListModal';
+import { SettingsModal } from './SettingsModal';
 
 export const GlobalModal = () => {
   const { modalStack, closeModal, userProfile, closeUserProfile } =
@@ -255,6 +256,9 @@ export const GlobalModal = () => {
 
             {/* 알림 모달 */}
             {currentModal === 'notification' && <NotificationModal />}
+
+            {/* 환경 설정 모달 */}
+            {currentModal === 'settings' && <SettingsModal />}
 
             {/* 비밀번호 변경 모달 */}
             {currentModal === 'passwordReset' && <PasswordResetModal />}

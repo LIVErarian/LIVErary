@@ -3,6 +3,7 @@ import { create } from 'zustand';
 interface ReadingBook {
   isbn: string;
   title: string;
+  category: string;
 }
 
 interface ReadingState {
