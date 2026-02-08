@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { searchBook } from '@/api/book.api';
 import { categoryApi } from '@/api/category.api';
@@ -9,13 +9,23 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
 
 import type { Book } from '@/types/book.types';
-import type { AccessType, RoomType } from '@/types/room.types';
+import type { AccessType, RECOMMENDED_ROOM, RoomType } from '@/types/room.types';
+import { roomApi } from '@/api/room.api';
+import { useGameStore } from '@/store/useGameStore';
+import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 
 export const useCreateRoomForm = (closeModal: () => void) => {
   const { openModal } = useModalStore();
   const { mutate: createRoom, isPending } = useCreateRoom();
   const user = useAuthStore((state) => state.user);
+  const queryClient = useQueryClient();
+  
+  const setRoomId = useGameStore((state) => state.setRoomId);
+  const setRoomCode = useGameStore((state) => state.setRoomCode);
+  const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
+  const setSpawnPoint = useGameStore((state) => state.setSpawnPoint);
 
+  const setRoom4Room = useBookTalkRoomStore((state) => state.setRoom4Room);
   const initialRoomType: RoomType = user?.role === 'ADMIN' ? 'CONCERT' : 'TALK';
 
   const [title, setTitle] = useState('');
@@ -203,7 +213,64 @@ export const useCreateRoomForm = (closeModal: () => void) => {
         endAt: formattedEnd,
       },
       {
-        onSuccess: () => closeModal(),
+        onSuccess: (response) => {
+          // 성공하자마자 방 생성 모달 닫기
+          closeModal();
+
+          // [수정] 방 생성 성공 시, 아직 입장 전이므로 count: 0으로 설정
+          // MapManager 등에서 room-4 슬롯에 0명으로 표시되도록 함
+          const roomData: RECOMMENDED_ROOM = {
+            roomId: response.roomId,
+            title,
+            roomType,
+            accessType,
+            status: isScheduled ? 'SCHEDULED' : 'LIVE',
+            categoryName: categories.find((c) => c.categoryId === categoryId)?.name || '기타',
+            currentCount: 0, // 입장 전 0명
+            maxUser,
+          };
+          setRoom4Room(roomData);
+
+          // 입장 확인 모달
+          openModal('entrance', {
+            title: '방 생성 완료',
+            message: `"${title}" 방이 생성되었습니다.\n바로 입장하시겠습니까?`,
+            onConfirm: async () => {
+              try {
+                closeModal();
+
+                if (response?.roomId) {
+                  const joinReqBody = accessType === 'PRIVATE' && response.code 
+                      ? { code: response.code } 
+                      : {};
+
+                  // [API] 방 입장 요청
+                  await roomApi.joinRoom(response.roomId, joinReqBody);
+                  setRoom4Room({ ...roomData, currentCount: 1 });
+
+                  // 데이터 즉시 갱신 (방 목록 + 상세 정보)
+                  // 'rooms': 방 목록의 인원수 갱신
+                  // 'room': 입장 후 우측 패널(InfoPanel)의 인원수 갱신
+                  await Promise.all([
+                    queryClient.invalidateQueries({ queryKey: ['rooms'] }),
+                    queryClient.invalidateQueries({ queryKey: ['room', response.roomId] })
+                  ]);
+                  
+                  setRoomId(response.roomId);
+                  setRoomCode(response.code ?? null);
+                  setSpawnPoint({ x: 0.88, y: 0.5 });
+                  setCurrentFloor('conferenceFloor');
+                }
+              } catch (error) {
+                console.error(error);
+                openModal('alert', { 
+                  title: '입장 실패', 
+                  message: '방 입장에 실패했습니다. 잠시 후 다시 시도해주세요.' 
+                });
+              }
+            },
+          });
+        },
       },
     );
   };
