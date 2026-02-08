@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { GameLayout } from '@/components/layout/GameLayout';
 import { useGame } from '@/features/core/useGame';
@@ -6,6 +6,7 @@ import { CATEGORY_MAP } from '@/features/map/mapAssets';
 import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown';
 import { ConferenceRoomInfoPanel } from '@/features/ui/ConferenceRoomInfoPanel';
 import { GameSidebar } from '@/features/ui/GameSidebar';
+import { LoadingScreen } from '@/features/ui/LoadingScreen';
 import { useReadingTimer } from '@/hooks/queries/useReadingTimer';
 import { useRecommendedRooms } from '@/hooks/queries/useRoomQueries';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -13,8 +14,46 @@ import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
+import { preloadAssets } from '@/utils/preloadAssets';
 
 export const GamePage = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+
+  // asset preloading
+  useEffect(() => {
+    const initAssets = async () => {
+      try {
+        // 최소 대기 시간
+        const minTimePromise = new Promise((resolve) =>
+          setTimeout(resolve, 5000),
+        );
+
+        // 실제 자산 로딩
+        const assetLoadPromise = preloadAssets((progress) => {
+          setLoadingProgress(progress);
+        });
+
+        // 두 작업이 모두 끝날 때까지 대기
+        await Promise.all([minTimePromise, assetLoadPromise]);
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error('자산 로딩 실패:', error);
+      }
+    };
+    initAssets();
+  }, []);
+
+  // 로딩 중이면 로딩 화면 보여주기
+  if (isLoading) {
+    return <LoadingScreen progress={loadingProgress} />;
+  }
+
+  return <GameContent />;
+};
+
+const GameContent = () => {
   useReadingTimer(); // 독서 타이머 로직 활성화 (UI 없음)
   const containerRef = useRef<HTMLDivElement>(null);
   const lastFloorRef = useRef<string | null>(null);

@@ -1,6 +1,5 @@
 import {
   Application,
-  Assets,
   extensions,
   ExtensionType,
   LoaderParserPriority,
@@ -10,7 +9,6 @@ import { Container, Graphics, Text } from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 
 import { roomApi } from '@/api/room.api';
-import { manifest } from '@/assets/assetsManifest';
 import { findRecommendedRoomByZone } from '@/features/room/bookTalkRoomMatcher';
 import { isBookTalkZone } from '@/features/room/bookTalkRoomSlots';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -105,10 +103,7 @@ export class GameApp {
     return this._app.canvas;
   }
 
-  public async init(
-    container: HTMLDivElement,
-    onProgress?: (progress: number) => void,
-  ) {
+  public async init(container: HTMLDivElement) {
     if (this._isDestroyed) return;
 
     // 유저 ID 설정
@@ -131,13 +126,6 @@ export class GameApp {
 
     container.innerHTML = '';
     container.appendChild(this._app.canvas);
-
-    try {
-      await this.preload(onProgress);
-    } catch (error) {
-      console.error('❌ Assets Loading Failed:', error);
-      return; // 로딩 실패하면 게임 시작 안 함
-    }
 
     // 필수 요소 생성 (뷰포트, 매니저)
     this.createViewport();
@@ -166,14 +154,6 @@ export class GameApp {
     // 이 줄이 실행되기 전까지는 화면이 멈춰있거나 움직이지 않음
     this.addEventHandlers();
     this._app.ticker.add(this.update, this);
-  }
-
-  private async preload(onProgress?: (progress: number) => void) {
-    await Assets.init({ manifest });
-    const bundleIds = manifest.bundles.map((b) => b.name);
-    await Assets.loadBundle(bundleIds, (progress) => {
-      if (onProgress) onProgress(progress);
-    });
   }
 
   public async changeMap(floor: FloorType) {
