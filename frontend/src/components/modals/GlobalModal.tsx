@@ -269,10 +269,11 @@ export const GlobalModal = () => {
               <BookDetailModal
                 isbn={modalProps.isbn}
                 onClose={() => {
-                  if (modalProps.from === 'bookSearch') {
-                    openModal('bookSearch');
-                  } else if (modalProps.from === 'bookshelf') {
-                    openModal('bookshelf');
+                  if (
+                    modalProps.from === 'bookSearch' ||
+                    modalProps.from === 'bookshelf'
+                  ) {
+                    closeModal();
                   } else {
                     closeModal();
                   }
