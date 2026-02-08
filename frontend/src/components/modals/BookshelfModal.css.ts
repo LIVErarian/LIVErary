@@ -11,6 +11,7 @@ export const modalContainer = style({
   gap: '1rem',
   width: '100%',
   height: '100%',
+  maxHeight: '80vh',
   boxSizing: 'border-box',
   padding: '0.5rem',
 });

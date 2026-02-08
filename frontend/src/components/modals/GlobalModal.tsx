@@ -25,7 +25,7 @@ import { ReadingCompletionModal } from './ReadingCompletionModal';
 import { RoomListModal } from './RoomListModal';
 
 export const GlobalModal = () => {
-  const { modalStack, closeModal, userProfile, closeUserProfile, openModal } =
+  const { modalStack, closeModal, userProfile, closeUserProfile } =
     useModalStore();
   const { mutate: logout } = useLogout();
 
@@ -129,7 +129,7 @@ export const GlobalModal = () => {
               isOpen={currentModal === 'roomList'}
               onClose={closeModal}
               title="방 목록"
-              width="auto"
+              width="800px"
             >
               <RoomListModal />
             </PixelModal>
