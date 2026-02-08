@@ -10,7 +10,7 @@ import { HeartButton } from '@/components/common/HeartButton';
 import { useBookDetail, useToggleWishlist } from '@/hooks/queries/useBook';
 
 import * as styles from './BookDetailModal.css';
-import { closeButton } from '@/components/common/PixelModal.css';
+// import { closeButton } from '@/components/common/PixelModal.css';
 
 interface BookDetailModalProps {
   isbn: string;
@@ -84,7 +84,7 @@ export const BookDetailModal = ({
     <div className={styles.modalOverlay} onClick={handleOverlayClick}>
       <div className={styles.modalContainer}>
         {/* 닫기 버튼 */}
-        <button className={closeButton} onClick={onClose} aria-label="닫기">
+        <button className={styles.closeButton} onClick={onClose} aria-label="닫기">
           ×
         </button>
 

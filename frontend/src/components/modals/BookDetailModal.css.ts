@@ -207,6 +207,29 @@ export const purchaseButton = style({
 /**
  * 로딩/에러 상태
  */
+// 닫기 버튼 (PixelModal.css의 closeButton을 오버라이딩하거나 별도로 사용)
+export const closeButton = style({
+  position: 'absolute',
+  top: '12px',
+  right: '12px',
+  cursor: 'pointer',
+  background: 'none',
+  border: 'none',
+  fontSize: '2rem',
+  color: theme.colors.woodDeep,
+  fontWeight: 'bold',
+  fontFamily: 'inherit',
+  lineHeight: '1',
+  padding: '4px',
+  zIndex: 100,
+  transition: 'transform 0.1s',
+
+  ':hover': {
+    transform: 'scale(1.1)',
+    color: '#ff0000',
+  },
+});
+
 export const centerMessage = style({
   display: 'flex',
   alignItems: 'center',
