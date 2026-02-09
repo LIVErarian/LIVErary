@@ -11,7 +11,7 @@ export const manifest = {
         { alias: 'shirt', src: '/assets/characters/basic_shirts.png' },
         { alias: 'pants', src: '/assets/characters/basic_pants.png' },
         { alias: 'sithair', src: '/assets/characters/basic_sit_hair.png' },
-        { alias: 'sitshirt', src: '/assets/characters/basic_sit_shirt.png' },
+        { alias: 'sitshirts', src: '/assets/characters/basic_sit_shirt.png' },
         { alias: 'sitpants', src: '/assets/characters/basic_sit_pant.png' },
       ],
     },

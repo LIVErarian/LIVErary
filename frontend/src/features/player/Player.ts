@@ -33,7 +33,9 @@ export class Player extends Container {
   private _startY: number;
   private _targetX: number;
   private _targetY: number;
+  private _isMine: boolean;
   private _lerpTime: number = 0;
+  private _sitTimer: number | null = null;
 
   // 현재 상태 저장
   private _currentDirection: Direction = 'DOWN';
@@ -52,6 +54,7 @@ export class Player extends Container {
     nickname: string,
     initialParts: CharacterParts,
     userId: string,
+    isMine: boolean,
     onClickCallback?: (userId: string) => void,
   ) {
     super();
@@ -64,6 +67,7 @@ export class Player extends Container {
     this._startY = y;
     this._targetX = x;
     this._targetY = y;
+    this._isMine = isMine;
 
     // 컨테이너 설정
     this._container = new Container();
@@ -120,7 +124,14 @@ export class Player extends Container {
     this.setAnimation('DOWN', false);
   }
 
-  public destroy(options?: DestroyOptions | boolean) {
+  public override destroy(options?: DestroyOptions | boolean) {
+    // 자동 앉기 타이머가 돌고 있다면 취소 (중요!)
+    if (this._sitTimer !== null) {
+      window.clearTimeout(this._sitTimer);
+      this._sitTimer = null;
+    }
+
+    // 부모(Container)의 destroy 기능 실행
     super.destroy(options);
   }
 
@@ -188,6 +199,38 @@ export class Player extends Container {
     this._currentDirection = direction;
     this._isMoving = isMoving;
 
+    if (this._isSitting) isMoving = false;
+
+    if (isMoving) {
+      // 1. 움직이는 중일 때
+      // - 예약된 앉기 타이머가 있다면 취소
+      if (this._sitTimer !== null) {
+        window.clearTimeout(this._sitTimer);
+        this._sitTimer = null;
+      }
+      // - 무조건 서기 상태로 변경 (나/남 공통)
+      this._isSitting = false;
+      this._isMoving = true;
+    } else {
+      // 2. 멈춰있을 때
+      this._isMoving = false;
+
+      // - "내 캐릭터가 아닐 때만" (!this._isMine) 자동 앉기 로직 실행
+      if (!this._isMine) {
+        // 이미 앉아있지 않고, 타이머도 안 돌고 있다면 -> 타이머 시작
+        if (!this._isSitting && this._sitTimer === null) {
+          this._sitTimer = window.setTimeout(() => {
+            this._isSitting = true;
+            this._sitTimer = null;
+            // 상태가 변했으니 화면 갱신을 위해 자기 자신 호출
+            this.setAnimation(this._currentDirection, false);
+          }, 300); // 0.3초 딜레이
+        }
+      }
+      // (내 캐릭터는 Ctrl 키로 제어하므로 여기 로직을 타지 않음)
+    }
+
+    // 앉아있으면 움직임 플래그 강제 해제 (애니메이션 재생 방지)
     if (this._isSitting) isMoving = false;
 
     (Object.values(this._layers) as CharacterLayer[]).forEach((layer) => {
