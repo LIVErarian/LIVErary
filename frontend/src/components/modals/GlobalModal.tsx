@@ -118,7 +118,9 @@ export const GlobalModal = () => {
             )}
 
             {/* 엘리베이터 */}
-            {currentModal === 'elevator' && <ElevatorModal />}
+            {currentModal === 'elevator' && (
+              <ElevatorModal isOpen={true} onClose={closeModal} />
+            )}
 
             {/* 게시판 관련 */}
             {currentModal === 'boardList' && (
@@ -195,14 +197,7 @@ export const GlobalModal = () => {
 
             {/* 랭킹 */}
             {currentModal === 'rank' && (
-              <PixelModal
-                isOpen={true}
-                onClose={closeModal}
-                title="🏆 랭킹"
-                width="550px"
-              >
-                <RankingModal />
-              </PixelModal>
+              <RankingModal isOpen={true} onClose={closeModal} />
             )}
 
             {/* 로그아웃 */}
@@ -276,13 +271,15 @@ export const GlobalModal = () => {
                 title="친구 목록"
                 width="500px"
               >
-                <FriendListModal />
+                <FriendListModal initialTab={modalProps.initialTab} />
               </PixelModal>
             )}
 
             {/* 초기 설정(Preferences) */}
             {currentModal === 'preferences' && (
               <PreferencesModal
+                isOpen={true}
+                onClose={closeModal}
                 preferences={modalProps.preferences}
                 from={modalProps.from}
               />
@@ -316,11 +313,17 @@ export const GlobalModal = () => {
             )}
 
             {/* 기타 기능 모달 */}
-            {currentModal === 'notification' && <NotificationModal />}
+            {currentModal === 'notification' && (
+              <NotificationModal isOpen={true} onClose={closeModal} />
+            )}
 
-            {currentModal === 'settings' && <SettingsModal />}
+            {currentModal === 'settings' && (
+              <SettingsModal isOpen={true} onClose={closeModal} />
+            )}
 
-            {currentModal === 'passwordReset' && <PasswordResetModal />}
+            {currentModal === 'passwordReset' && (
+              <PasswordResetModal isOpen={true} onClose={closeModal} />
+            )}
 
             {currentModal === 'quote' && (
               <QuoteModal isOpen={true} onClose={closeModal} />
@@ -341,14 +344,7 @@ export const GlobalModal = () => {
             {currentModal === 'readingCompletion' && <ReadingCompletionModal />}
 
             {currentModal === 'attendance' && (
-              <PixelModal
-                isOpen={true}
-                onClose={closeModal}
-                title="출석 체크"
-                width="550px"
-              >
-                <AttendanceModal isOpen={true} onClose={closeModal} />
-              </PixelModal>
+              <AttendanceModal isOpen={true} onClose={closeModal} />
             )}
           </div>
         );

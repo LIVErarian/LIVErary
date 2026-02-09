@@ -1,13 +1,15 @@
 import { PixelModal } from '@/components/common/PixelModal';
 import { useMicVolume } from '@/hooks/common/useMicVolume';
-import { useModalStore } from '@/store/useModalStore';
 import { useSoundStore } from '@/store/useSoundStore';
 
 import * as styles from './SettingsModal.css';
 
-export const SettingsModal = () => {
-  const { closeModal } = useModalStore();
+interface SettingsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
+export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
   // 사운드 스토어에서 모든 상태 가져오기 (마이크 스트림 포함)
   const {
     volume,
@@ -24,8 +26,8 @@ export const SettingsModal = () => {
 
   return (
     <PixelModal
-      isOpen={true}
-      onClose={closeModal}
+      isOpen={isOpen}
+      onClose={onClose}
       title="환경 설정"
       width="420px"
     >

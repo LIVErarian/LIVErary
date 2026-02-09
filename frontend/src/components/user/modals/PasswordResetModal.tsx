@@ -9,8 +9,16 @@ import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './PasswordResetModal.css';
 
-export const PasswordResetModal = () => {
-  const { closeModal, openModal } = useModalStore();
+interface PasswordResetModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const PasswordResetModal = ({
+  isOpen,
+  onClose,
+}: PasswordResetModalProps) => {
+  const { openModal } = useModalStore();
 
   const { mutate: resetPassword, isPending } = useResetPassword();
 
@@ -27,7 +35,7 @@ export const PasswordResetModal = () => {
   const handleClose = () => {
     setForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
     setErrorMessage('');
-    closeModal();
+    onClose();
   };
 
   // 비밀번호 변경 폼 입력값 변경
@@ -73,7 +81,7 @@ export const PasswordResetModal = () => {
   // 비밀번호 변경 모달
   return (
     <PixelModal
-      isOpen={true}
+      isOpen={isOpen}
       onClose={handleClose}
       title="비밀번호 변경"
       width="400px"

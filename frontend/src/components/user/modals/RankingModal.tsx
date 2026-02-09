@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { PixelButton } from '@/components/common/PixelButton';
+import { PixelModal } from '@/components/common/PixelModal';
 import { useRanking } from '@/services/queries/useRanking';
 
 import type { RankingResponse, RankingType } from '@/types/ranking.types';
@@ -51,7 +52,13 @@ const TAB_CONFIG: { type: RankingType; label: string }[] = [
   { type: 'MONTHLY', label: '월간' },
 ];
 
-export const RankingModal = () => {
+export const RankingModal = ({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) => {
   const [activeTab, setActiveTab] = useState<RankingType>('DAILY');
 
   const { data: rankingData, isLoading } = useRanking(activeTab);
@@ -122,25 +129,27 @@ export const RankingModal = () => {
   };
 
   return (
-    <div className={styles.container}>
-      {/* 탭 */}
-      <div className={styles.tabContainer}>
-        {TAB_CONFIG.map(({ type, label }) => (
-          <PixelButton
-            key={type}
-            className={`${styles.tabButton} ${activeTab === type ? styles.activeTab : ''}`}
-            onClick={() => handleTabClick(type)}
-          >
-            {label}
-          </PixelButton>
-        ))}
+    <PixelModal isOpen={isOpen} onClose={onClose} title="🏆 랭킹" width="550px">
+      <div className={styles.container}>
+        {/* 탭 */}
+        <div className={styles.tabContainer}>
+          {TAB_CONFIG.map(({ type, label }) => (
+            <PixelButton
+              key={type}
+              className={`${styles.tabButton} ${activeTab === type ? styles.activeTab : ''}`}
+              onClick={() => handleTabClick(type)}
+            >
+              {label}
+            </PixelButton>
+          ))}
+        </div>
+
+        {/* 내 랭킹 */}
+        {renderMyRanking()}
+
+        {/* 랭킹 리스트 */}
+        <div className={styles.listContainer}>{renderRankingList()}</div>
       </div>
-
-      {/* 내 랭킹 */}
-      {renderMyRanking()}
-
-      {/* 랭킹 리스트 */}
-      <div className={styles.listContainer}>{renderRankingList()}</div>
-    </div>
+    </PixelModal>
   );
 };

@@ -12,8 +12,16 @@ import * as notiStyles from './NotificationModal.css.ts';
 
 const ITEMS_PER_PAGE = 5;
 
-export const NotificationModal = () => {
-  const { closeModal, openModal } = useModalStore();
+interface NotificationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const NotificationModal = ({
+  isOpen,
+  onClose,
+}: NotificationModalProps) => {
+  const { openModal } = useModalStore();
   const { notifications, markAsRead } = useNotification();
   console.log('[NotificationModal] Rendering notifications:', notifications);
 
@@ -43,7 +51,7 @@ export const NotificationModal = () => {
 
     // 친구 요청 알림인 경우 친구 목록 모달(받은 요청 탭) 열기
     if (noti.type === 'FRIEND_REQUEST') {
-      closeModal();
+      onClose();
       openModal('friendList', { initialTab: 'REQUESTS' });
       return;
     }
@@ -53,7 +61,7 @@ export const NotificationModal = () => {
       (noti.type === 'BOARD_REVIEW' || noti.type === 'INQUIRY_REVIEW') &&
       noti.targetId
     ) {
-      closeModal();
+      onClose();
       openModal('boardDetail', { boardId: noti.targetId });
       return;
     }
@@ -92,7 +100,7 @@ export const NotificationModal = () => {
   };
 
   return (
-    <PixelModal title="알림" isOpen={true} onClose={closeModal} width="400px">
+    <PixelModal title="알림" isOpen={isOpen} onClose={onClose} width="400px">
       <div className={notiStyles.container}>
         {notifications.length === 0 ? (
           <div className={notiStyles.emptyState}>

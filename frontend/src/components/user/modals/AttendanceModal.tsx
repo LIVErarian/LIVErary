@@ -6,6 +6,7 @@ import { attendanceApi } from '@/api/attendanceApi';
 import { rankingApi } from '@/api/ranking.api';
 import { recordReadingTime } from '@/api/reading.api';
 import { PixelButton } from '@/components/common/PixelButton';
+import { PixelModal } from '@/components/common/PixelModal';
 import { useModalStore } from '@/store/useModalStore';
 import { useReadingStore } from '@/store/useReadingStore';
 
@@ -23,7 +24,7 @@ interface AttendanceModalProps {
  * - 일일 출석 체크 기능
  * - 월별 출석 캘린더 표시
  */
-export function AttendanceModal({ isOpen }: AttendanceModalProps) {
+export function AttendanceModal({ isOpen, onClose }: AttendanceModalProps) {
   const queryClient = useQueryClient();
   const { openModal } = useModalStore();
   const consumeMinutes = useReadingStore((state) => state.consumeMinutes);
@@ -277,9 +278,7 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
     );
   };
 
-  if (!isOpen) return null;
-
-  return (
+  const content = (
     <div className={styles.container}>
       <div className={styles.header}>
         {consecutiveDays > 0 && (
@@ -339,5 +338,16 @@ export function AttendanceModal({ isOpen }: AttendanceModalProps) {
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <PixelModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="출석 체크"
+      width="550px"
+    >
+      {content}
+    </PixelModal>
   );
 }
