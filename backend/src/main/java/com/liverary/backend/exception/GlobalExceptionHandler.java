@@ -5,6 +5,8 @@ import com.liverary.backend.common.dto.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -32,6 +34,38 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(errorCode.getStatus())
                 .body(BaseResponse.error(errorCode.getCode(), errorCode.getMessage()));
+    }
+
+    /**
+     * DTO의 유효성 검사(@Valid) 실패 시 발생하는 예외 처리
+     *
+     * @AssertTrue 등 검증 어노테이션에 설정된 메시지 추출하여 반환
+     * @return 400 에러 상태와 DTO에 정의한 메시지가 담긴 ResponseEntity
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<BaseResponse<?>> handleValidationException(MethodArgumentNotValidException e) {
+        // 발생한 에러들 중 첫 번째 에러의 기본 메시지 가져옴
+        String errorMessage = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+
+        log.error("🚨 ValidationException: {}", errorMessage);
+
+        return ResponseEntity
+                .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
+                .body(BaseResponse.error(ErrorCode.INVALID_INPUT_VALUE.getCode(), errorMessage));
+    }
+
+    /**
+     * JSON 파싱 에러나 Enum 타입 불일치 등 메시지를 읽을 수 없을 때 발생하는 예외 처리
+     *
+     * @return 400 에러 상태와 공통 메시지가 담긴 ResponseEntity
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<BaseResponse<?>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.error("🚨 HttpMessageNotReadableException: {}", e.getMessage());
+
+        return ResponseEntity
+                .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
+                .body(BaseResponse.error(ErrorCode.INVALID_INPUT_VALUE.getCode(), "입력 데이터 형식이 잘못되었습니다."));
     }
 
     /**
