@@ -57,6 +57,7 @@ export class GameApp {
   private _playerManager!: PlayerManager;
 
   private _keys: { [key: string]: boolean } = {};
+  private _isCtrlPressed: boolean = false;
   private _lookingDirection: Direction = 'DOWN';
   private _myId: string = '';
   private _isPrevMoving: boolean = false;
@@ -292,24 +293,55 @@ export class GameApp {
       return;
     }
 
+    const isCtrlDown =
+      this._keys['Control'] ||
+      this._keys['ControlLeft'] ||
+      this._keys['ControlRight'];
+
+    if (isCtrlDown) {
+      if (!this._isCtrlPressed) {
+        this._isCtrlPressed = true;
+        me.toggleSit();
+      }
+    } else {
+      this._isCtrlPressed = false;
+    }
+
     let dx = 0;
     let dy = 0;
 
-    if (this._keys['ArrowUp'] || this._keys['w'] || this._keys['W']) {
-      dy -= 1;
-      this._lookingDirection = 'UP';
+    // 방향키 입력 확인
+    const isUp = this._keys['ArrowUp'] || this._keys['w'] || this._keys['W'];
+    const isDown =
+      this._keys['ArrowDown'] || this._keys['s'] || this._keys['S'];
+    const isLeft =
+      this._keys['ArrowLeft'] || this._keys['a'] || this._keys['A'];
+    const isRight =
+      this._keys['ArrowRight'] || this._keys['d'] || this._keys['D'];
+
+    // 앉아있는데 움직이면 바로 일어나기
+    if (me.isSitting && (isUp || isDown || isLeft || isRight)) {
+      me.toggleSit(); // 즉시 기립
     }
-    if (this._keys['ArrowDown'] || this._keys['s'] || this._keys['S']) {
-      dy += 1;
-      this._lookingDirection = 'DOWN';
-    }
-    if (this._keys['ArrowLeft'] || this._keys['a'] || this._keys['A']) {
-      dx -= 1;
-      this._lookingDirection = 'LEFT';
-    }
-    if (this._keys['ArrowRight'] || this._keys['d'] || this._keys['D']) {
-      dx += 1;
-      this._lookingDirection = 'RIGHT';
+
+    if (!me.isSitting) {
+      // (방금 일어났으면 false 상태임)
+      if (isUp) {
+        dy -= 1;
+        this._lookingDirection = 'UP';
+      }
+      if (isDown) {
+        dy += 1;
+        this._lookingDirection = 'DOWN';
+      }
+      if (isLeft) {
+        dx -= 1;
+        this._lookingDirection = 'LEFT';
+      }
+      if (isRight) {
+        dx += 1;
+        this._lookingDirection = 'RIGHT';
+      }
     }
 
     const isMoving = dx !== 0 || dy !== 0;

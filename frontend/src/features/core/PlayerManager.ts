@@ -35,10 +35,26 @@ export class PlayerManager {
 
     // 내 캐릭터 파츠 구성
     const initialParts: CharacterParts = {
-      body: { sheetTexture: Assets.get('mbody'), tint: 0xffffff },
-      pants: { sheetTexture: Assets.get('pants'), tint: 0x010101 },
-      shirt: { sheetTexture: Assets.get('shirt'), tint: 0x1d592d },
-      hair: { sheetTexture: Assets.get('longhair'), tint: 0xffffff },
+      body: {
+        sheetTexture: Assets.get('mbody'),
+        sitSheetTexture: Assets.get('sit'),
+        tint: 0xffffff,
+      },
+      pants: {
+        sheetTexture: Assets.get('pants'),
+        sitSheetTexture: Assets.get('sitpants'),
+        tint: 0x010101,
+      },
+      shirt: {
+        sheetTexture: Assets.get('shirt'),
+        sitSheetTexture: Assets.get('sitshirt'),
+        tint: 0x1d592d,
+      },
+      hair: {
+        sheetTexture: Assets.get('longhair'),
+        sitSheetTexture: Assets.get('sithair'),
+        tint: 0xffffff,
+      },
     };
 
     this.me = new Player(
@@ -90,10 +106,25 @@ export class PlayerManager {
         // 타 유저 기본 파츠 (서버 연동 전 임시)
         // TODO: 유저 정보에 파츠 정보 등록 및 가져오기 필요
         const initialParts: CharacterParts = {
-          body: { sheetTexture: Assets.get('mbody') },
-          pants: { sheetTexture: Assets.get('pants'), tint: 0x010101 },
-          shirt: { sheetTexture: Assets.get('shirt'), tint: 0x1d592d },
-          hair: { sheetTexture: Assets.get('longhair'), tint: 0xffffff },
+          body: {
+            sheetTexture: Assets.get('mbody'),
+            sitSheetTexture: Assets.get('sit'),
+          },
+          pants: {
+            sheetTexture: Assets.get('pants'),
+            sitSheetTexture: Assets.get('sitpants'),
+            tint: 0x010101,
+          },
+          shirt: {
+            sheetTexture: Assets.get('shirt'),
+            sitSheetTexture: Assets.get('sitshirts'),
+            tint: 0x1d592d,
+          },
+          hair: {
+            sheetTexture: Assets.get('longhair'),
+            sitSheetTexture: Assets.get('sithair'),
+            tint: 0xffffff,
+          },
         };
 
         // 클릭 콜백: 타인 프로필 열기
@@ -131,7 +162,7 @@ export class PlayerManager {
 
   public setMyLook(part: PartType, color: number) {
     if (this.me) {
-      this.me.setPart(part, undefined, color);
+      this.me.setPart(part, undefined, undefined, color);
     }
   }
 

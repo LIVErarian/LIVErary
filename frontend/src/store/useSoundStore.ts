@@ -25,7 +25,7 @@ export const useSoundStore = create<SoundState>((set, get) => ({
   bgm: null,
   currentKey: null,
   currentPlaylist: [],
-  volume: 0.5,
+  volume: 0.3,
   isBgmMuted: false,
   incomingAudioMuted: false,
   playId: 0,
