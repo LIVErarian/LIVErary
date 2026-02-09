@@ -6,7 +6,7 @@ import logoImage from '@/assets/images/logo.png';
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelContainer } from '@/components/common/PixelContainer';
 import { PixelInput } from '@/components/common/PixelInput';
-import { useLogin } from '@/hooks/queries/useAuth';
+import { useLogin } from '@/services/queries/useAuth';
 import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './LoginPage.css';

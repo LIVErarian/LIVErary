@@ -3,12 +3,12 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelInput } from '@/components/common/PixelInput';
-import { roomKeys } from '@/hooks/queries/useRoomQueries';
+import { roomKeys } from '@/services/queries/useRoomQueries';
 import {
   useLiveRoomList,
   useMyScheduledRooms,
   useReservationRoomList,
-} from '@/hooks/queries/useRoomQueries';
+} from '@/services/queries/useRoomQueries';
 import { useModalStore } from '@/store/useModalStore';
 import { LiveRoomDetailModal } from './LiveRoomDetailModal';
 import { ScheduledRoomDetailModal } from './ScheduledRoomDetailModal';

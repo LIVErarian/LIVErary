@@ -1,4 +1,4 @@
-import { useRoomDetail } from '@/hooks/queries/useRoomQueries';
+import { useRoomDetail } from '@/services/queries/useRoomQueries';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 

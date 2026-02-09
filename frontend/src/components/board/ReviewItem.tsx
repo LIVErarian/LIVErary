@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useDeleteReview, useUpdateReview } from '@/hooks/queries/useReview';
+import { useDeleteReview, useUpdateReview } from '@/services/queries/useReview';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
 

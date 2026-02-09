@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { PixelButton } from '@/components/common/PixelButton';
-import { useCreateReview } from '@/hooks/queries/useReview';
+import { useCreateReview } from '@/services/queries/useReview';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
 

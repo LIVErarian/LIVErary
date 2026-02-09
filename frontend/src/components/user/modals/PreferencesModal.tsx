@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelModal } from '@/components/common/PixelModal';
-import { useCategoryList } from '@/hooks/queries/useCategory';
-import { useSavePreferences } from '@/hooks/queries/useUserPreferences';
+import { useCategoryList } from '@/services/queries/useCategory';
+import { useSavePreferences } from '@/services/queries/useUserPreferences';
 import { useAuthStore } from '@/store/useAuthStore';
 import { type ModalType, useModalStore } from '@/store/useModalStore';
 

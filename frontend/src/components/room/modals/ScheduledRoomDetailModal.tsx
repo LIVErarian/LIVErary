@@ -4,11 +4,11 @@ import {
   useApplyScheduledRoom,
   useDeleteApplyScheduledRoom,
   useDeleteScheduledRoom,
-} from '@/hooks/mutations/useRoomMutations';
+} from '@/services/mutations/useRoomMutations';
 import {
   useMyScheduledRooms,
   useRoomDetail,
-} from '@/hooks/queries/useRoomQueries';
+} from '@/services/queries/useRoomQueries';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
 

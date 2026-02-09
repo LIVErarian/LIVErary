@@ -1,4 +1,4 @@
-import { useQuote } from '@/hooks/queries/useQuote';
+import { useQuote } from '@/services/queries/useQuote';
 import { ModalFooter } from '../common/ModalFooter';
 import { PixelButton } from '../common/PixelButton';
 import { PixelModal } from '../common/PixelModal';

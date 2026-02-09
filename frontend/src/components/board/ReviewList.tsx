@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useGetReviewList } from '@/hooks/queries/useReview';
+import { useGetReviewList } from '@/services/queries/useReview';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ReviewForm } from './ReviewForm';
 import { ReviewItem } from './ReviewItem';

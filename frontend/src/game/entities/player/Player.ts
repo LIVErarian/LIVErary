@@ -7,7 +7,7 @@ import {
   Texture,
 } from 'pixi.js';
 
-import { parseSpriteSheet } from '@/utils/pixiUtils';
+import { parseSpriteSheet } from '@/game/utils/pixiUtils';
 
 import type {
   CharacterLayer,

@@ -1,6 +1,6 @@
-import { ModalFooter } from '../common/ModalFooter';
-import { PixelButton } from '../common/PixelButton';
-import { PixelModal } from '../common/PixelModal';
+import { ModalFooter } from './ModalFooter';
+import { PixelButton } from './PixelButton';
+import { PixelModal } from './PixelModal';
 
 import { theme } from '@/styles/theme.css';
 

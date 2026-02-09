@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { useCategoryList } from '@/hooks/queries/useCategory';
-import { useRecommendedRooms } from '@/hooks/queries/useRoomQueries';
+import { useCategoryList } from '@/services/queries/useCategory';
+import { useRecommendedRooms } from '@/services/queries/useRoomQueries';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
@@ -82,7 +82,12 @@ export const BookTalkCategoryDropdown = () => {
     }
     // 정상 상태에서는 최신 추천 결과를 그대로 저장한다.
     setRecommendedRooms(recommendedRooms);
-  }, [canRequest, recommendedRooms, setRecommendedRooms, clearRecommendedRooms]);
+  }, [
+    canRequest,
+    recommendedRooms,
+    setRecommendedRooms,
+    clearRecommendedRooms,
+  ]);
 
   if (!isActive) return null;
 

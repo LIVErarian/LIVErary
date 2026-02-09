@@ -5,8 +5,8 @@ import { AxiosError } from 'axios';
 import {
   useApplyScheduledRoom,
   useDeleteApplyScheduledRoom,
-} from '@/hooks/mutations/useRoomMutations';
-import { useDeleteBoard, useGetBoardDetail } from '@/hooks/queries/useBoard';
+} from '@/services/mutations/useRoomMutations';
+import { useDeleteBoard, useGetBoardDetail } from '@/services/queries/useBoard';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
 import { PixelButton } from '../common/PixelButton';

@@ -4,7 +4,7 @@ import { AxiosError } from 'axios';
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelInput } from '@/components/common/PixelInput';
 import { PixelModal } from '@/components/common/PixelModal';
-import { useResetPassword } from '@/hooks/queries/useAuth';
+import { useResetPassword } from '@/services/queries/useAuth';
 import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './PasswordResetModal.css';
