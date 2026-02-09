@@ -95,7 +95,12 @@ export const ScheduledRoomDetailModal = ({
 
   const formatTime = (isoString?: string) => {
     if (!isoString) return '-';
-    return new Date(isoString).toLocaleString('ko-KR', {
+    // 백엔드에서 Z 없이 주는 경우(UTC 기준)를 대비해 Z가 없으면 붙여서 처리
+    const validIsoString = isoString.endsWith('Z')
+      ? isoString
+      : `${isoString}Z`;
+
+    return new Date(validIsoString).toLocaleString('ko-KR', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

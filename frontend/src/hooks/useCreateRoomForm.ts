@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
+import { getLocalDateString } from '@/utils/date';
 
 import type { Book } from '@/types/book.types';
 import type {
@@ -86,7 +87,7 @@ export const useCreateRoomForm = (closeModal: () => void) => {
 
     if (checked) {
       setAccessType('PRIVATE');
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       if (!startDate) setStartDate(today);
       if (!endDate) setEndDate(today);
     } else {

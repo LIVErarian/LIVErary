@@ -336,7 +336,6 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
           modalType: 'rank',
         },
       },
-      // TODO: 집중 모드 모달 구현 시 modalType을 'concentration'로 변경
       {
         id: 'reading-concentration',
         label: '집중 모드 시작',
@@ -347,8 +346,7 @@ export const MAP_DATA: Record<FloorType, MapConfig> = {
         trigger: 'interact',
         action: {
           type: 'openModal',
-          // modalType: 'concentration',
-          modalType: 'userProfile',
+          modalType: 'concentration',
         },
       },
     ],

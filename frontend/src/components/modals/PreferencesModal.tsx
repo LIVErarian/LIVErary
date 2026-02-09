@@ -5,12 +5,13 @@ import { PixelModal } from '@/components/common/PixelModal';
 import { useCategoryList } from '@/hooks/queries/useCategory';
 import { useSavePreferences } from '@/hooks/queries/useUserPreferences';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useModalStore } from '@/store/useModalStore';
+import { type ModalType, useModalStore } from '@/store/useModalStore';
 
 import * as styles from './PreferencesModal.css';
 
 interface PreferencesModalProps {
   preferences?: string[];
+  from?: ModalType;
 }
 
 export const PreferencesModal = ({
