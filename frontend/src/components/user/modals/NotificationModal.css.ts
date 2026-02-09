@@ -6,7 +6,7 @@ export const container = style({
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
-  height: '500px', // 고정 높이 설정
+  height: '600px', // 고정 높이 설정
   gap: '12px',
   padding: '4px',
 });
@@ -34,7 +34,7 @@ export const item = style({
   alignItems: 'center',
   gap: '12px',
   padding: '12px',
-  backgroundColor: '#f5f5f5', // Light gray standard
+  backgroundColor: '#f5f5f5',
   borderRadius: '8px',
   cursor: 'pointer',
   position: 'relative',
@@ -49,9 +49,9 @@ export const item = style({
 });
 
 export const unread = style({
-  backgroundColor: '#fff8e1', // Light yellow for unread
+  backgroundColor: '#fff8e1',
   borderColor: vars.colors.red,
-  opacity: 1, // 안 읽은 알림은 항상 잘 보여야 함
+  opacity: 1,
 });
 
 export const icon = style({
@@ -81,5 +81,5 @@ export const dot = style({
   width: '8px',
   height: '8px',
   borderRadius: '50%',
-  backgroundColor: vars.colors.red, // Red/Orange for attention
+  backgroundColor: vars.colors.red,
 });

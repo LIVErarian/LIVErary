@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { AladinSource } from '@/components/common/AladinSource';
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelInput } from '@/components/common/PixelInput';
 import { PixelPagination } from '@/components/common/PixelPagination';
@@ -247,6 +248,9 @@ export const BookSearchModal = ({
 
       {/* 페이지네이션 */}
       {renderPagination()}
+
+      {/* 알라딘 출처 표기 */}
+      <AladinSource />
     </div>
   );
 };

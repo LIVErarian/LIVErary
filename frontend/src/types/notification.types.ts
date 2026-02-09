@@ -2,7 +2,7 @@ export interface Notification {
   notificationId: string;
   content: string;
   type: 'FRIEND_REQUEST' | 'INQUIRY_REVIEW' | 'BOARD_REVIEW';
-  isRead: boolean;
+  read: boolean;
   createdAt: string;
   targetId?: string;
 }

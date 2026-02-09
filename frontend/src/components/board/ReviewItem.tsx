@@ -22,10 +22,10 @@ export const ReviewItem = ({ review, boardId }: ReviewItemProps) => {
   const [editContent, setEditContent] = useState(review.content);
 
   const { mutate: updateReview } = useUpdateReview(boardId);
-  const { mutate: deleteReview } = useDeleteReview();
+  const { mutate: deleteReview } = useDeleteReview(boardId);
   const { openModal } = useModalStore();
 
-  const isMyReview = user?.userId === review.user?.userId;
+  const isMyReview = user?.nickname === review.nickname;
 
   const handleUpdate = () => {
     if (!editContent.trim()) return;

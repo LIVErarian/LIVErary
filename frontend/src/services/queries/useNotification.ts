@@ -14,9 +14,13 @@ export const useNotification = () => {
   // 1. 초기 알림 목록 로드 (일반 API 요청)
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['notifications'],
-    queryFn: fetchNotifications,
+    queryFn: async () => {
+      const data = await fetchNotifications();
+      console.log('[useNotification] Query data fetched:', data);
+      return data;
+    },
     enabled: !!token,
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지 (읽음 처리 후 바로 사라짐 방지)
+    staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 
@@ -97,17 +101,23 @@ export const useNotification = () => {
   }, [token, queryClient]);
 
   // 읽지 않은 알림 개수 계산
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // 3. 알림 읽음 처리 Mutation
   const { mutate: markAsRead } = useMutation({
     mutationFn: (notificationId: string) => readNotification(notificationId),
     onSuccess: (_, notificationId) => {
+      console.log('[useNotification] markAsRead success for:', notificationId);
       queryClient.setQueryData<Notification[]>(['notifications'], (old) => {
         if (!old) return [];
-        return old.map((n) =>
-          n.notificationId === notificationId ? { ...n, isRead: true } : n,
+        const newList = old.map((n) =>
+          n.notificationId === notificationId ? { ...n, read: true } : n,
         );
+        console.log(
+          '[useNotification] Cache updated after markAsRead:',
+          newList,
+        );
+        return newList;
       });
     },
   });
