@@ -63,7 +63,8 @@ public class MoveService {
                 request.getY(),
                 request.getDirection(),
                 serverTs,
-                request.getIsMoving()
+                request.getIsMoving(),
+                request.getIsSitting()
         ));
     }
 
@@ -118,6 +119,7 @@ public class MoveService {
                 request.getY(),
                 request.getDirection(),
                 System.currentTimeMillis(),
+                false,
                 false
         ));
     }
