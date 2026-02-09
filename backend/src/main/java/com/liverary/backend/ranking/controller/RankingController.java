@@ -12,6 +12,9 @@ import org.springframework.security.core.userdetails.UserDetails; // Security �
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.List;
+import com.liverary.backend.user.domain.ReadingLog;
+import com.liverary.backend.user.repository.ReadingLogRepository;
 
 @RestController
 @RequestMapping("/api/ranking")
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class RankingController {
 
     private final RankingService rankingService;
+    private final ReadingLogRepository readingLogRepository;
 
     private UUID getUserId(UserDetails user) {
         if (user == null) {
@@ -41,5 +45,19 @@ public class RankingController {
 
         UUID userId = getUserId(user);
         return BaseResponse.success(rankingService.getRanking(userId, type));
+    }
+
+    /**
+     * [ADMIN] 랭킹 데이터 복구 (Redis 초기화 시 사용)
+     */
+    @PostMapping("/restore")
+    public BaseResponse<Void> restoreRankings() {
+        // 모든 ReadingLog 조회
+        List<ReadingLog> logs = readingLogRepository.findAll();
+        
+        // Redis 복구 수행
+        rankingService.restoreRankings(logs);
+        
+        return BaseResponse.success();
     }
 }

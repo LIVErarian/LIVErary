@@ -5,6 +5,7 @@ import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.ranking.domain.RankingType;
 import com.liverary.backend.ranking.dto.response.RankingListResponse;
 import com.liverary.backend.ranking.dto.response.RankingResponse;
+import com.liverary.backend.user.domain.ReadingLog;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,23 +39,49 @@ public class RankingService {
      */
     @Transactional
     public void updateRanking(UUID userId, long minutes) {
+        updateRanking(userId, minutes, LocalDate.now());
+    }
+
+    /**
+     * 특정 날짜 기준으로 랭킹 업데이트 (복구용)
+     * 
+     * @param userId    독서시간 기록할 사용자 UUID
+     * @param minutes   추가할 독서 시간
+     * @param date      랭킹 업데이트할 날짜
+     */
+    @Transactional
+    public void updateRanking(UUID userId, long minutes, LocalDate date) {
         String userIdStr = userId.toString();
-        LocalDate now = LocalDate.now();
 
         // 일간 (3일 보관)
-        String dailyKey = getDailyKey(now);
+        String dailyKey = getDailyKey(date);
         redisTemplate.opsForZSet().incrementScore(dailyKey, userIdStr, minutes);
         redisTemplate.expire(dailyKey, 3, TimeUnit.DAYS);
 
         // 주간 (14일 보관)
-        String weeklyKey = getWeeklyKey(now);
+        String weeklyKey = getWeeklyKey(date);
         redisTemplate.opsForZSet().incrementScore(weeklyKey, userIdStr, minutes);
         redisTemplate.expire(weeklyKey, 14, TimeUnit.DAYS);
 
         // 월간 (40일 보관)
-        String monthlyKey = getMonthlyKey(now);
+        String monthlyKey = getMonthlyKey(date);
         redisTemplate.opsForZSet().incrementScore(monthlyKey, userIdStr, minutes);
         redisTemplate.expire(monthlyKey, 40, TimeUnit.DAYS);
+    }
+
+    /**
+     * DB의 ReadingLog를 기반으로 Redis 랭킹 데이터 복구
+     * 
+     * @param logs  복구할 ReadingLog 목록
+     */
+    @Transactional
+    public void restoreRankings(List<ReadingLog> logs) {
+        for (ReadingLog log : logs) {
+            UUID userId = log.getUser().getUserId();
+            long minutes = log.getMinutes();
+            LocalDate date = log.getCreatedAt().toLocalDate();
+            updateRanking(userId, minutes, date);
+        }
     }
 
     /**
