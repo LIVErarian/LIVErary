@@ -461,12 +461,7 @@ public class RoomService {
         if (room.getStatus() == RoomStatus.LIVE && room.getCurrentCount() <= 0 && room.getRoomType() == RoomType.TALK) {
             room.updateStatus(RoomStatus.FINISHED);
         }
-
-        // 참여 기록을 통해 독서 시간(분) 계산
-        long minutes = java.time.Duration.between(history.getJoinedAt(), history.getLeftAt()).toMinutes();
-
-        // 방을 나가는 순간 유저의 TotalReadingTime 업데이트
-        userService.updateTotalReadingTime(userId, minutes);
+        
     }
 
     /**
