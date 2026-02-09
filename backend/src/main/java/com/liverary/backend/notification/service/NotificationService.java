@@ -31,12 +31,12 @@ public class NotificationService {
     private final UserRepository userRepository;
 
     // 타임 아웃 시간 설정
-    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
+    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60; // 60분
 
     /**
      * subscribe: 클라이언트가 로그인 후 SSE 연결을 요청할 때 호출
-     * @param userId
-     * @return
+     * @param userId 연결 요청 유저 ID
+     * @return sseEmitter 객체
      */
     public SseEmitter subscribe(UUID userId){
         // 1. 구분자 생성 (userId + 현재시간)
@@ -60,36 +60,47 @@ public class NotificationService {
 
     /**
      * 알림 생성 및 실시간 전송
-     * @param user
-     * @param type
-     * @param content
-     * @param url
+     * @param user 알림을 받을 유저 (receiver)
+     * @param type 알림 타입 (FRIEND_REQUEST / BOARD_REVIEW / INQUIRY_REVIEW)
+     * @param content 알림 내용
      */
     @Transactional
     public void send(User user, NotificationType type, String content) {
+        this.send(user, type, content, null);
+    }
+
+    @Transactional
+    public void send(User user, NotificationType type, String content, UUID targetId) {
         // 1. DB에 알림 저장 (로그 남기기용)
         Notification notification = notificationRepository.save(
                 Notification.builder()
                 .user(user)
                 .type(type)
                 .content(content)
+                .targetId(targetId)
                 .isRead(false)
                 .build()
         );
+
+        notificationRepository.flush();
 
         // 2. 현재 로그인한 유저의 모든 연결(emitter)을 찾음
         String userId = user.getUserId().toString();
         Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByUserId(userId);
 
         // 3. 각 연결에 실시간 알림 전송
+        NotificationResponse response = NotificationResponse.from(notification); // entity -> DTO
         sseEmitters.forEach((key, emitter)->{
-            sendToClient(emitter, key, notification);
+            sendToClient(emitter, key, response);
         });
 
     }
 
     /**
      * 실제 SSE 데이터 전송
+     * @param emitter SSE 연결 객체
+     * @param id Emitter ID
+     * @param data 전송할 데이터 (NotificationResponse)
      */
     private void sendToClient(SseEmitter emitter, String id, Object data){
         try{
@@ -99,7 +110,8 @@ public class NotificationService {
                     .name("sse")
                     .data(data));
         }
-        catch(IOException e){
+        catch(Exception e){
+            // 전송 실패 시 리소스 정리
             emitterRepository.deleteById(id);
             log.error("SSE connection error (emitterId={})", id, e);
         }

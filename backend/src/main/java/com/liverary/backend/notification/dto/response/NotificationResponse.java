@@ -21,6 +21,7 @@ public class NotificationResponse {
     private NotificationType type;
     private boolean isRead;
     private LocalDateTime createdAt;
+    private UUID targetId;
 
     public static NotificationResponse from(Notification notification) {
         return NotificationResponse.builder()
@@ -29,6 +30,7 @@ public class NotificationResponse {
                 .type(notification.getType())
                 .isRead(notification.isRead())
                 .createdAt(notification.getCreatedAt())
+                .targetId(notification.getTargetId())
                 .build();
     }
 

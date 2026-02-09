@@ -27,7 +27,7 @@ public class Notification {
 
     // 알림 유형
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private NotificationType type;
 
     // 알림 내용
@@ -42,14 +42,18 @@ public class Notification {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // 알림 대상 타겟 ID (게시글 / 룸 ID) - 프론트에서 모달 처리에 사용
+    @Column(name = "target_id", nullable = true)
+    private UUID targetId;
+
     @Builder
-    public Notification(User user, NotificationType type, String content, boolean isRead){
+    public Notification(User user, NotificationType type, String content, boolean isRead, UUID targetId){
         this.user = user;
         this.type = type;
         this.content = content;
         this.isRead = isRead;
+        this.targetId = targetId;
         this.createdAt = LocalDateTime.now();
-
     }
 
     // 알림 읽음 처리 메서드

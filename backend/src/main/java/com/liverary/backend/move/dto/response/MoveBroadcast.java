@@ -44,8 +44,12 @@ public class MoveBroadcast {
     @NotNull
     private Boolean isMoving;
 
+    // 사용자가 앉아 있는지
+    @NotNull
+    private Boolean isSitting;
+
     public static MoveBroadcast of(UUID userId, String nickname, UUID floorId, Double x, Double y, Direction direction,
-                                   Long serverTs, Boolean isMoving) {
+                                   Long serverTs, Boolean isMoving, Boolean isSitting) {
         return MoveBroadcast.builder()
                 .userId(userId)
                 .nickname(nickname)
@@ -55,6 +59,7 @@ public class MoveBroadcast {
                 .direction(direction)
                 .serverTs(serverTs)
                 .isMoving(isMoving)
+                .isSitting(isSitting)
                 .build();
     }
 }

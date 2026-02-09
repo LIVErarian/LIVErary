@@ -1,5 +1,6 @@
 package com.liverary.backend.user.service;
 
+import com.liverary.backend.attendance.service.AttendanceService;
 import com.liverary.backend.bookHistory.domain.BookStatus;
 import com.liverary.backend.bookHistory.repository.BookHistoryRepository;
 import com.liverary.backend.category.domain.Category;
@@ -9,6 +10,7 @@ import com.liverary.backend.exception.ErrorCode;
 import com.liverary.backend.friend.domain.Friend;
 import com.liverary.backend.friend.repository.FriendRepository;
 import com.liverary.backend.ranking.service.RankingService;
+import com.liverary.backend.user.domain.ReadingLog;
 import com.liverary.backend.user.domain.User;
 import com.liverary.backend.user.domain.UserPreference;
 import com.liverary.backend.user.dto.request.UserUpdateRequest;
@@ -16,7 +18,6 @@ import com.liverary.backend.user.dto.response.BookSummary;
 import com.liverary.backend.user.dto.response.OtherProfileResponse;
 import com.liverary.backend.user.dto.response.ProfileResponse;
 import com.liverary.backend.user.dto.response.UserPreferenceResponse;
-import com.liverary.backend.user.domain.ReadingLog;
 import com.liverary.backend.user.repository.ReadingLogRepository;
 import com.liverary.backend.user.repository.UserPreferenceRepository;
 import com.liverary.backend.user.repository.UserRepository;
@@ -44,11 +45,12 @@ public class UserService {
     private final FriendRepository friendRepository;
     private final RankingService rankingService;
     private final ReadingLogRepository readingLogRepository;
+    private final AttendanceService attendanceService;
 
     /**
      * 사용자의 프로필 정보와 상태별 도서 활동 내역 조회
      *
-     * @param userId   사용자 UUID
+     * @param userId 사용자 UUID
      * @return 프로필 정보 및 상태별 도서 목록이 포함된 ProfileResponse
      * @throws BaseException 유저를 찾을 수 없는 경우 발생 (USER_NOT_FOUND)
      */
@@ -72,8 +74,8 @@ public class UserService {
     /**
      * 사용자가 요청한 특정 상태의 도서 목록만 페이징하여 조회
      *
-     * @param userId 사용자 UUID
-     * @param status 특정 상태 (WISH, READING, COMPLETED)
+     * @param userId   사용자 UUID
+     * @param status   특정 상태 (WISH, READING, COMPLETED)
      * @param pageable 페이징 정보
      */
     public Page<BookSummary> getUserBooksByStatus(UUID userId, BookStatus status, Pageable pageable) {
@@ -90,7 +92,7 @@ public class UserService {
     /**
      * 사용자 정보 수정
      *
-     * @param userId      사용자 UUID
+     * @param userId  사용자 UUID
      * @param request 수정할 사용자 정보 객체
      */
     @Transactional
@@ -107,8 +109,8 @@ public class UserService {
     /**
      * 사용자 TotalReadingTime 수정
      *
-     * @param userId    사용자 UUID
-     * @param minutes   RoomService로 부터 받아온 유저가 책 읽은 시간
+     * @param userId  사용자 UUID
+     * @param minutes RoomService로 부터 받아온 유저가 책 읽은 시간
      */
     @Transactional
     public void updateTotalReadingTime(UUID userId, Long minutes) {
@@ -125,17 +127,24 @@ public class UserService {
                 .user(user)
                 .minutes(minutes)
                 .build();
-                
         readingLogRepository.save(log);
 
         // Redis 랭킹 추가
         rankingService.updateRanking(userId, minutes);
+
+        // 오늘의 총 독서 시간 조회 (Redis에서)
+        Long todayTotalMinutes = rankingService.getTodayReadingTime(userId);
+
+        // 30분 달성 시 독서 출석 자동 기록
+        if (todayTotalMinutes >= 30) {
+            attendanceService.checkReadingAttendance(userId);
+        }
     }
 
     /**
      * 사용자의 선호 카테고리를 최초 등록합니다.
      *
-     * @param userId 사용자 UUID
+     * @param userId      사용자 UUID
      * @param categoryIds 등록할 카테고리 ID 목록
      */
     @Transactional
@@ -160,7 +169,7 @@ public class UserService {
     /**
      * 사용자의 선호 카테고리 정보를 수정합니다.
      *
-     * @param userId 사용자 UUID
+     * @param userId      사용자 UUID
      * @param categoryIds 수정할 카테고리 ID 목록
      */
     @Transactional
@@ -199,7 +208,7 @@ public class UserService {
      * 카테고리 정보를 데이터베이스에 저장하는 공통 로직
      * 모든 카테고리 ID가 유효한지 검증한 후 저장 작업 수행
      *
-     * @param user 사용자 엔티티
+     * @param user        사용자 엔티티
      * @param categoryIds 저장할 카테고리 ID 목록
      * @throws BaseException 카테고리 ID가 유효하지 않을 경우 발생 (CATEGORY_NOT_FOUND)
      */
@@ -247,8 +256,8 @@ public class UserService {
     /**
      * 타인 프로필 정보 조회
      *
-     * @param userId    사용자 UUID
-     * @param otherId   프로필 조회할 타인 UUID
+     * @param userId  사용자 UUID
+     * @param otherId 프로필 조회할 타인 UUID
      * @return 타인 프로필 정보가 담긴 응답 객체
      */
     public OtherProfileResponse getOtherProfile(UUID userId, UUID otherId) {
@@ -265,18 +274,23 @@ public class UserService {
         long reading = bookHistoryRepository.countByUserAndStatus(otherUser, BookStatus.READING);
         long completed = bookHistoryRepository.countByUserAndStatus(otherUser, BookStatus.COMPLETED);
 
+        // 선호 카테고리 조회
+        List<String> preferences = userPreferenceRepository.findByUser(otherUser).stream()
+                .map(preference -> preference.getCategory().getName())
+                .toList();
+
         // 본인 캐릭터를 클릭한 경우
         if (userId.equals(otherId)) {
-            return OtherProfileResponse.of(otherUser, wish, reading, completed, "MYSELF");
+            return OtherProfileResponse.of(otherUser, wish, reading, completed, preferences, "MYSELF");
         }
 
         // 양방향 관계 조회
         Friend relation = friendRepository.findRelation(user, otherUser).orElse(null);
-        
+
         // 관계 상태 결정
         String status = (relation != null) ? relation.getRelationStatus(userId) : "NONE";
 
-        return OtherProfileResponse.of(otherUser, wish, reading, completed, status);
+        return OtherProfileResponse.of(otherUser, wish, reading, completed, preferences, status);
     }
 
 }
