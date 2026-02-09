@@ -151,6 +151,49 @@ public class RoomService {
     }
 
     /**
+     * 진행 중인 방(Live Room)의 정보를 수정합니다.
+     *
+     * <p>
+     * 제목, 정원, 책/카테고리를 수정할 수 있습니다.
+     * 수정 후 변경된 상세 정보를 반환합니다.
+     * </p>
+     * @param roomId 수정할 방의 ID
+     * @param userId 요청한 유저(방장) ID
+     * @param request 수정할 정보
+     */
+    @Transactional
+    public RoomDetailResponse updateRoom(UUID roomId, UUID userId, UpdateRoomRequest request) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ROOM_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+        Book book = null;
+        Category category = null;
+
+        // ISBN이 있으면 책 정보 조회 (1순위)
+        if (request.getIsbn() != null) {
+            book = bookService.getOrSaveBook(request.getIsbn());
+        }
+        // ISBN 없이 카테고리 ID만 있으면 카테고리 조회 (2순위)
+        else if (request.getCategoryId() != null) {
+            category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new BaseException(ErrorCode.CATEGORY_NOT_FOUND));
+        }
+
+        // 엔티티 업데이트
+        room.updateRoom(
+                request.getTitle(),
+                request.getMaxUser(),
+                book,
+                category
+        );
+
+        return RoomDetailResponse.from(room);
+    }
+
+    /**
      * 방의 예약 정보(제목, 시간, 정원, 책/카테고리 등)를 수정합니다.
      *
      * <p>
