@@ -134,6 +134,28 @@ public class Room {
     }
 
     /**
+     * 라이브 방 정보를 수정하기 위한 비즈니스 로직입니다.
+     * 시간 정보는 변경하지 않습니다.
+     */
+    public void updateRoom(String title, Integer maxUser, Book book, Category category) {
+        if (title != null) this.title = title;
+        if (maxUser != null) this.maxUser = maxUser;
+
+        // 책이 입력된 경우: 책 정보와 해당 책의 카테고리로 변경
+        if (book != null) {
+            this.book = book;
+            this.category = book.getCategory();
+        }
+        // 책 없이 카테고리만 입력된 경우: 책 정보 제거 후 카테고리 변경
+        else if (category != null) {
+            this.category = category;
+            this.book = null;
+        }
+
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
      * 예약 정보를 수정하기 위한 비즈니스 로직입니다.
      */
     public void updateReservation(String title, Integer maxUser, LocalDateTime startAt, LocalDateTime endAt, Book book, Category category) {

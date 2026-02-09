@@ -63,6 +63,26 @@ public class RoomController {
     }
 
     /**
+     * 라이브 방 정보를 수정합니다.
+     *
+     * @param roomId 수정할 방의 고유 식별자 (URL Path)
+     * @param user Spring Security를 통해 인증된 사용자 정보
+     * @param request 수정할 제목, 정원, ISBN, 카테고리 정보
+     * @return 공통 응답 객체
+     */
+    @PatchMapping("/{roomId}")
+    public BaseResponse<RoomDetailResponse> updateRoom(
+            @PathVariable UUID roomId,
+            @AuthenticationPrincipal UserDetails user,
+            @RequestBody UpdateRoomRequest request
+    ) {
+        UUID userId = getUserId(user);
+        RoomDetailResponse response = roomService.updateRoom(roomId, userId, request);
+
+        return BaseResponse.success(response);
+    }
+
+    /**
      * 특정 방에 참여(입장) 요청을 처리합니다.
      *
      * <p>인증된 사용자의 정보를 기반으로 방 참여를 수행합니다.
