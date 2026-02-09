@@ -35,4 +35,8 @@ public class MoveRequest {
     // 사용자가 움직이고 있는지
     @NotNull
     private Boolean isMoving;
+
+    // 사용자가 앉아 있는지
+    @NotNull
+    private Boolean isSitting;
 }
