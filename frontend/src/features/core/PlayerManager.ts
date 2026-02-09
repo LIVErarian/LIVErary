@@ -47,7 +47,7 @@ export class PlayerManager {
       },
       shirt: {
         sheetTexture: Assets.get('shirt'),
-        sitSheetTexture: Assets.get('sitshirt'),
+        sitSheetTexture: Assets.get('sitshirts'),
         tint: 0x1d592d,
       },
       hair: {
@@ -63,6 +63,7 @@ export class PlayerManager {
       displayName,
       initialParts,
       this._myId,
+      true,
       handleMyClick,
     );
 
@@ -139,6 +140,7 @@ export class PlayerManager {
           data.nickname,
           initialParts,
           data.userId,
+          false,
           handleOtherClick,
         );
         this._viewport.addChild(otherPlayer);
