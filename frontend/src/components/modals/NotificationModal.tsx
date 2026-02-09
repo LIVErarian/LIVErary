@@ -15,6 +15,7 @@ const ITEMS_PER_PAGE = 5;
 export const NotificationModal = () => {
   const { closeModal, openModal } = useModalStore();
   const { notifications, markAsRead } = useNotification();
+  console.log('[NotificationModal] Rendering notifications:', notifications);
 
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -36,7 +37,7 @@ export const NotificationModal = () => {
 
   const handleNotificationClick = (noti: (typeof notifications)[0]) => {
     // 읽지 않은 알림이면 읽음 처리
-    if (!noti.isRead) {
+    if (!noti.read) {
       markAsRead(noti.notificationId);
     }
 
@@ -100,26 +101,34 @@ export const NotificationModal = () => {
         ) : (
           <>
             <ul className={notiStyles.list}>
-              {currentNotifications.map((noti) => (
-                <li
-                  key={noti.notificationId}
-                  className={clsx(
-                    notiStyles.item,
-                    notiStyles.item,
-                    !noti.isRead && notiStyles.unread,
-                  )}
-                  onClick={() => handleNotificationClick(noti)}
-                >
-                  <div className={notiStyles.icon}>{getIcon(noti.type)}</div>
-                  <div className={notiStyles.content}>
-                    <p className={notiStyles.message}>{noti.content}</p>
-                    <span className={notiStyles.date}>
-                      {formatDate(noti.createdAt)}
-                    </span>
-                  </div>
-                  {!noti.isRead && <div className={notiStyles.dot} />}
-                </li>
-              ))}
+              {currentNotifications.map((noti) => {
+                console.log(
+                  '[NotificationModal] Rendering item:',
+                  noti.notificationId,
+                  'read:',
+                  noti.read,
+                  typeof noti.read,
+                );
+                return (
+                  <li
+                    key={noti.notificationId}
+                    className={clsx(
+                      notiStyles.item,
+                      !noti.read && notiStyles.unread,
+                    )}
+                    onClick={() => handleNotificationClick(noti)}
+                  >
+                    <div className={notiStyles.icon}>{getIcon(noti.type)}</div>
+                    <div className={notiStyles.content}>
+                      <p className={notiStyles.message}>{noti.content}</p>
+                      <span className={notiStyles.date}>
+                        {formatDate(noti.createdAt)}
+                      </span>
+                    </div>
+                    {!noti.read && <div className={notiStyles.dot} />}
+                  </li>
+                );
+              })}
             </ul>
             <PixelPagination
               currentPage={currentPage}

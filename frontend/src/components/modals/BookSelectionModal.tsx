@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { updateBookStatus } from '@/api/book.api';
+import { AladinSource } from '@/components/common/AladinSource';
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelModal } from '@/components/common/PixelModal';
 import { useRegisterReadingBook } from '@/hooks/queries/useBook';
@@ -247,6 +248,7 @@ export const BookSelectionModal = ({
                 {isChanging ? '변경 완료' : '등록 완료'}
               </PixelButton>
             </div>
+            <AladinSource />
           </>
         ) : (
           <div className={searchViewContainer}>

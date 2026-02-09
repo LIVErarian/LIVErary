@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import clsx from 'clsx';
 
+import { AladinSource } from '@/components/common/AladinSource';
 import { PixelButton } from '@/components/common/PixelButton';
 import {
   useDeleteReadingBook,
@@ -375,6 +376,9 @@ export const BookshelfModal = () => {
 
       {/* 페이지네이션 */}
       {renderPagination()}
+
+      {/* 알라딘 출처 표기 */}
+      <AladinSource />
     </div>
   );
 };
