@@ -18,6 +18,7 @@ import { ElevatorModal } from '../game/modals/ElevatorModal';
 import { SettingsModal } from '../game/modals/SettingsModal';
 import { CreateRoomModal } from '../room/modals/CreateRoomModal';
 import { RoomListModal } from '../room/modals/RoomListModal';
+import { UpdateLiveRoomModal } from '../room/modals/UpdateLiveRoomModal';
 import { FriendListModal } from '../social/modals/FriendListModal';
 import { AttendanceModal } from '../user/modals/AttendanceModal';
 import { NotificationModal } from '../user/modals/NotificationModal';
@@ -190,6 +191,18 @@ export const GlobalModal = () => {
                 width="500px"
               >
                 <CreateRoomModal />
+              </PixelModal>
+            )}
+
+            {/* 방 정보 수정 */}
+            {currentModal === 'updateRoom' && (
+              <PixelModal
+                isOpen={true}
+                onClose={closeModal}
+                title="방 정보 수정"
+                width="500px"
+              >
+                <UpdateLiveRoomModal />
               </PixelModal>
             )}
 

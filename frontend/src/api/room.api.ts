@@ -27,6 +27,9 @@ import type {
   LeaveRoomResponse,
   MyScheduledRoomResponse,
   MyScheduledRoomResponseData,
+  PatchLiveRoomRequest,
+  PatchLiveRoomResponse,
+  PatchLiveRoomResponseData,
   PatchScheduledRoomRequest,
   PatchScheduledRoomResponse,
   PatchScheduledRoomResponseData,
@@ -120,6 +123,21 @@ export const roomApi = {
   ): Promise<CreateRoomResponseData> => {
     const { data } = await api.post<CreateRoomResponse>('/room', req);
     if (!data.data) throw new Error('방 생성에 실패했습니다.');
+    return data.data;
+  },
+
+  /**
+   * [PATCH] 라이브 방 정보 수정
+   */
+  updateRoom: async (
+    req: PatchLiveRoomRequest,
+  ): Promise<PatchLiveRoomResponseData> => {
+    const { roomId, ...body } = req;
+    const { data } = await api.patch<PatchLiveRoomResponse>(
+      `/room/${roomId}`,
+      body,
+    );
+    if (!data.data) throw new Error('방 정보 수정에 실패했습니다.');
     return data.data;
   },
 
