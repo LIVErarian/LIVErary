@@ -5,10 +5,14 @@ export const manifest = {
       assets: [
         { alias: 'mbody', src: '/assets/characters/basic_male.png' },
         { alias: 'fbody', src: '/assets/characters/basic_female.png' },
+        { alias: 'sit', src: '/assets/characters/basic_sit.png' },
         { alias: 'longhair', src: '/assets/characters/long_hair.png' },
         { alias: 'shorthair', src: '/assets/characters/short_hair.png' },
         { alias: 'shirt', src: '/assets/characters/basic_shirts.png' },
         { alias: 'pants', src: '/assets/characters/basic_pants.png' },
+        { alias: 'sithair', src: '/assets/characters/basic_sit_hair.png' },
+        { alias: 'sitshirt', src: '/assets/characters/basic_sit_shirt.png' },
+        { alias: 'sitpants', src: '/assets/characters/basic_sit_pant.png' },
       ],
     },
     {
