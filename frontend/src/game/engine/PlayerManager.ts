@@ -2,7 +2,7 @@ import { Assets } from 'pixi.js';
 import { Viewport } from 'pixi-viewport';
 
 import { useModalStore } from '@/store/useModalStore';
-import { Player } from '../player/Player';
+import { Player } from '../entities/player/Player';
 
 import type { CharacterParts, PartType } from '@/types/character.types';
 import type { MoveBroadcast } from '@/types/socket.types';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useGetBoardList } from '@/hooks/queries/useBoard';
+import { useGetBoardList } from '@/services/queries/useBoard';
 import { useModalStore } from '@/store/useModalStore';
 import { PixelButton } from '../common/PixelButton';
 import { PixelInput } from '../common/PixelInput';

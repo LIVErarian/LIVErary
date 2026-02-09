@@ -16,10 +16,10 @@ import {
   useRegisterCompletedBook,
   useRegisterReadingBook,
   useToggleWishlist,
-} from '@/hooks/queries/useBook';
-import { useUserBooks } from '@/hooks/queries/useUser';
+} from '@/services/queries/useBook';
+import { useUserBooks } from '@/services/queries/useUser';
 import { useModalStore } from '@/store/useModalStore';
-import { BookCard } from '../book/BookCard';
+import { BookCard } from './BookCard';
 import { BookSearchModal } from './BookSearchModal';
 
 import type { Book } from '@/types/book.types';

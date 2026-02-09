@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import { useCreateBoard } from '@/hooks/queries/useBoard';
-import { useMyScheduledRooms } from '@/hooks/queries/useRoomQueries';
+import { useCreateBoard } from '@/services/queries/useBoard';
+import { useMyScheduledRooms } from '@/services/queries/useRoomQueries';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
 import { PixelButton } from '../common/PixelButton';

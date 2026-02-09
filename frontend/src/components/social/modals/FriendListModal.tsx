@@ -10,7 +10,7 @@ import {
   useRejectFriend,
   useSearchUser,
   useUnblockUser,
-} from '@/hooks/queries/useFriend';
+} from '@/services/queries/useFriend';
 import { useModalStore } from '@/store/useModalStore';
 
 import type { FriendListTabType } from '@/types/friend.types';

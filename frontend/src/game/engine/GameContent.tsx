@@ -1,18 +1,17 @@
 import { useEffect, useRef } from 'react';
 
 import { GameLayout } from '@/components/layout/GameLayout';
-import { useGame } from '@/features/core/useGame';
 import {
   CATEGORY_MAP,
   FAIRY_PLAYLIST,
   MAP_DATA,
   SF_PLAYLIST,
-} from '@/features/map/mapAssets';
-import { BookTalkCategoryDropdown } from '@/features/ui/BookTalkCategoryDropdown';
-import { ConferenceRoomInfoPanel } from '@/features/ui/ConferenceRoomInfoPanel';
-import { GameSidebar } from '@/features/ui/GameSidebar';
-import { useReadingTimer } from '@/hooks/queries/useReadingTimer';
-import { useRecommendedRooms } from '@/hooks/queries/useRoomQueries';
+} from '@/game/map/mapAssets';
+import { BookTalkCategoryDropdown } from '@/game/ui/BookTalkCategoryDropdown';
+import { ConferenceRoomInfoPanel } from '@/game/ui/ConferenceRoomInfoPanel';
+import { GameSidebar } from '@/game/ui/GameSidebar';
+import { useReadingTimer } from '@/services/queries/useReadingTimer';
+import { useRecommendedRooms } from '@/services/queries/useRoomQueries';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
@@ -20,6 +19,7 @@ import { useModalStore } from '@/store/useModalStore';
 import { useReadingStore } from '@/store/useReadingStore';
 import { useSocketStore } from '@/store/useSocketStore';
 import { useSoundStore } from '@/store/useSoundStore';
+import { useGame } from './useGame';
 
 export const GameContent = () => {
   useReadingTimer(); // 독서 타이머 로직 활성화 (UI 없음)

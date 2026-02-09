@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { PixelButton } from '@/components/common/PixelButton';
-import { useRanking } from '@/hooks/queries/useRanking';
+import { useRanking } from '@/services/queries/useRanking';
 
 import type { RankingResponse, RankingType } from '@/types/ranking.types';
 

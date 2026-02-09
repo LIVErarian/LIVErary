@@ -5,7 +5,7 @@ import { searchBook } from '@/api/book.api';
 import { categoryApi } from '@/api/category.api';
 import { roomApi } from '@/api/room.api';
 import { useDebounce } from '@/hooks/common/useDebounce';
-import { useCreateRoom } from '@/hooks/mutations/useRoomMutations';
+import { useCreateRoom } from '@/services/mutations/useRoomMutations';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';

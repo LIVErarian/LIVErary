@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
-import { ModalFooter } from '../common/ModalFooter';
-import { PixelButton } from '../common/PixelButton';
-import { PixelModal } from '../common/PixelModal';
+import { ModalFooter } from './ModalFooter';
+import { PixelButton } from './PixelButton';
+import { PixelModal } from './PixelModal';
 
 interface ConfirmModalProps {
   isOpen: boolean;

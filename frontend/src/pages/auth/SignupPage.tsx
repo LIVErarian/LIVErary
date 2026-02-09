@@ -9,7 +9,7 @@ import {
   useCheckEmail,
   useSignup,
   useVerifyEmail,
-} from '@/hooks/queries/useAuth';
+} from '@/services/queries/useAuth';
 import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './SignupPage.css';

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { GameContent } from '@/features/core/GameContent';
-import { LoadingScreen } from '@/features/ui/LoadingScreen';
-import { preloadAssets } from '@/utils/preloadAssets';
+import { GameContent } from '@/game/engine/GameContent';
+import { LoadingScreen } from '@/game/ui/LoadingScreen';
+import { preloadAssets } from '@/game/utils/preloadAssets';
 
 export const GamePage = () => {
   const [isLoading, setIsLoading] = useState(true);

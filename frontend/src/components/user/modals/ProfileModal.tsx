@@ -6,15 +6,15 @@ import {
   useRejectFriend,
   useRequestFriend,
   useUnblockUser,
-} from '@/hooks/queries/useFriend';
+} from '@/services/queries/useFriend';
 import {
   useGetMyProfile,
   useOtherProfile,
   useUpdateProfile,
-} from '@/hooks/queries/useUser';
+} from '@/services/queries/useUser';
 import { useModalStore } from '@/store/useModalStore';
-import { BaseModal } from '../common/BaseModal';
-import { PixelButton } from '../common/PixelButton';
+import { BaseModal } from '../../common/BaseModal';
+import { PixelButton } from '../../common/PixelButton';
 
 import type { FriendRelationStatus } from '@/types/friend.types';
 

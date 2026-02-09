@@ -3,7 +3,7 @@ import clsx from 'clsx';
 
 import { PixelModal } from '@/components/common/PixelModal';
 import { PixelPagination } from '@/components/common/PixelPagination'; // Import
-import { useNotification } from '@/hooks/queries/useNotification';
+import { useNotification } from '@/services/queries/useNotification.ts';
 import { useModalStore } from '@/store/useModalStore';
 
 import type { Notification } from '@/types/notification.types';

@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelInput } from '@/components/common/PixelInput';
 import { PixelPagination } from '@/components/common/PixelPagination';
-import { useSearchBook, useToggleWishlist } from '@/hooks/queries/useBook';
+import { useSearchBook, useToggleWishlist } from '@/services/queries/useBook';
 import { type ModalType, useModalStore } from '@/store/useModalStore';
-import { BookCard } from '../book/BookCard';
+import { BookCard } from './BookCard';
 
 import type { Book } from '@/types/book.types';
 

@@ -2,9 +2,9 @@ import { useState } from 'react';
 
 import { roomApi } from '@/api/room.api';
 import { PixelButton } from '@/components/common/PixelButton';
-import { useNotification } from '@/hooks/queries/useNotification';
-import { RemoteAudio } from '@/hooks/webrtc/RemoteAudio';
-import { useWebRTC } from '@/hooks/webrtc/useWebRTC';
+import { RemoteAudio } from '@/features/webrtc/RemoteAudio';
+import { useWebRTC } from '@/features/webrtc/useWebRTC';
+import { useNotification } from '@/services/queries/useNotification';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';

@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 
 import { HeartButton } from '@/components/common/HeartButton';
-import { useBookDetail, useToggleWishlist } from '@/hooks/queries/useBook';
+import { useBookDetail, useToggleWishlist } from '@/services/queries/useBook';
 
 import * as styles from './BookDetailModal.css';
 // import { closeButton } from '@/components/common/PixelModal.css';

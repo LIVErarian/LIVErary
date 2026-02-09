@@ -5,7 +5,7 @@ import bgImage from '@/assets/images/signup_bg.png';
 import { PixelButton } from '@/components/common/PixelButton';
 import { PixelContainer } from '@/components/common/PixelContainer';
 import { PixelInput } from '@/components/common/PixelInput';
-import { useFindPassword } from '@/hooks/queries/useAuth';
+import { useFindPassword } from '@/services/queries/useAuth';
 import { useModalStore } from '@/store/useModalStore';
 
 import * as styles from './ForgotPasswordPage.css';
