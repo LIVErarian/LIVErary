@@ -25,6 +25,7 @@ export const ReviewItem = ({ review, boardId }: ReviewItemProps) => {
   const { mutate: deleteReview } = useDeleteReview(boardId);
   const { openModal } = useModalStore();
 
+  // 유저가 작성한 리뷰인지 체크
   const isMyReview = user?.nickname === review.nickname;
 
   const handleUpdate = () => {
