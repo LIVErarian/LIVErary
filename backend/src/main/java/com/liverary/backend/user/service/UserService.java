@@ -16,6 +16,8 @@ import com.liverary.backend.user.dto.response.BookSummary;
 import com.liverary.backend.user.dto.response.OtherProfileResponse;
 import com.liverary.backend.user.dto.response.ProfileResponse;
 import com.liverary.backend.user.dto.response.UserPreferenceResponse;
+import com.liverary.backend.user.domain.ReadingLog;
+import com.liverary.backend.user.repository.ReadingLogRepository;
 import com.liverary.backend.user.repository.UserPreferenceRepository;
 import com.liverary.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,7 @@ public class UserService {
     private final CategoryRepository categoryRepository;
     private final FriendRepository friendRepository;
     private final RankingService rankingService;
+    private final ReadingLogRepository readingLogRepository;
 
     /**
      * 사용자의 프로필 정보와 상태별 도서 활동 내역 조회
@@ -116,6 +119,14 @@ public class UserService {
 
         // TotalReadingTime 업데이트
         user.updateTotalReadingTime(minutes);
+
+        // ReadingLog 저장 (개별 기록)
+        ReadingLog log = ReadingLog.builder()
+                .user(user)
+                .minutes(minutes)
+                .build();
+                
+        readingLogRepository.save(log);
 
         // Redis 랭킹 추가
         rankingService.updateRanking(userId, minutes);
