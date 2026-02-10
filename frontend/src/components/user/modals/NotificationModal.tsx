@@ -15,11 +15,13 @@ const ITEMS_PER_PAGE = 5;
 interface NotificationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  zIndex?: number;
 }
 
 export const NotificationModal = ({
   isOpen,
   onClose,
+  zIndex,
 }: NotificationModalProps) => {
   const { openModal } = useModalStore();
   const { notifications, markAsRead } = useNotification();
@@ -100,7 +102,13 @@ export const NotificationModal = ({
   };
 
   return (
-    <PixelModal title="알림" isOpen={isOpen} onClose={onClose} width="400px">
+    <PixelModal
+      title="알림"
+      isOpen={isOpen}
+      onClose={onClose}
+      width="400px"
+      zIndex={zIndex}
+    >
       <div className={notiStyles.container}>
         {notifications.length === 0 ? (
           <div className={notiStyles.emptyState}>

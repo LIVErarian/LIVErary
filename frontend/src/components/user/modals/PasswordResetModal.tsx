@@ -12,11 +12,13 @@ import * as styles from './PasswordResetModal.css';
 interface PasswordResetModalProps {
   isOpen: boolean;
   onClose: () => void;
+  zIndex?: number;
 }
 
 export const PasswordResetModal = ({
   isOpen,
   onClose,
+  zIndex,
 }: PasswordResetModalProps) => {
   const { openModal } = useModalStore();
 
@@ -85,6 +87,7 @@ export const PasswordResetModal = ({
       onClose={handleClose}
       title="비밀번호 변경"
       width="400px"
+      zIndex={zIndex}
     >
       {/* 비밀번호 변경 모달 */}
       <div className={styles.container}>

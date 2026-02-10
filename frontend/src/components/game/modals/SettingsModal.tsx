@@ -7,9 +7,14 @@ import * as styles from './SettingsModal.css';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  zIndex?: number;
 }
 
-export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
+export const SettingsModal = ({
+  isOpen,
+  onClose,
+  zIndex,
+}: SettingsModalProps) => {
   // 사운드 스토어에서 모든 상태 가져오기 (마이크 스트림 포함)
   const {
     volume,
@@ -30,6 +35,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
       onClose={onClose}
       title="환경 설정"
       width="420px"
+      zIndex={zIndex}
     >
       <div className={styles.container}>
         {/* 배경음악 (BGM) 설정 */}

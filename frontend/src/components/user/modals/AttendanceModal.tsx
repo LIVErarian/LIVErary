@@ -17,6 +17,7 @@ import * as styles from './AttendanceModal.css';
 interface AttendanceModalProps {
   isOpen: boolean;
   onClose: () => void;
+  zIndex?: number;
 }
 
 /**
@@ -24,7 +25,11 @@ interface AttendanceModalProps {
  * - 일일 출석 체크 기능
  * - 월별 출석 캘린더 표시
  */
-export function AttendanceModal({ isOpen, onClose }: AttendanceModalProps) {
+export function AttendanceModal({
+  isOpen,
+  onClose,
+  zIndex,
+}: AttendanceModalProps) {
   const queryClient = useQueryClient();
   const { openModal } = useModalStore();
   const consumeMinutes = useReadingStore((state) => state.consumeMinutes);
@@ -346,6 +351,7 @@ export function AttendanceModal({ isOpen, onClose }: AttendanceModalProps) {
       onClose={onClose}
       title="출석 체크"
       width="550px"
+      zIndex={zIndex}
     >
       {content}
     </PixelModal>

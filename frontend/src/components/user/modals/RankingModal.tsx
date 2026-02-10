@@ -55,9 +55,11 @@ const TAB_CONFIG: { type: RankingType; label: string }[] = [
 export const RankingModal = ({
   isOpen,
   onClose,
+  zIndex,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  zIndex?: number;
 }) => {
   const [activeTab, setActiveTab] = useState<RankingType>('DAILY');
 
@@ -129,7 +131,13 @@ export const RankingModal = ({
   };
 
   return (
-    <PixelModal isOpen={isOpen} onClose={onClose} title="🏆 랭킹" width="550px">
+    <PixelModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="🏆 랭킹"
+      width="550px"
+      zIndex={zIndex}
+    >
       <div className={styles.container}>
         {/* 탭 */}
         <div className={styles.tabContainer}>

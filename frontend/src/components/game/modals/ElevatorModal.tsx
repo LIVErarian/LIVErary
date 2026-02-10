@@ -10,9 +10,14 @@ import type { FloorType } from '@/types/map.types';
 interface ElevatorModalProps {
   isOpen: boolean;
   onClose: () => void;
+  zIndex?: number;
 }
 
-export const ElevatorModal = ({ isOpen, onClose }: ElevatorModalProps) => {
+export const ElevatorModal = ({
+  isOpen,
+  onClose,
+  zIndex,
+}: ElevatorModalProps) => {
   const { openModal } = useModalStore();
   const { currentFloor, roomId, setCurrentFloor, setRoomId } = useGameStore();
   const sendLeaveRoom = useSocketStore((state) => state.sendLeaveRoom);
@@ -49,6 +54,7 @@ export const ElevatorModal = ({ isOpen, onClose }: ElevatorModalProps) => {
       onClose={onClose}
       title="🛗 엘리베이터"
       width="320px"
+      zIndex={zIndex}
     >
       <div
         style={{

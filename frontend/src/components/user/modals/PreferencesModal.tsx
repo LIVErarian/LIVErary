@@ -14,12 +14,14 @@ interface PreferencesModalProps {
   from?: ModalType;
   isOpen: boolean;
   onClose: () => void;
+  zIndex?: number;
 }
 
 export const PreferencesModal = ({
   preferences: initialPreferences,
   isOpen,
   onClose,
+  zIndex,
 }: PreferencesModalProps) => {
   const userId = useAuthStore((state) => state.user?.userId);
 
@@ -113,6 +115,7 @@ export const PreferencesModal = ({
       onClose={handleClose}
       title="선호 카테고리"
       width="520px"
+      zIndex={zIndex}
     >
       <div className={styles.container}>
         <p className={styles.description}>

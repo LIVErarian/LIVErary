@@ -17,6 +17,7 @@ interface BookDetailModalProps {
   onClose: () => void;
   initialIsWished?: boolean; // 검색 결과에서 전달받는 초기 좋아요 상태
   isOpen?: boolean;
+  zIndex?: number;
 }
 
 export const BookDetailModal = ({
@@ -24,6 +25,7 @@ export const BookDetailModal = ({
   onClose,
   initialIsWished,
   isOpen = true,
+  zIndex,
 }: BookDetailModalProps) => {
   const { data: book, isLoading, isError } = useBookDetail(isbn);
   const toggleWishlistMutation = useToggleWishlist();
@@ -64,7 +66,7 @@ export const BookDetailModal = ({
   };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose}>
+    <BaseModal isOpen={isOpen} onClose={onClose} zIndex={zIndex}>
       <div className={styles.modalContainer}>
         {/* 닫기 버튼 */}
         <button

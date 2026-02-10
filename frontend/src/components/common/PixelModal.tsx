@@ -12,6 +12,7 @@ interface PixelModalProps {
   children: ReactNode;
   width?: string;
   footer?: ReactNode;
+  zIndex?: number;
 }
 
 export const PixelModal = ({
@@ -21,9 +22,10 @@ export const PixelModal = ({
   children,
   width = '400px',
   footer,
+  zIndex,
 }: PixelModalProps) => {
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose}>
+    <BaseModal isOpen={isOpen} onClose={onClose} zIndex={zIndex}>
       <div style={{ position: 'relative' }}>
         <PixelContainer variant="board" header={title} style={{ width }}>
           <button className={styles.closeButton} onClick={onClose}>
