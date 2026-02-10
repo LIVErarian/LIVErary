@@ -52,26 +52,11 @@ export const ConferenceRoomInfoPanel = () => {
 
   return (
     <section className={styles.panel} aria-label="회의실 방 정보 패널">
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: '8px',
-        }}
-      >
+      <div className={styles.titleContainer}>
         <h3 className={styles.title}>{roomDetail.title}</h3>
         <button
           onClick={handleEditRoom}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '1.1rem',
-            padding: '0 4px',
-            marginLeft: '8px',
-            color: '#555',
-          }}
+          className={styles.editButton}
           aria-label="방 정보 수정"
           title="방 설정"
         >

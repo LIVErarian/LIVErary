@@ -123,7 +123,7 @@ export const CreateRoomModal = () => {
 
   // 예약 설정 UI
   const scheduledUI = isScheduled && (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div className={styles.scheduledContainer}>
       <div>
         <span className={styles.helpText}>시작 시간</span>
         <div className={styles.dateTimeRow}>
@@ -176,14 +176,7 @@ export const CreateRoomModal = () => {
 
   return (
     <div className={styles.container}>
-      <div
-        style={{
-          textAlign: 'center',
-          marginBottom: '16px',
-          fontSize: '1.2rem',
-          fontWeight: 'bold',
-        }}
-      >
+      <div className={styles.modalTitle}>
         {isEditMode ? '방 정보 수정' : '방 만들기'}
       </div>
 
@@ -203,13 +196,13 @@ export const CreateRoomModal = () => {
         </div>
 
         {/* 책 선택 */}
-        <div style={{ position: 'relative', zIndex: 20 }}>
+        <div className={styles.bookSelectionContainer}>
           <label className={styles.label}>책 선택 (선택)</label>
           {bookSelectionUI}
         </div>
 
         {/* 카테고리 */}
-        <div style={{ position: 'relative', zIndex: 10 }}>
+        <div className={styles.categoryContainer}>
           <label className={styles.label}>
             카테고리<span className={styles.requiredMark}>*</span>
           </label>

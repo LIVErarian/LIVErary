@@ -12,6 +12,12 @@ export const container = style({
   boxSizing: 'border-box',
 });
 
+// 로딩 메시지
+export const loadingMessage = style({
+  textAlign: 'center',
+  padding: '2rem',
+});
+
 // 핵심: 방 정보 카드 (책 표지 + 정보)
 export const roomInfoCard = style({
   display: 'flex',
@@ -93,4 +99,10 @@ export const footer = style({
   justifyContent: 'flex-end',
   gap: '10px',
   marginTop: '0.5rem',
+});
+
+// 방장 버튼 그룹
+export const hostButtonGroup = style({
+  display: 'flex',
+  gap: '10px',
 });

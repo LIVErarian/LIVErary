@@ -16,6 +16,13 @@ export const panel = style({
   pointerEvents: 'auto',
 });
 
+export const titleContainer = style({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  marginBottom: '8px',
+});
+
 export const title = style({
   color: theme.colors.beigeLight,
   fontSize: '1rem',
@@ -23,6 +30,16 @@ export const title = style({
   margin: 0,
   marginBottom: '10px',
   wordBreak: 'break-word',
+});
+
+export const editButton = style({
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  fontSize: '1.1rem',
+  padding: '0 4px',
+  marginLeft: '8px',
+  color: '#555',
 });
 
 export const chipRow = style({

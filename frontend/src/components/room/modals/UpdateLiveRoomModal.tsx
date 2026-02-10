@@ -262,13 +262,13 @@ export const UpdateLiveRoomModal = () => {
         </div>
 
         {/* 책 선택 */}
-        <div style={{ position: 'relative', zIndex: 20 }}>
+        <div className={styles.bookSelectionContainer}>
           <label className={styles.label}>책 선택 (선택)</label>
           {bookSelectionUI}
         </div>
 
         {/* 카테고리 */}
-        <div style={{ position: 'relative', zIndex: 10 }}>
+        <div className={styles.categoryContainer}>
           <label className={styles.label}>
             카테고리<span className={styles.requiredMark}>*</span>
           </label>
@@ -317,7 +317,7 @@ export const UpdateLiveRoomModal = () => {
               +
             </PixelButton>
           </div>
-          <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
+          <p className={styles.helpText}>
             현재 인원({room.currentCount}명)보다 적게 설정할 수 없습니다.
           </p>
         </div>

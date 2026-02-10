@@ -12,6 +12,21 @@ export const container = style({
   padding: '4px',
 });
 
+// 예약 설정 컨테이너
+export const scheduledContainer = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+});
+
+// 모달 제목
+export const modalTitle = style({
+  textAlign: 'center',
+  marginBottom: '16px',
+  fontSize: '1.2rem',
+  fontWeight: 'bold',
+});
+
 // 스크롤 본문
 export const scrollContent = style({
   flex: 1,
@@ -280,6 +295,16 @@ export const helpText = style({
   marginTop: '4px',
   marginBottom: '6px',
   display: 'block',
+});
+
+export const bookSelectionContainer = style({
+  position: 'relative',
+  zIndex: 20,
+});
+
+export const categoryContainer = style({
+  position: 'relative',
+  zIndex: 10,
 });
 
 export const buttonGroup = style({

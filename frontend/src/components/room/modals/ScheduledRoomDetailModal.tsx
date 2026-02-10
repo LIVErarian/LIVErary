@@ -134,7 +134,7 @@ export const ScheduledRoomDetailModal = ({
     >
       <div className={styles.container}>
         {isLoading || !room ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>로딩 중...</div>
+          <div className={styles.loadingMessage}>로딩 중...</div>
         ) : (
           <>
             <div className={styles.roomInfoCard}>
@@ -178,7 +178,7 @@ export const ScheduledRoomDetailModal = ({
 
               {isHost ? (
                 // 방장일 경우: 수정 / 삭제 버튼 노출
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className={styles.hostButtonGroup}>
                   <PixelButton onClick={handleHostEdit} variant="primary">
                     수정
                   </PixelButton>
