@@ -44,6 +44,22 @@ export const ScheduledRoomDetailModal = ({
 
   if (!isModalOpen) return null;
 
+  // 방 수정 핸들러: 기존 정보를 editRoom으로 전달
+  const handleHostEdit = () => {
+    if (!room) return;
+
+    // 현재 상세 모달 닫기
+    onClose();
+
+    // 방 생성 모달을 '수정 모드'로 열기
+    // editRoom에 현재 room 객체를 그대로 전달합니다.
+    openModal('createRoom', {
+      editRoom: {
+        room: room,
+      },
+    });
+  };
+
   const handleHostDelete = () => {
     // 혹시 모를 방어 코드
     if (hasParticipants) {
@@ -118,7 +134,7 @@ export const ScheduledRoomDetailModal = ({
     >
       <div className={styles.container}>
         {isLoading || !room ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>로딩 중...</div>
+          <div className={styles.loadingMessage}>로딩 중...</div>
         ) : (
           <>
             <div className={styles.roomInfoCard}>
@@ -161,14 +177,19 @@ export const ScheduledRoomDetailModal = ({
               </PixelButton>
 
               {isHost ? (
-                // 방장 (참여자가 있으면 버튼 비활성화)
-                <PixelButton
-                  onClick={handleHostDelete}
-                  disabled={isDeletingRoom || hasParticipants} // 참여자 있으면 disabled
-                  variant={!hasParticipants ? 'danger' : 'disabled'}
-                >
-                  {hasParticipants ? '참여자 존재 (취소불가)' : '방 삭제'}
-                </PixelButton>
+                // 방장일 경우: 수정 / 삭제 버튼 노출
+                <div className={styles.hostButtonGroup}>
+                  <PixelButton onClick={handleHostEdit} variant="primary">
+                    수정
+                  </PixelButton>
+                  <PixelButton
+                    onClick={handleHostDelete}
+                    disabled={isDeletingRoom || hasParticipants}
+                    variant={!hasParticipants ? 'danger' : 'disabled'}
+                  >
+                    {hasParticipants ? '취소 불가' : '예약 취소'}
+                  </PixelButton>
+                </div>
               ) : isApplied ? (
                 // 참여자인 경우 신청 취소
                 <PixelButton

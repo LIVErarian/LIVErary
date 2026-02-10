@@ -18,6 +18,7 @@ export const CreateRoomModal = () => {
     useCreateRoomForm(closeModal);
 
   const {
+    isEditMode,
     title,
     accessType,
     maxUser,
@@ -36,9 +37,12 @@ export const CreateRoomModal = () => {
   } = formState;
 
   // 버튼 텍스트
-  let submitButtonText = '방 만들기';
-  if (isPending) submitButtonText = '생성 중...';
-  else if (isScheduled) submitButtonText = '예약하기';
+  let submitButtonText = isEditMode ? '수정 완료' : '방 만들기';
+  if (isPending) {
+    submitButtonText = isEditMode ? '수정 중...' : '생성 중...';
+  } else if (!isEditMode && isScheduled) {
+    submitButtonText = '예약하기';
+  }
 
   // 검색 드롭다운 내용
   let dropdownContent = null;
@@ -119,7 +123,7 @@ export const CreateRoomModal = () => {
 
   // 예약 설정 UI
   const scheduledUI = isScheduled && (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div className={styles.scheduledContainer}>
       <div>
         <span className={styles.helpText}>시작 시간</span>
         <div className={styles.dateTimeRow}>
@@ -172,7 +176,10 @@ export const CreateRoomModal = () => {
 
   return (
     <div className={styles.container}>
-      {/* 스크롤 가능한 본문 */}
+      <div className={styles.modalTitle}>
+        {isEditMode ? '방 정보 수정' : '방 만들기'}
+      </div>
+
       <div className={styles.scrollContent}>
         {/* 방 제목 */}
         <div>
@@ -189,13 +196,13 @@ export const CreateRoomModal = () => {
         </div>
 
         {/* 책 선택 */}
-        <div style={{ position: 'relative', zIndex: 20 }}>
+        <div className={styles.bookSelectionContainer}>
           <label className={styles.label}>책 선택 (선택)</label>
           {bookSelectionUI}
         </div>
 
         {/* 카테고리 */}
-        <div style={{ position: 'relative', zIndex: 10 }}>
+        <div className={styles.categoryContainer}>
           <label className={styles.label}>
             카테고리<span className={styles.requiredMark}>*</span>
           </label>
