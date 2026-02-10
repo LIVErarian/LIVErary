@@ -30,7 +30,7 @@ import type {
  */
 export const useCreateRoom = () => {
   const queryClient = useQueryClient();
-  const { openModal } = useModalStore();
+  const { openModal, closeAll } = useModalStore();
 
   const setCurrentFloor = useGameStore((state) => state.setCurrentFloor);
   const setRoomId = useGameStore((state) => state.setRoomId);
@@ -39,17 +39,15 @@ export const useCreateRoom = () => {
   const setRoomCode = useGameStore((state) => state.setRoomCode);
 
   return useMutation<
-    CreateRoomResponseData, // API가 이미 data.data를 반환하므로 내부 타입 사용
+    CreateRoomResponseData,
     AxiosError<CommonResponse<null>>,
     CreateRoomRequest
   >({
     mutationFn: roomApi.createRoom,
     onSuccess: (data, variables) => {
-      // ✅ API가 이미 data를 벗겨서 주므로 바로 접근
       const newRoomId = data.roomId;
       const newRoomCode = data.code || '';
 
-      // 캐시된 카테고리 응답 가져오기
       const cachedResponse = queryClient.getQueryData<GetCategoryResponse>(
         categoryKeys.list(),
       );
@@ -60,13 +58,12 @@ export const useCreateRoom = () => {
       );
       const categoryName = matchedCategory ? matchedCategory.name : '기타';
 
-      // 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.lives() });
       queryClient.invalidateQueries({ queryKey: roomKeys.reservations() });
 
-      // 예약 방인 경우
       if (variables.status === 'SCHEDULED') {
         queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
+        closeAll();
         openModal('alert', {
           title: '예약 성공',
           message: '예약이 완료되었습니다.',
@@ -74,7 +71,6 @@ export const useCreateRoom = () => {
         return;
       }
 
-      // 라이브 방(TALK)인 경우: 시퀀스 실행
       if (variables.roomType === 'TALK') {
         setRoom4Room({
           roomId: newRoomId || '',
@@ -87,18 +83,17 @@ export const useCreateRoom = () => {
           maxUser: variables.maxUser,
         });
 
-        // 비밀방인 경우 생성된 코드 저장
         if (variables.accessType === 'PRIVATE') {
           setRoomCode(newRoomCode);
         } else {
           setRoomCode(null);
         }
 
-        // 문 앞으로 이동
         setSpawnPoint({ x: 0.83, y: 0.65 });
         setCurrentFloor('bookTalkFloor');
 
-        // 입장 확인 모달 띄우기
+        closeAll();
+
         openModal('entrance', {
           title: '방 생성 완료',
           message: `'${variables.title}' 방에 지금 바로 입장하시겠습니까?`,
@@ -119,13 +114,12 @@ export const useCreateRoom = () => {
             }
           },
         });
-      }
-      // CONCERT 등 기타 타입
-      else if (variables.roomType === 'CONCERT') {
+      } else if (variables.roomType === 'CONCERT') {
         if (newRoomId) {
           setRoomId(newRoomId);
           setCurrentFloor('bookConcert');
           setSpawnPoint(null);
+          closeAll();
         }
       }
     },

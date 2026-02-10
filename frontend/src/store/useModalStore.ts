@@ -88,6 +88,7 @@ interface ModalState {
 
   openUserProfile: (userId: string, friendId?: string) => void;
   closeUserProfile: () => void;
+  closeAll: () => void;
 }
 
 export const useModalStore = create<ModalState>((set) => ({
@@ -124,4 +125,11 @@ export const useModalStore = create<ModalState>((set) => ({
   openUserProfile: (userId, friendId) =>
     set({ userProfile: { userId, friendId } }),
   closeUserProfile: () => set({ userProfile: null }),
+
+  closeAll: () =>
+    set(() => ({
+      modalStack: [],
+      currentModal: null,
+      modalProps: {},
+    })),
 }));
