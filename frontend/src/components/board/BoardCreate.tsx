@@ -12,7 +12,7 @@ import * as styles from './BoardCreate.css';
 import { theme } from '@/styles/theme.css';
 
 export const BoardCreate = () => {
-  const { openModal, modalProps } = useModalStore();
+  const { openModal, closeModal, modalProps } = useModalStore();
   const { user } = useAuthStore();
   const { mutate: createBoard, isPending } = useCreateBoard();
 
@@ -136,11 +136,7 @@ export const BoardCreate = () => {
       {/* 하단 버튼 */}
       <footer className={styles.footer}>
         <PixelButton
-          onClick={() =>
-            openModal('boardList', {
-              initialBoardTab: modalProps?.initialBoardTab,
-            })
-          }
+          onClick={() => closeModal()}
           style={{
             backgroundColor: theme.colors.disabledBg,
             color: theme.colors.disabledText,
