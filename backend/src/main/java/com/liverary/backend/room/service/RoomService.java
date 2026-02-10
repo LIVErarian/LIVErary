@@ -526,13 +526,6 @@ public class RoomService {
             room.updateStatus(RoomStatus.FINISHED);
         }
         
-        // 오늘의 총 독서 시간 조회 (Redis에서)
-        Long todayTotalMinutes = rankingService.getTodayReadingTime(userId);
-
-        // 30분 달성 시 독서 출석 자동 기록
-        if (todayTotalMinutes >= 30) {
-            attendanceService.checkReadingAttendance(userId);
-        }
     }
 
     /**

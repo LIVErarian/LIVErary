@@ -5,8 +5,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,7 +17,6 @@ import java.util.UUID;
 @Getter
 @Table(name = "reading_log")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 public class ReadingLog {
 
     @Id
@@ -34,7 +31,6 @@ public class ReadingLog {
     @Column(nullable = false)
     private Long minutes;
 
-    @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -42,5 +38,6 @@ public class ReadingLog {
     public ReadingLog(User user, Long minutes) {
         this.user = user;
         this.minutes = minutes;
+        this.createdAt = LocalDateTime.now();
     }
 }
