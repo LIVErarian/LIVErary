@@ -526,15 +526,6 @@ public class RoomService {
             room.updateStatus(RoomStatus.FINISHED);
         }
         
-        // 참여 기록을 통해 독서 시간(분) 계산
-        long minutes = java.time.Duration.between(history.getJoinedAt(), history.getLeftAt()).toMinutes();
-
-        // 방을 나가는 순간 유저의 TotalReadingTime 업데이트
-        userService.updateTotalReadingTime(userId, minutes);
-
-        // 랭킹 시스템에 독서 시간 반영 (Redis에 일일/주간/월간 누적)
-        rankingService.updateRanking(userId, minutes);
-
         // 오늘의 총 독서 시간 조회 (Redis에서)
         Long todayTotalMinutes = rankingService.getTodayReadingTime(userId);
 
