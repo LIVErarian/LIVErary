@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import type { ROOM_DETAIL } from '@/types/room.types';
+
 export type ModalType =
   | 'settings'
   | 'profile'
@@ -21,6 +23,7 @@ export type ModalType =
   | 'preferences'
   | 'error'
   | 'createRoom'
+  | 'updateRoom'
   | 'entrance'
   | 'bookDetail'
   | 'notification'
@@ -54,6 +57,7 @@ interface ModalProps {
   src?: string;
   alt?: string;
   isVideo?: boolean;
+  editRoom?: { room: ROOM_DETAIL }; // 방 수정용 (방 생성 모달 재사용)
 }
 
 interface ErrorState {

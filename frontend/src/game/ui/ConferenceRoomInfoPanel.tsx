@@ -35,6 +35,11 @@ export const ConferenceRoomInfoPanel = () => {
 
   const displayCode = storedCode;
 
+  // 방 정보 수정 모달 열기
+  const handleEditRoom = () => {
+    openModal('updateRoom', { editRoom: { room: roomDetail } });
+  };
+
   const handleCopyCode = () => {
     if (displayCode) {
       navigator.clipboard.writeText(displayCode);
@@ -47,7 +52,17 @@ export const ConferenceRoomInfoPanel = () => {
 
   return (
     <section className={styles.panel} aria-label="회의실 방 정보 패널">
-      <h3 className={styles.title}>{roomDetail.title}</h3>
+      <div className={styles.titleContainer}>
+        <h3 className={styles.title}>{roomDetail.title}</h3>
+        <button
+          onClick={handleEditRoom}
+          className={styles.editButton}
+          aria-label="방 정보 수정"
+          title="방 설정"
+        >
+          ⚙️
+        </button>
+      </div>
 
       <div className={styles.chipRow}>
         <span className={styles.chip}>
