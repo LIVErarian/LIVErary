@@ -5,19 +5,24 @@ import { PixelModal } from '@/components/common/PixelModal';
 import { useCategoryList } from '@/services/queries/useCategory';
 import { useSavePreferences } from '@/services/queries/useUserPreferences';
 import { useAuthStore } from '@/store/useAuthStore';
-import { type ModalType, useModalStore } from '@/store/useModalStore';
+import { type ModalType } from '@/store/useModalStore';
 
 import * as styles from './PreferencesModal.css';
 
 interface PreferencesModalProps {
   preferences?: string[];
   from?: ModalType;
+  isOpen: boolean;
+  onClose: () => void;
+  zIndex?: number;
 }
 
 export const PreferencesModal = ({
   preferences: initialPreferences,
+  isOpen,
+  onClose,
+  zIndex,
 }: PreferencesModalProps) => {
-  const { closeModal } = useModalStore();
   const userId = useAuthStore((state) => state.user?.userId);
 
   const { data: categories = [], isLoading, isError } = useCategoryList(true);
@@ -48,8 +53,8 @@ export const PreferencesModal = ({
 
   const closeOrReturn = () => {
     // 모달 스택 시스템이 자동으로 이전 모달로 복원하므로
-    // closeModal()만 호출하면 됨
-    closeModal();
+    // onClose()만 호출하면 됨
+    onClose();
   };
 
   const handleClose = () => {
@@ -106,10 +111,11 @@ export const PreferencesModal = ({
 
   return (
     <PixelModal
-      isOpen={true}
+      isOpen={isOpen}
       onClose={handleClose}
       title="선호 카테고리"
       width="520px"
+      zIndex={zIndex}
     >
       <div className={styles.container}>
         <p className={styles.description}>

@@ -9,18 +9,27 @@ interface BaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
+  zIndex?: number;
 }
 
-export const BaseModal = ({ isOpen, onClose, children }: BaseModalProps) => {
+export const BaseModal = ({
+  isOpen,
+  onClose,
+  children,
+  zIndex = 1000, // 기본값
+}: BaseModalProps) => {
   useModalEffect(isOpen, onClose);
 
   if (!isOpen) return null;
 
+  const overlayStyle = { zIndex };
+  const contentStyle = { zIndex: zIndex + 1 };
+
   return createPortal(
-    <div className={styles.overlay} onClick={onClose}>
-      {/* 이벤트 전파 중단 */}
+    <div className={styles.overlay} style={overlayStyle} onClick={onClose}>
       <div
         className={styles.contentWrapper}
+        style={contentStyle}
         onClick={(e) => e.stopPropagation()}
       >
         {children}

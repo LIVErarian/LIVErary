@@ -8,9 +8,10 @@ import * as styles from './QuoteModal.css';
 interface QuoteModalProps {
   isOpen: boolean;
   onClose: () => void;
+  zIndex?: number;
 }
 
-export const QuoteModal = ({ isOpen, onClose }: QuoteModalProps) => {
+export const QuoteModal = ({ isOpen, onClose, zIndex }: QuoteModalProps) => {
   const { data: quote, isLoading, isError, refetch } = useQuote();
 
   let content;
@@ -41,6 +42,7 @@ export const QuoteModal = ({ isOpen, onClose }: QuoteModalProps) => {
       onClose={onClose}
       title="오늘의 문장"
       width="400px"
+      zIndex={zIndex}
       footer={
         <ModalFooter>
           <PixelButton size="sm" variant="primary" onClick={() => refetch()}>

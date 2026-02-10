@@ -13,6 +13,7 @@ interface ConfirmModalProps {
   confirmText?: string;
   cancelText?: string;
   isDanger?: boolean;
+  zIndex?: number;
 }
 
 export const ConfirmModal = ({
@@ -24,6 +25,7 @@ export const ConfirmModal = ({
   confirmText = '확인',
   cancelText = '취소',
   isDanger = false,
+  zIndex,
 }: ConfirmModalProps) => {
   return (
     <PixelModal
@@ -31,6 +33,7 @@ export const ConfirmModal = ({
       onClose={onClose}
       title={title}
       width="320px"
+      zIndex={zIndex}
       footer={
         <ModalFooter variant="center">
           {/* 취소 버튼 */}

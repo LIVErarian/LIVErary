@@ -46,8 +46,10 @@ export const GlobalModal = () => {
         const { type: currentModal, props: modalProps } = modalItem;
         const key = `${currentModal}-${index}`;
 
+        const currentZIndex = 1000 + index * 10;
+
         return (
-          <div key={key} style={{ zIndex: 1000 + index, position: 'relative' }}>
+          <div key={key}>
             {/* 이동 모달 */}
             {currentModal === 'move' && (
               <ConfirmModal
@@ -62,6 +64,7 @@ export const GlobalModal = () => {
                 }}
                 title={modalProps.title || '알림'}
                 confirmText="이동하기"
+                zIndex={currentZIndex}
               >
                 <p>{modalProps.message}</p>
               </ConfirmModal>
@@ -80,6 +83,7 @@ export const GlobalModal = () => {
                   closeModal();
                 }}
                 title={modalProps.title || '입장 확인'}
+                zIndex={currentZIndex}
               >
                 <p style={{ textAlign: 'center' }}>
                   {modalProps.message || '이 방에 입장하시겠습니까?'}
@@ -102,6 +106,7 @@ export const GlobalModal = () => {
                   });
                 }}
                 title={modalProps.title || '확인'}
+                zIndex={currentZIndex}
               >
                 <p style={{ textAlign: 'center' }}>
                   {modalProps.message || '독서에 집중하시겠습니까?'}
@@ -115,11 +120,18 @@ export const GlobalModal = () => {
                 src={modalProps.src}
                 alt={modalProps.alt || 'Image'}
                 isVideo={modalProps.isVideo}
+                zIndex={currentZIndex}
               />
             )}
 
             {/* 엘리베이터 */}
-            {currentModal === 'elevator' && <ElevatorModal />}
+            {currentModal === 'elevator' && (
+              <ElevatorModal
+                isOpen={true}
+                onClose={closeModal}
+                zIndex={currentZIndex}
+              />
+            )}
 
             {/* 게시판 관련 */}
             {currentModal === 'boardList' && (
@@ -128,6 +140,7 @@ export const GlobalModal = () => {
                 onClose={closeModal}
                 title="게시판"
                 width="800px"
+                zIndex={currentZIndex}
               >
                 <BoardList />
               </PixelModal>
@@ -139,6 +152,7 @@ export const GlobalModal = () => {
                 onClose={closeModal}
                 title="게시글 작성"
                 width="800px"
+                zIndex={currentZIndex}
               >
                 <BoardCreate />
               </PixelModal>
@@ -150,6 +164,7 @@ export const GlobalModal = () => {
                 onClose={closeModal}
                 title="게시글"
                 width="800px"
+                zIndex={currentZIndex}
               >
                 {modalProps.boardId && (
                   <BoardDetail boardId={modalProps.boardId} />
@@ -163,6 +178,7 @@ export const GlobalModal = () => {
                 onClose={closeModal}
                 title="게시글 수정"
                 width="800px"
+                zIndex={currentZIndex}
               >
                 {modalProps.boardId && (
                   <BoardUpdate boardId={modalProps.boardId} />
@@ -177,6 +193,7 @@ export const GlobalModal = () => {
                 onClose={closeModal}
                 title="방 목록"
                 width="800px"
+                zIndex={currentZIndex}
               >
                 <RoomListModal />
               </PixelModal>
@@ -189,6 +206,7 @@ export const GlobalModal = () => {
                 onClose={closeModal}
                 title="방 추가하기"
                 width="500px"
+                zIndex={currentZIndex}
               >
                 <CreateRoomModal />
               </PixelModal>
@@ -208,14 +226,11 @@ export const GlobalModal = () => {
 
             {/* 랭킹 */}
             {currentModal === 'rank' && (
-              <PixelModal
+              <RankingModal
                 isOpen={true}
                 onClose={closeModal}
-                title="🏆 랭킹"
-                width="550px"
-              >
-                <RankingModal />
-              </PixelModal>
+                zIndex={currentZIndex}
+              />
             )}
 
             {/* 로그아웃 */}
@@ -227,6 +242,7 @@ export const GlobalModal = () => {
                 title="로그아웃"
                 isDanger={true}
                 confirmText="로그아웃"
+                zIndex={currentZIndex}
               >
                 <p>정말 로그아웃 하시겠습니까?</p>
               </ConfirmModal>
@@ -242,6 +258,7 @@ export const GlobalModal = () => {
                   modalProps.message || '알 수 없는 오류가 발생했습니다.'
                 }
                 isError={currentModal === 'error'}
+                zIndex={currentZIndex}
               />
             )}
 
@@ -262,6 +279,7 @@ export const GlobalModal = () => {
                 isDanger={
                   modalProps.title === '삭제' || modalProps.title === '탈퇴'
                 }
+                zIndex={currentZIndex}
               >
                 <p style={{ textAlign: 'center' }}>{modalProps.message}</p>
               </ConfirmModal>
@@ -269,7 +287,11 @@ export const GlobalModal = () => {
 
             {/* 프로필 */}
             {currentModal === 'profile' && (
-              <ProfileModal isOpen={true} onClose={closeModal} />
+              <ProfileModal
+                isOpen={true}
+                onClose={closeModal}
+                zIndex={currentZIndex}
+              />
             )}
 
             {currentModal === 'userProfile' && (
@@ -278,6 +300,7 @@ export const GlobalModal = () => {
                 onClose={closeModal}
                 userId={modalProps.userId}
                 friendId={modalProps.friendId}
+                zIndex={currentZIndex}
               />
             )}
 
@@ -288,55 +311,79 @@ export const GlobalModal = () => {
                 onClose={closeModal}
                 title="친구 목록"
                 width="500px"
+                zIndex={currentZIndex}
               >
-                <FriendListModal />
+                <FriendListModal initialTab={modalProps.initialTab} />
               </PixelModal>
             )}
 
             {/* 초기 설정(Preferences) */}
             {currentModal === 'preferences' && (
               <PreferencesModal
+                isOpen={true}
+                onClose={closeModal}
                 preferences={modalProps.preferences}
                 from={modalProps.from}
+                zIndex={currentZIndex}
               />
             )}
 
             {/* 나의 서재 & 책 관련 */}
-            {(currentModal === 'bookshelf' ||
-              (currentModal === 'bookDetail' &&
-                modalProps.from === 'bookshelf')) && (
+            {currentModal === 'bookshelf' && (
               <PixelModal
                 isOpen={true}
                 onClose={closeModal}
                 title="나의 서재"
                 width="800px"
+                zIndex={currentZIndex}
               >
                 <BookshelfModal />
               </PixelModal>
             )}
 
-            {(currentModal === 'bookSearch' ||
-              (currentModal === 'bookDetail' &&
-                modalProps.from === 'bookSearch')) && (
+            {currentModal === 'bookSearch' && (
               <PixelModal
                 isOpen={true}
                 onClose={closeModal}
                 title="책 검색"
                 width="800px"
+                zIndex={currentZIndex}
               >
                 <BookSearchModal />
               </PixelModal>
             )}
 
             {/* 기타 기능 모달 */}
-            {currentModal === 'notification' && <NotificationModal />}
+            {currentModal === 'notification' && (
+              <NotificationModal
+                isOpen={true}
+                onClose={closeModal}
+                zIndex={currentZIndex}
+              />
+            )}
 
-            {currentModal === 'settings' && <SettingsModal />}
+            {currentModal === 'settings' && (
+              <SettingsModal
+                isOpen={true}
+                onClose={closeModal}
+                zIndex={currentZIndex}
+              />
+            )}
 
-            {currentModal === 'passwordReset' && <PasswordResetModal />}
+            {currentModal === 'passwordReset' && (
+              <PasswordResetModal
+                isOpen={true}
+                onClose={closeModal}
+                zIndex={currentZIndex}
+              />
+            )}
 
             {currentModal === 'quote' && (
-              <QuoteModal isOpen={true} onClose={closeModal} />
+              <QuoteModal
+                isOpen={true}
+                onClose={closeModal}
+                zIndex={currentZIndex}
+              />
             )}
 
             {currentModal === 'bookDetail' && modalProps.isbn && (
@@ -344,24 +391,28 @@ export const GlobalModal = () => {
                 isbn={modalProps.isbn}
                 onClose={closeModal}
                 initialIsWished={modalProps.initialIsWished}
+                isOpen={true}
+                zIndex={currentZIndex}
               />
             )}
 
             {currentModal === 'bookSelection' && (
-              <BookSelectionModal isChanging={modalProps.isChanging} />
+              <BookSelectionModal
+                isChanging={modalProps.isChanging}
+                zIndex={currentZIndex}
+              />
             )}
 
-            {currentModal === 'readingCompletion' && <ReadingCompletionModal />}
+            {currentModal === 'readingCompletion' && (
+              <ReadingCompletionModal zIndex={currentZIndex} />
+            )}
 
             {currentModal === 'attendance' && (
-              <PixelModal
+              <AttendanceModal
                 isOpen={true}
                 onClose={closeModal}
-                title="출석 체크"
-                width="550px"
-              >
-                <AttendanceModal isOpen={true} onClose={closeModal} />
-              </PixelModal>
+                zIndex={currentZIndex}
+              />
             )}
           </div>
         );
@@ -374,6 +425,7 @@ export const GlobalModal = () => {
           onClose={closeUserProfile}
           userId={userProfile.userId}
           friendId={userProfile.friendId}
+          zIndex={2000}
         />
       )}
     </>

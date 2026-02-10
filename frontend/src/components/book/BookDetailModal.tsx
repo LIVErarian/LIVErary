@@ -6,22 +6,26 @@
 
 import { useEffect, useState } from 'react';
 
+import { BaseModal } from '@/components/common/BaseModal';
 import { HeartButton } from '@/components/common/HeartButton';
 import { useBookDetail, useToggleWishlist } from '@/services/queries/useBook';
 
 import * as styles from './BookDetailModal.css';
-// import { closeButton } from '@/components/common/PixelModal.css';
 
 interface BookDetailModalProps {
   isbn: string;
   onClose: () => void;
   initialIsWished?: boolean; // 검색 결과에서 전달받는 초기 좋아요 상태
+  isOpen?: boolean;
+  zIndex?: number;
 }
 
 export const BookDetailModal = ({
   isbn,
   onClose,
   initialIsWished,
+  isOpen = true,
+  zIndex,
 }: BookDetailModalProps) => {
   const { data: book, isLoading, isError } = useBookDetail(isbn);
   const toggleWishlistMutation = useToggleWishlist();
@@ -36,25 +40,6 @@ export const BookDetailModal = ({
       setIsWished(book.isWished ?? false);
     }
   }, [book]);
-
-  // ESC 키로 모달 닫기
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
-
-  // 배경 클릭 시 모달 닫기
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
 
   // 구매 링크 열기
   const handlePurchaseClick = () => {
@@ -81,7 +66,7 @@ export const BookDetailModal = ({
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={handleOverlayClick}>
+    <BaseModal isOpen={isOpen} onClose={onClose} zIndex={zIndex}>
       <div className={styles.modalContainer}>
         {/* 닫기 버튼 */}
         <button
@@ -156,8 +141,6 @@ export const BookDetailModal = ({
             <div className={styles.divider} />
 
             {/* 책 소개 */}
-
-            {/* 책 소개 */}
             <div className={styles.descriptionSection}>
               <h3 className={styles.sectionTitle}>📖 책 소개</h3>
               <p
@@ -181,6 +164,6 @@ export const BookDetailModal = ({
           </div>
         )}
       </div>
-    </div>
+    </BaseModal>
   );
 };

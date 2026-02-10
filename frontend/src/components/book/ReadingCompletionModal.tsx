@@ -10,7 +10,9 @@ import { useReadingStore } from '@/store/useReadingStore';
 
 import * as styles from './ReadingCompletionModal.css.ts';
 
-export const ReadingCompletionModal = () => {
+export const ReadingCompletionModal = ({
+  zIndex,
+}: { zIndex?: number } = {}) => {
   const { closeModal, openModal } = useModalStore();
   const { elapsedSeconds, currentBook, endReading } = useReadingStore();
   const queryClient = useQueryClient();
@@ -59,6 +61,7 @@ export const ReadingCompletionModal = () => {
       onClose={closeModal}
       title="독서 종료"
       width="400px"
+      zIndex={zIndex}
     >
       <div className={styles.container}>
         {currentBook && (

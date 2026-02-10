@@ -212,7 +212,7 @@ const PromotionDetails = ({ post }: { post: BoardDetailData }) => {
 };
 
 export const BoardDetail = ({ boardId }: { boardId: string }) => {
-  const { openModal } = useModalStore();
+  const { openModal, closeModal } = useModalStore();
   const { user } = useAuthStore();
 
   const { data: post, isLoading, isError } = useGetBoardDetail(boardId);
@@ -225,12 +225,7 @@ export const BoardDetail = ({ boardId }: { boardId: string }) => {
       onConfirm: () => {
         deleteBoard(boardId, {
           onSuccess: () => {
-            // 게시판 타입에 따라 목록 탭 유지
-            if (post?.type) {
-              openModal('boardList', { initialBoardTab: post.type });
-            } else {
-              openModal('boardList');
-            }
+            closeModal();
           },
         });
       },
@@ -285,16 +280,7 @@ export const BoardDetail = ({ boardId }: { boardId: string }) => {
       <footer className={styles.footer}>
         <PixelButton
           onClick={() => {
-            const boardType = post?.type;
-            if (boardType === 'INQUIRY') {
-              openModal('boardList', { initialBoardTab: 'INQUIRY' });
-            } else if (boardType === 'PROMOTION') {
-              openModal('boardList', { initialBoardTab: 'PROMOTION' });
-            } else if (boardType === 'NOTICE') {
-              openModal('boardList', { initialBoardTab: 'NOTICE' });
-            } else {
-              openModal('boardList');
-            }
+            closeModal();
           }}
         >
           목록으로

@@ -1,18 +1,15 @@
 import { style } from '@vanilla-extract/css';
 
-// 모달 전체 배경 (검은색 오버레이)
-export const container = style({
-  position: 'fixed',
-  top: 0,
-  left: 0,
+// 전체 화면 컨테이너 (BaseModal이 overlay와 포탈을 제공)
+export const fullScreenContainer = style({
   width: '100vw',
   height: '100vh',
   backgroundColor: '#000',
-  zIndex: 9999, // 최상위 레이어
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
   cursor: 'default',
+  position: 'relative',
 });
 
 // 우측 상단 닫기 버튼
@@ -31,7 +28,6 @@ export const closeButton = style({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  zIndex: 10000,
   transition: 'background 0.2s, transform 0.2s',
 
   ':hover': {

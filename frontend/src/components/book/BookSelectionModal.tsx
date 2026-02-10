@@ -48,10 +48,12 @@ type BookTab = 'READING' | 'WISH'; // UserBookStatus와 일치하도록 수정
 
 interface BookSelectionModalProps {
   isChanging?: boolean;
+  zIndex?: number;
 }
 
 export const BookSelectionModal = ({
   isChanging = false,
+  zIndex,
 }: BookSelectionModalProps) => {
   const { closeModal, openModal } = useModalStore();
 
@@ -133,6 +135,7 @@ export const BookSelectionModal = ({
       onClose={closeModal}
       title={isChanging ? '책 변경하기' : '읽을 책 선택'}
       width="500px"
+      zIndex={zIndex}
     >
       <div className={container}>
         {viewMode === 'list' ? (

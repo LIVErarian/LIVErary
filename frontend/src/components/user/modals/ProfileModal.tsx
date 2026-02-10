@@ -25,6 +25,7 @@ interface ProfileModalProps {
   onClose: () => void;
   userId?: string; // 타인 프로필 조회용 (없으면 내 프로필)
   friendId?: string; // 친구 요청 수락/거절용
+  zIndex?: number;
 }
 
 export const ProfileModal = ({
@@ -32,6 +33,7 @@ export const ProfileModal = ({
   onClose,
   userId,
   friendId,
+  zIndex,
 }: ProfileModalProps) => {
   // 내 프로필 또는 타인 프로필 조회
   const { data: myProfile } = useGetMyProfile();
@@ -274,7 +276,7 @@ export const ProfileModal = ({
 
   if (isLoading) {
     return (
-      <BaseModal isOpen={isOpen} onClose={onClose}>
+      <BaseModal isOpen={isOpen} onClose={onClose} zIndex={zIndex}>
         <div className={styles.cardContainer}>
           <div className={styles.loadingWrapper}>로딩 중...</div>
         </div>
@@ -283,7 +285,7 @@ export const ProfileModal = ({
   }
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose}>
+    <BaseModal isOpen={isOpen} onClose={onClose} zIndex={zIndex}>
       <div className={styles.cardContainer}>
         <div className={styles.contentContainer}>
           {/* 좌측 사진 영역 */}

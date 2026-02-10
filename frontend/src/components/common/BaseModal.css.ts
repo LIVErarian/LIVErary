@@ -10,13 +10,14 @@ export const overlay = style({
   inset: 0,
   backgroundColor: 'rgba(0, 0, 0, 0.6)',
   backdropFilter: 'blur(2px)',
-  zIndex: 1000,
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
+  pointerEvents: 'auto',
 });
 
 // 애니메이션 공통 처리
 export const contentWrapper = style({
   animation: `${popIn} 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
+  pointerEvents: 'auto',
 });

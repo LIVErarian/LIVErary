@@ -7,8 +7,18 @@ import { useSocketStore } from '@/store/useSocketStore';
 
 import type { FloorType } from '@/types/map.types';
 
-export const ElevatorModal = () => {
-  const { closeModal, openModal } = useModalStore();
+interface ElevatorModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  zIndex?: number;
+}
+
+export const ElevatorModal = ({
+  isOpen,
+  onClose,
+  zIndex,
+}: ElevatorModalProps) => {
+  const { openModal } = useModalStore();
   const { currentFloor, roomId, setCurrentFloor, setRoomId } = useGameStore();
   const sendLeaveRoom = useSocketStore((state) => state.sendLeaveRoom);
 
@@ -35,15 +45,16 @@ export const ElevatorModal = () => {
       }
     }
     setCurrentFloor(floor);
-    closeModal();
+    onClose();
   };
 
   return (
     <PixelModal
-      isOpen={true}
-      onClose={closeModal}
+      isOpen={isOpen}
+      onClose={onClose}
       title="🛗 엘리베이터"
       width="320px"
+      zIndex={zIndex}
     >
       <div
         style={{
