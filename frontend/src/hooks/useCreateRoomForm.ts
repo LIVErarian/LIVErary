@@ -5,7 +5,10 @@ import { searchBook } from '@/api/book.api';
 import { categoryApi } from '@/api/category.api';
 import { roomApi } from '@/api/room.api';
 import { useDebounce } from '@/hooks/common/useDebounce';
-import { useCreateRoom } from '@/services/mutations/useRoomMutations';
+import {
+  useCreateRoom,
+  useUpdateScheduledRoom,
+} from '@/services/mutations/useRoomMutations';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
 import { useGameStore } from '@/store/useGameStore';
@@ -20,8 +23,15 @@ import type {
 } from '@/types/room.types';
 
 export const useCreateRoomForm = (closeModal: () => void) => {
-  const { openModal } = useModalStore();
-  const { mutate: createRoom, isPending } = useCreateRoom();
+  const { openModal, modalProps } = useModalStore();
+  const editRoomData = modalProps?.editRoom?.room;
+  const isEditMode = !!editRoomData;
+
+  const { mutate: createRoom, isPending: isCreating } = useCreateRoom();
+  const { mutate: updateRoom, isPending: isUpdating } =
+    useUpdateScheduledRoom();
+  const isPending = isCreating || isUpdating;
+
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
 
@@ -33,30 +43,96 @@ export const useCreateRoomForm = (closeModal: () => void) => {
   const setRoom4Room = useBookTalkRoomStore((state) => state.setRoom4Room);
   const initialRoomType: RoomType = user?.role === 'ADMIN' ? 'CONCERT' : 'TALK';
 
-  const [title, setTitle] = useState('');
-  const [roomType] = useState<RoomType>(initialRoomType);
-  const [accessType, setAccessType] = useState<AccessType>('PUBLIC');
-  const [maxUser, setMaxUser] = useState<number>(4);
+  // [상태] 초기값 설정
+  const [title, setTitle] = useState(editRoomData?.title || '');
+  const [roomType] = useState<RoomType>(
+    editRoomData?.roomType || initialRoomType,
+  );
+  const [accessType, setAccessType] = useState<AccessType>(
+    editRoomData?.accessType || 'PUBLIC',
+  );
+  const [maxUser, setMaxUser] = useState<number>(editRoomData?.maxUser || 4);
   const [categoryId, setCategoryId] = useState('');
 
-  const [isScheduled, setIsScheduled] = useState(false);
-  const [startDate, setStartDate] = useState('');
-  const [startTime, setStartTime] = useState('12:00');
-  const [endDate, setEndDate] = useState('');
-  const [endTime, setEndTime] = useState('13:00');
+  // [수정] 예약 방 여부는 status로 판단 (없으면 기본값 false)
+  const [isScheduled, setIsScheduled] = useState(() => {
+    if (editRoomData) return editRoomData.status === 'SCHEDULED';
+    return false;
+  });
+
+  // [상태] 날짜/시간 초기화
+  const [startDate, setStartDate] = useState(() => {
+    if (editRoomData?.startAt) {
+      const date = new Date(editRoomData.startAt);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+    return '';
+  });
+
+  const [startTime, setStartTime] = useState(() => {
+    if (editRoomData?.startAt) {
+      const date = new Date(editRoomData.startAt);
+      const h = String(date.getHours()).padStart(2, '0');
+      // 30분 단위 선택지(00, 30)에 맞게 조정
+      const m = date.getMinutes() < 30 ? '00' : '30';
+      return `${h}:${m}`;
+    }
+    return '12:00';
+  });
+
+  const [endDate, setEndDate] = useState(() => {
+    if (editRoomData?.endAt) {
+      const date = new Date(editRoomData.endAt);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+    return '';
+  });
+
+  const [endTime, setEndTime] = useState(() => {
+    if (editRoomData?.endAt) {
+      const date = new Date(editRoomData.endAt);
+      const h = String(date.getHours()).padStart(2, '0');
+      const m = date.getMinutes() < 30 ? '00' : '30';
+      return `${h}:${m}`;
+    }
+    return '13:00';
+  });
 
   const [bookSearchKeyword, setBookSearchKeyword] = useState('');
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
+  // 책 정보 초기화
+  const [selectedBook, setSelectedBook] = useState<Book | null>(() => {
+    if (editRoomData?.bookTitle) {
+      return {
+        title: editRoomData.bookTitle,
+        author: editRoomData.bookAuthor || '',
+        isbn: '',
+        coverUrl: editRoomData.bookCoverUrl || '',
+        category: '',
+        publisher: '',
+        itemId: 0,
+      };
+    }
+    return null;
+  });
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const debouncedKeyword = useDebounce(bookSearchKeyword, 300);
 
-  // 데이터 로딩
+  // 카테고리 로드
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: categoryApi.getCategoryList,
   });
+
+  // 수정 모드일 때 categories에서 매칭되는 ID를 찾음
+  const matchedCategory =
+    editRoomData && categories.length > 0
+      ? categories.find((c) => c.name === editRoomData.categoryName)
+      : null;
+
+  // 최종 카테고리 ID: 유저가 선택한 값(categoryId)이 있으면 우선, 없으면 초기값(matchedCategory) 사용
+  const finalCategoryId = categoryId || matchedCategory?.categoryId || '';
 
   const { data: bookSearchResults, isLoading: isSearchingBooks } = useQuery({
     queryKey: ['bookSearchDropdown', debouncedKeyword],
@@ -205,92 +281,120 @@ export const useCreateRoomForm = (closeModal: () => void) => {
       formattedEnd = end.toISOString();
     }
 
-    createRoom(
-      {
-        title,
-        roomType,
-        accessType,
-        maxUser,
-        status: isScheduled ? 'SCHEDULED' : 'LIVE',
-        categoryId,
-        isbn: selectedBook?.isbn,
-        startAt: formattedStart,
-        endAt: formattedEnd,
-      },
-      {
-        onSuccess: (response) => {
-          // 성공하자마자 방 생성 모달 닫기
-          closeModal();
-
-          // [수정] 방 생성 성공 시, 아직 입장 전이므로 count: 0으로 설정
-          // MapManager 등에서 room-4 슬롯에 0명으로 표시되도록 함
-          const roomData: RECOMMENDED_ROOM = {
-            roomId: response.roomId,
-            title,
-            roomType,
-            accessType,
-            status: isScheduled ? 'SCHEDULED' : 'LIVE',
-            categoryName:
-              categories.find((c) => c.categoryId === categoryId)?.name ||
-              '기타',
-            currentCount: 0, // 입장 전 0명
-            maxUser,
-          };
-          setRoom4Room(roomData);
-
-          // 입장 확인 모달
-          openModal('entrance', {
-            title: '방 생성 완료',
-            message: `"${title}" 방이 생성되었습니다.\n바로 입장하시겠습니까?`,
-            onConfirm: async () => {
-              try {
-                closeModal();
-
-                if (response?.roomId) {
-                  const joinReqBody =
-                    accessType === 'PRIVATE' && response.code
-                      ? { code: response.code }
-                      : {};
-
-                  // [API] 방 입장 요청
-                  await roomApi.joinRoom(response.roomId, joinReqBody);
-                  setRoom4Room({ ...roomData, currentCount: 1 });
-
-                  // 데이터 즉시 갱신 (방 목록 + 상세 정보)
-                  // 'rooms': 방 목록의 인원수 갱신
-                  // 'room': 입장 후 우측 패널(InfoPanel)의 인원수 갱신
-                  await Promise.all([
-                    queryClient.invalidateQueries({ queryKey: ['rooms'] }),
-                    queryClient.invalidateQueries({
-                      queryKey: ['room', response.roomId],
-                    }),
-                  ]);
-
-                  setRoomId(response.roomId);
-                  setRoomCode(response.code ?? null);
-                  setSpawnPoint({ x: 0.88, y: 0.5 });
-                  setCurrentFloor('conferenceFloor');
-                }
-              } catch (error) {
-                console.error(error);
-                openModal('alert', {
-                  title: '입장 실패',
-                  message: '방 입장에 실패했습니다. 잠시 후 다시 시도해주세요.',
-                });
-              }
-            },
-          });
+    // 수정 vs 생성 분기 처리
+    if (isEditMode && editRoomData) {
+      // [수정 요청]
+      updateRoom(
+        {
+          roomId: editRoomData.roomId,
+          title,
+          maxUser,
+          categoryId: finalCategoryId,
+          isbn: selectedBook?.isbn,
+          startAt: isScheduled ? formattedStart : undefined,
+          endAt: isScheduled ? formattedEnd : undefined,
         },
-      },
-    );
+        {
+          onSuccess: () => {
+            closeModal();
+            openModal('alert', {
+              title: '성공',
+              message: '방 정보가 수정되었습니다.',
+            });
+          },
+        },
+      );
+    } else {
+      // [생성 요청]
+      createRoom(
+        {
+          title,
+          roomType,
+          accessType,
+          maxUser,
+          status: isScheduled ? 'SCHEDULED' : 'LIVE',
+          categoryId: finalCategoryId,
+          isbn: selectedBook?.isbn,
+          startAt: formattedStart,
+          endAt: formattedEnd,
+        },
+        {
+          onSuccess: (response) => {
+            // 성공하자마자 방 생성 모달 닫기
+            closeModal();
+
+            // [수정] 방 생성 성공 시, 아직 입장 전이므로 count: 0으로 설정
+            // MapManager 등에서 room-4 슬롯에 0명으로 표시되도록 함
+            const roomData: RECOMMENDED_ROOM = {
+              roomId: response.roomId,
+              title,
+              roomType,
+              accessType,
+              status: isScheduled ? 'SCHEDULED' : 'LIVE',
+              categoryName:
+                categories.find((c) => c.categoryId === finalCategoryId)
+                  ?.name || '기타',
+              currentCount: 0, // 입장 전 0명
+              maxUser,
+            };
+            setRoom4Room(roomData);
+
+            // 입장 확인 모달
+            openModal('entrance', {
+              title: '방 생성 완료',
+              message: `"${title}" 방이 생성되었습니다.\n바로 입장하시겠습니까?`,
+              onConfirm: async () => {
+                try {
+                  closeModal();
+
+                  if (response?.roomId) {
+                    const joinReqBody =
+                      accessType === 'PRIVATE' && response.code
+                        ? { code: response.code }
+                        : {};
+
+                    // [API] 방 입장 요청
+                    await roomApi.joinRoom(response.roomId, joinReqBody);
+                    setRoom4Room({ ...roomData, currentCount: 1 });
+
+                    // 데이터 즉시 갱신 (방 목록 + 상세 정보)
+                    // 'rooms': 방 목록의 인원수 갱신
+                    // 'room': 입장 후 우측 패널(InfoPanel)의 인원수 갱신
+                    await Promise.all([
+                      queryClient.invalidateQueries({ queryKey: ['rooms'] }),
+                      queryClient.invalidateQueries({
+                        queryKey: ['room', response.roomId],
+                      }),
+                    ]);
+
+                    setRoomId(response.roomId);
+                    setRoomCode(response.code ?? null);
+                    setSpawnPoint({ x: 0.88, y: 0.5 });
+                    setCurrentFloor('conferenceFloor');
+                  }
+                } catch (error) {
+                  console.error(error);
+                  openModal('alert', {
+                    title: '입장 실패',
+                    message:
+                      '방 입장에 실패했습니다. 잠시 후 다시 시도해주세요.',
+                  });
+                }
+              },
+            });
+          },
+        },
+      );
+    }
   };
 
   return {
     formState: {
+      isEditMode,
       title,
       accessType,
       maxUser,
-      categoryId,
+      categoryId: finalCategoryId,
       isScheduled,
       startDate,
       startTime,

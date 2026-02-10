@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+﻿import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import { roomApi } from '@/api/room.api';
@@ -19,6 +19,8 @@ import type {
   DeleteScheduledRoomRequest,
   JoinRoomRequest,
   JoinRoomResponseData,
+  PatchLiveRoomRequest,
+  PatchLiveRoomResponseData,
   PatchScheduledRoomRequest,
   PatchScheduledRoomResponseData,
 } from '@/types/room.types';
@@ -138,6 +140,37 @@ export const useCreateRoom = () => {
 };
 
 /**
+ * 라이브 방 정보 수정
+ */
+export const useUpdateLiveRoom = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    PatchLiveRoomResponseData,
+    AxiosError<CommonResponse<null>>,
+    PatchLiveRoomRequest
+  >({
+    mutationFn: roomApi.updateRoom,
+    onSuccess: (data) => {
+      const roomId = data.roomId;
+      // 상세 정보 캐시 갱신
+      if (roomId) {
+        queryClient.invalidateQueries({ queryKey: roomKeys.detail(roomId) });
+      }
+      // 목록 캐시 갱신
+      queryClient.invalidateQueries({ queryKey: roomKeys.lives() });
+    },
+    onError: (error) => {
+      const msg = error.response?.data?.message || '방 수정에 실패했습니다.';
+      useModalStore.getState().openModal('alert', {
+        title: '수정 실패',
+        message: msg,
+      });
+    },
+  });
+};
+
+/**
  * 방 참여하기
  */
 export const useJoinRoom = () => {
@@ -235,7 +268,7 @@ export const useApplyScheduledRoom = () => {
 };
 
 /**
- * 방 정보 수정
+ * 예약된 방 정보 수정
  */
 export const useUpdateScheduledRoom = () => {
   const queryClient = useQueryClient();
@@ -252,9 +285,7 @@ export const useUpdateScheduledRoom = () => {
         queryClient.invalidateQueries({ queryKey: roomKeys.detail(roomId) });
       }
       queryClient.invalidateQueries({ queryKey: roomKeys.myScheduled() });
-      useModalStore
-        .getState()
-        .openModal('alert', { message: '방 정보가 수정되었습니다.' });
+      queryClient.invalidateQueries({ queryKey: roomKeys.reservations() });
     },
   });
 };

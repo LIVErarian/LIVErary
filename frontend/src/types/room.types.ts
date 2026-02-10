@@ -127,6 +127,19 @@ export interface CreateRoomResponseData {
 
 export type CreateRoomResponse = CommonResponse<CreateRoomResponseData>;
 
+// 방 수정
+export interface PatchLiveRoomRequest {
+  roomId: string;
+  title?: string;
+  maxUser?: number;
+  categoryId?: string;
+  isbn?: string;
+}
+
+export type PatchLiveRoomResponseData = ROOM_DETAIL;
+
+export type PatchLiveRoomResponse = CommonResponse<PatchLiveRoomResponseData>;
+
 // 방 참여
 export interface JoinRoomRequest {
   code?: string;
