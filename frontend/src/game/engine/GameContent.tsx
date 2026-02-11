@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 import { GameLayout } from '@/components/layout/GameLayout';
+import { GameChatWidget } from '@/features/chat/GameChatWidget';
 import {
   CATEGORY_MAP,
   FAIRY_PLAYLIST,
@@ -20,6 +21,8 @@ import { useReadingStore } from '@/store/useReadingStore';
 import { useSocketStore } from '@/store/useSocketStore';
 import { useSoundStore } from '@/store/useSoundStore';
 import { useGame } from './useGame';
+
+import * as styles from '@/components/layout/GameLayout.css';
 
 export const GameContent = () => {
   useReadingTimer(); // 독서 타이머 로직 활성화 (UI 없음)
@@ -203,6 +206,9 @@ export const GameContent = () => {
     <GameLayout canvasRef={containerRef} sideMenu={<GameSidebar />}>
       <BookTalkCategoryDropdown />
       <ConferenceRoomInfoPanel />
+      <div className={styles.interactive}>
+        <GameChatWidget />
+      </div>
     </GameLayout>
   );
 };
