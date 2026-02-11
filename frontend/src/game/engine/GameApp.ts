@@ -23,13 +23,13 @@ import { MAP_DATA } from '../map/mapAssets';
 import { MapManager } from './MapManager';
 import { PlayerManager } from './PlayerManager';
 
-import type { PartType } from '@/types/character.types';
+import type { PartType } from '@/types/game/character.types';
 import type {
   FloorType,
   MapZoneAction,
   MapZoneConfig,
-} from '@/types/map.types';
-import type { Direction, MoveRequest } from '@/types/socket.types';
+} from '@/types/game/map.types';
+import type { Direction, MoveRequest } from '@/types/socket/socket.types';
 
 import { contentFont } from '@/styles/global.css.ts';
 import { palette } from '@/styles/theme.css.ts';

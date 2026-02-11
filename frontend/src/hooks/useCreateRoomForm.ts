@@ -15,12 +15,12 @@ import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 import { getLocalDateString } from '@/utils/date';
 
-import type { Book } from '@/types/book.types';
+import type { Book } from '@/types/entities/book.types';
 import type {
   AccessType,
   RECOMMENDED_ROOM,
   RoomType,
-} from '@/types/room.types';
+} from '@/types/entities/room.types';
 
 export const useCreateRoomForm = (closeModal: () => void) => {
   const { openModal, modalProps } = useModalStore();

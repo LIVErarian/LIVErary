@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { RECOMMENDED_ROOM } from '@/types/room.types';
+import type { RECOMMENDED_ROOM } from '@/types/entities/room.types';
 
 interface BookTalkRoomState {
   /**

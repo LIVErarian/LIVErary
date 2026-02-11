@@ -1,15 +1,15 @@
 import { api } from './axios';
 
 import type {
-  GetBoardListRequest,
-  GetBoardListResponse,
-  GetBoardDetailResponse,
   CreateBoardRequest,
   CreateBoardResponse,
+  DeleteBoardResponse,
+  GetBoardDetailResponse,
+  GetBoardListRequest,
+  GetBoardListResponse,
   UpdateBoardRequest,
   UpdateBoardResponse,
-  DeleteBoardResponse,
-} from '@/types/board.types';
+} from '@/types/entities/board.types';
 
 export const boardApi = {
   /**
@@ -17,7 +17,9 @@ export const boardApi = {
    * @param params type, keyword, page, size, sort
    * @returns List<BoardResponse>(boardId, nickname, type, title, status, createdAt)
    */
-  getBoardList: async (params: GetBoardListRequest): Promise<GetBoardListResponse['data']> => {
+  getBoardList: async (
+    params: GetBoardListRequest,
+  ): Promise<GetBoardListResponse['data']> => {
     const { data } = await api.get<GetBoardListResponse>('/board', {
       params: {
         type: params.type,
@@ -40,7 +42,9 @@ export const boardApi = {
    * @param boardId 게시글 ID
    * @returns boardId, nickname, type, title, content, imageUrl, status, createdAt, targetRoomId, categoryName, bookTitle, bookAuthor, bookCoverUrl
    */
-  getBoardDetail: async (boardId: string): Promise<GetBoardDetailResponse['data']> => {
+  getBoardDetail: async (
+    boardId: string,
+  ): Promise<GetBoardDetailResponse['data']> => {
     const { data } = await api.get<GetBoardDetailResponse>(`/board/${boardId}`);
 
     if (!data.data) {
@@ -55,7 +59,9 @@ export const boardApi = {
    * @param req title, content, type, imageUrl, roomId, categoryName, bookTitle, bookAuthor, bookCoverUrl
    * @returns boardId
    */
-  createBoard: async (req: CreateBoardRequest): Promise<CreateBoardResponse['data']> => {
+  createBoard: async (
+    req: CreateBoardRequest,
+  ): Promise<CreateBoardResponse['data']> => {
     const { data } = await api.post<CreateBoardResponse>('/board', req);
     return data.data;
   },
@@ -65,9 +71,14 @@ export const boardApi = {
    * @param req boardId, title, content, imageUrl, roomId, categoryName, bookTitle, bookAuthor, bookCoverUrl
    * @returns boardId
    */
-  updateBoard: async (req: UpdateBoardRequest): Promise<UpdateBoardResponse['data']> => {
+  updateBoard: async (
+    req: UpdateBoardRequest,
+  ): Promise<UpdateBoardResponse['data']> => {
     const { boardId, ...body } = req;
-    const { data } = await api.patch<UpdateBoardResponse>(`/board/${boardId}`, body);
+    const { data } = await api.patch<UpdateBoardResponse>(
+      `/board/${boardId}`,
+      body,
+    );
     return data.data;
   },
 

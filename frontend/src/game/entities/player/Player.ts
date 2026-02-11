@@ -13,8 +13,8 @@ import type {
   CharacterLayer,
   CharacterParts,
   PartType,
-} from '@/types/character.types';
-import type { Direction } from '@/types/socket.types';
+} from '@/types/game/character.types';
+import type { Direction } from '@/types/socket/socket.types';
 
 import { contentFont } from '@/styles/global.css.ts';
 import { palette } from '@/styles/theme.css.ts';

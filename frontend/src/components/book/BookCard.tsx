@@ -9,8 +9,8 @@ import clsx from 'clsx'; // className 조합 유틸리티
 
 import { HeartButton } from '@/components/common/HeartButton';
 
-import type { Book } from '@/types/book.types';
-import type { UserBook } from '@/types/bookshelf.types';
+import type { Book } from '@/types/entities/book.types';
+import type { UserBook } from '@/types/entities/bookshelf.types';
 
 import * as styles from './BookCard.css';
 

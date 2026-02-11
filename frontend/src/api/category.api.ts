@@ -1,6 +1,9 @@
 import { api } from './axios';
 
-import type { Category, GetCategoryResponse } from '@/types/category.types';
+import type {
+  Category,
+  GetCategoryResponse,
+} from '@/types/entities/category.types';
 
 export const categoryApi = {
   /**

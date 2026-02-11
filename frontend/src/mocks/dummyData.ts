@@ -1,6 +1,6 @@
 // TODO: API 연결 후 삭제 필요
-import type { Book } from '@/types/book.types';
-import type { UserProfile } from '@/types/user.types';
+import type { Book } from '@/types/entities/book.types';
+import type { UserProfile } from '@/types/entities/user.types';
 
 export const DUMMY_USER: UserProfile = {
   userId: '1234-5678-uuid',

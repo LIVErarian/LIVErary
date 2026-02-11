@@ -4,8 +4,8 @@ import { Viewport } from 'pixi-viewport';
 import { useModalStore } from '@/store/useModalStore';
 import { Player } from '../entities/player/Player';
 
-import type { CharacterParts, PartType } from '@/types/character.types';
-import type { MoveBroadcast } from '@/types/socket.types';
+import type { CharacterParts, PartType } from '@/types/game/character.types';
+import type { MoveBroadcast } from '@/types/socket/socket.types';
 
 export class PlayerManager {
   private _viewport: Viewport;

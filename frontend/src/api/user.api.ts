@@ -1,10 +1,10 @@
 import { api } from './axios';
 
-import type { CommonResponse } from '@/types/api.types';
+import type { CommonResponse } from '@/types/common/api.types';
 import type {
   UserBooksResponse,
   UserBookStatus,
-} from '@/types/bookshelf.types';
+} from '@/types/entities/bookshelf.types';
 import type {
   getUserResponse,
   OtherProfile,
@@ -13,7 +13,7 @@ import type {
   UserPreferencesResponse,
   UserProfile,
   UserUpdateRequest,
-} from '@/types/user.types';
+} from '@/types/entities/user.types';
 
 export const userApi = {
   /**

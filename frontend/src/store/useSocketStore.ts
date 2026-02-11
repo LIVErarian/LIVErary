@@ -13,7 +13,7 @@ import type {
   MoveEnterRequest,
   MoveExitRequest,
   MoveRequest,
-} from '@/types/socket.types';
+} from '@/types/socket/socket.types';
 
 interface SocketState {
   client: Client | null;
