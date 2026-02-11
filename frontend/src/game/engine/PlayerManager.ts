@@ -63,7 +63,6 @@ export class PlayerManager {
       displayName,
       initialParts,
       this._myId,
-      true,
       handleMyClick,
     );
 
@@ -140,7 +139,6 @@ export class PlayerManager {
           data.nickname,
           initialParts,
           data.userId,
-          false,
           handleOtherClick,
         );
         this._viewport.addChild(otherPlayer);
@@ -149,7 +147,7 @@ export class PlayerManager {
 
       if (otherPlayer) {
         otherPlayer.setTargetPosition(data.x, data.y);
-        otherPlayer.setAnimation(data.direction, data.isMoving);
+        otherPlayer.setAnimation(data.direction, data.isMoving, data.isSitting);
       }
     });
   }

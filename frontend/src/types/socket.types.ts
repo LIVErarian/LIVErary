@@ -15,6 +15,7 @@ export type MoveEnterRequest = BasePosition;
 // [요청] 이동 중 (/app/move)
 export interface MoveRequest extends BasePosition {
   isMoving: boolean;
+  isSitting: boolean;
   clientTs: number; // 클라이언트 타임스탬프
 }
 
@@ -29,6 +30,7 @@ export interface MoveBroadcast extends BasePosition {
   userId: string;
   nickname: string;
   isMoving: boolean;
+  isSitting: boolean;
   serverTs: number;
 }
 

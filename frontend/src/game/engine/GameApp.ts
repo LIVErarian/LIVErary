@@ -302,6 +302,7 @@ export class GameApp {
       if (!this._isCtrlPressed) {
         this._isCtrlPressed = true;
         me.toggleSit();
+        this.sendMyPosition(false);
       }
     } else {
       this._isCtrlPressed = false;
@@ -395,6 +396,7 @@ export class GameApp {
         y: me.y,
         direction: this._lookingDirection,
         isMoving: true,
+        isSitting: me.isSitting,
         clientTs: Date.now(),
       };
 
@@ -489,6 +491,7 @@ export class GameApp {
       y: this._playerManager.me.y,
       direction: this._lookingDirection,
       isMoving,
+      isSitting: this._playerManager.me.isSitting,
       clientTs: Date.now(),
     };
     const { isConnected, sendMove } = useSocketStore.getState();
