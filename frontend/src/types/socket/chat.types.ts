@@ -18,7 +18,8 @@ export interface ChatEnterRequest {
 // [요청] 채팅 전송 시 (/app/chat/message)
 export interface ChatRequest extends BaseChat {
   floorId?: string; // LOCAL 채팅일 때 필수
-  targetUserId?: string; // WHISPER(귓속말)일 때 필수
+  targetUserId?: string; // 귓속말일 때 필수, ID
+  targetNickname?: string; // 표시용 닉네임
 }
 
 // [요청] 퇴장 시 (/app/chat/exit)
@@ -35,6 +36,7 @@ export interface ChatBroadcast extends BaseChat {
   senderId: string; // 보낸 사람 ID (말풍선 띄울 대상)
   senderNickname: string; // 채팅창에 표시할 이름
   targetUserId?: string; // 귓속말일 경우 받는 사람 ID
+  targetNickname?: string; // 귓속말일 경우 대상 이름
   timestamp: number; // 서버 시간 (정렬용)
   floorId?: string; // 어느 맵에서 온 건지 (LOCAL일 때)
 }
