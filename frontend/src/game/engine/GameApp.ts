@@ -198,10 +198,10 @@ export class GameApp {
       this._playerManager.me.setAnimation('DOWN', false);
     }
 
-    const { subscribeMove, unsubscribeMove, isConnected, sendEnter } =
+    const { joinChannel, leaveChannel, isConnected, sendEnter } =
       useSocketStore.getState();
 
-    unsubscribeMove({
+    leaveChannel({
       sendExit: true,
       exitFloorId: prevMovementChannelId || prevFloorId,
     });
@@ -214,7 +214,7 @@ export class GameApp {
         `[GameApp] ${floor}(${movementChannelId}) 구독 프로세스 시작`,
       );
 
-      await subscribeMove(movementChannelId, (moves) => {
+      await joinChannel(movementChannelId, (moves) => {
         this._playerManager.updateOtherPlayers(moves);
       });
 
@@ -783,7 +783,7 @@ export class GameApp {
 
   // destroy - 안전한 null 체크 추가
   public destroy() {
-    useSocketStore.getState().unsubscribeMove({
+    useSocketStore.getState().leaveChannel({
       sendExit: true,
       // mapManager가 있으면 currentFloorId 사용, 없으면 빈 문자열
       exitFloorId:

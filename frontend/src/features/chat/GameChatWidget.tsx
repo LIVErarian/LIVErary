@@ -1,9 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import { MAP_DATA } from '@/game/map/mapAssets';
 import { useAuthStore } from '@/store/useAuthStore';
 import { type TabType, useChatStore } from '@/store/useChatStore';
+import { useGameStore } from '@/store/useGameStore';
+import { useModalStore } from '@/store/useModalStore';
+import { useSocketStore } from '@/store/useSocketStore';
 
-import type { ChatBroadcast, ChatType } from '@/types/socket/chat.types';
+import type { FloorType } from '@/types/game/map.types';
+import type {
+  ChatBroadcast,
+  ChatRequest,
+  ChatType,
+} from '@/types/socket/chat.types';
 
 import * as styles from './GameChatWidget.css';
 
@@ -19,23 +28,24 @@ export const GameChatWidget = () => {
     setTab,
     closePrivateChat,
     toggleMinimize,
-    addMessage,
   } = useChatStore();
   const user = useAuthStore((state) => state.user);
 
   const MY_ID = user?.userId || 'guest';
-  const MY_NICKNAME = user?.nickname || '게스트';
+
+  const sendChat = useSocketStore((state) => state.sendChat);
+  const currentFloor = useGameStore((state) => state.currentFloor);
+  const { openModal } = useModalStore();
 
   const [inputValue, setInputValue] = useState('');
-
   const [position, setPosition] = useState({
     x: 150,
-    y: window.innerHeight - (WIDGET_HEIGHT + 40),
+    y: window.innerHeight - (WIDGET_HEIGHT + 30),
   });
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [sendTarget, setSendTarget] = useState<ChatType>('LOCAL');
+  const [sendTarget, setSendTarget] = useState<ChatType>('GLOBAL');
 
   const chatBodyRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
@@ -130,16 +140,33 @@ export const GameChatWidget = () => {
     e.preventDefault(); // 채팅 입력해도 새로고침 안 되도록
     if (!inputValue.trim()) return; // 빈 내용이면 무시
 
-    // 임시 메시지 추가
-    const tempMsg: ChatBroadcast = {
-      id: Date.now().toString(),
-      type: sendTarget,
+    const floorName = currentFloor || 'lobby';
+    const actualFloorId = MAP_DATA[floorName as FloorType]?.floorId;
+
+    // 서버로 보낼 데이터
+    const requestData: ChatRequest = {
+      type: sendTarget, // global, local, whisper
       content: inputValue,
-      senderId: MY_ID,
-      senderNickname: MY_NICKNAME,
-      timestamp: Date.now(),
     };
-    addMessage(tempMsg, MY_ID);
+
+    if (sendTarget === 'LOCAL') {
+      requestData.floorId = actualFloorId;
+    }
+
+    if (sendTarget === 'WHISPER') {
+      // user 탭을 보고 있다면 그 user에게 전송하면 됨
+      if (currentTab !== 'ALL' && currentTab !== 'LOCAL') {
+        requestData.targetUserId = currentTab;
+        requestData.targetNickname = privateChats[currentTab] || 'Unknown';
+      } else {
+        return openModal('alert', {
+          title: '알림',
+          message: '귓속말 대상을 선택해주세요.',
+        });
+      }
+    }
+
+    sendChat(requestData);
     setInputValue('');
   };
 
@@ -206,7 +233,11 @@ export const GameChatWidget = () => {
         <>
           <div ref={chatBodyRef} className={styles.messageList}>
             {filteredMessages.map((msg) => (
-              <MessageItem key={msg.id} msg={msg} />
+              <MessageItem
+                key={msg.id}
+                msg={msg}
+                myId={MY_ID} // ✅ myId를 props로 전달
+              />
             ))}
           </div>
 
@@ -278,7 +309,7 @@ const TabButton = ({
 );
 
 // 메세지별 색상 지정
-const MessageItem = ({ msg }: { msg: ChatBroadcast }) => {
+const MessageItem = ({ msg, myId }: { msg: ChatBroadcast; myId: string }) => {
   let color = '#fff';
   if (msg.type === 'GLOBAL') color = '#ffeb3b';
   if (msg.type === 'WHISPER') color = '#e040fb';
@@ -296,7 +327,15 @@ const MessageItem = ({ msg }: { msg: ChatBroadcast }) => {
         [{time}]
       </span>
       {msg.type !== 'SYSTEM' && (
-        <span className={styles.senderName}>{msg.senderNickname}:</span>
+        <>
+          {/* 내가 보낸 귓속말이면 (To. 상대방) 표시 */}
+          {msg.type === 'WHISPER' && msg.senderId === myId && (
+            <span style={{ marginRight: '4px' }}>
+              (To. {msg.targetNickname})
+            </span>
+          )}
+          <span className={styles.senderName}>{msg.senderNickname}:</span>
+        </>
       )}
       <span>{msg.content}</span>
     </div>
