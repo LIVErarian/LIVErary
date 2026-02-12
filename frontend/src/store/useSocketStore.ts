@@ -356,8 +356,6 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 const handleIncomingChat = (message: IMessage) => {
   if (!message.body) return;
 
-  console.log('📩 [Raw Message]:', message.body);
-
   try {
     const chatData: ChatBroadcast = JSON.parse(message.body);
 
