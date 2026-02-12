@@ -35,7 +35,7 @@ import type {
   PatchScheduledRoomResponseData,
   RECOMMENDED_ROOM,
   ROOM_DETAIL,
-} from '@/types/room.types';
+} from '@/types/entities/room.types';
 
 export const roomApi = {
   /**

@@ -4,7 +4,7 @@ import type {
   AttendanceHistoryApiResponse,
   AttendanceHistoryRequest,
   DailyAttendanceApiResponse,
-} from '@/types/attendance.types';
+} from '@/types/entities/attendance.types';
 
 /**
  * 출석 관리 API

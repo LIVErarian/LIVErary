@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import type { UserProfile } from '@/types/user.types';
+import type { UserProfile } from '@/types/entities/user.types';
 
 interface AuthState {
   // 상태

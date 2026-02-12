@@ -1,4 +1,4 @@
-import type { CommonResponse } from './api.types';
+import type { CommonResponse } from '../common/api.types';
 import type { FriendRelationStatus } from './friend.types';
 
 export type UserRole = 'USER' | 'ADMIN';

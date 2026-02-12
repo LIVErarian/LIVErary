@@ -10,7 +10,7 @@ import type {
   MapButtonConfig,
   MapCollisionConfig,
   MapZoneConfig,
-} from '@/types/map.types';
+} from '@/types/game/map.types';
 
 import { contentFont } from '@/styles/global.css.ts';
 

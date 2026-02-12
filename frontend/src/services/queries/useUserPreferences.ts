@@ -4,8 +4,8 @@ import { AxiosError } from 'axios';
 import { userApi } from '@/api/user.api';
 import { useModalStore } from '@/store/useModalStore';
 
-import type { CommonResponse } from '@/types/api.types';
-import type { UserPreferencesRequest } from '@/types/user.types';
+import type { CommonResponse } from '@/types/common/api.types';
+import type { UserPreferencesRequest } from '@/types/entities/user.types';
 
 export const useSavePreferences = () => {
   const queryClient = useQueryClient();

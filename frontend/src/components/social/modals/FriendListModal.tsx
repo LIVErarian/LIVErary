@@ -13,7 +13,7 @@ import {
 } from '@/services/queries/useFriend';
 import { useModalStore } from '@/store/useModalStore';
 
-import type { FriendListTabType } from '@/types/friend.types';
+import type { FriendListTabType } from '@/types/entities/friend.types';
 
 import * as styles from './FriendListModal.css';
 

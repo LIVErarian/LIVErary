@@ -8,7 +8,7 @@ import { useSearchBook, useToggleWishlist } from '@/services/queries/useBook';
 import { type ModalType, useModalStore } from '@/store/useModalStore';
 import { BookCard } from './BookCard';
 
-import type { Book } from '@/types/book.types';
+import type { Book } from '@/types/entities/book.types';
 
 import * as styles from './BookSearchModal.css';
 

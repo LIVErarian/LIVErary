@@ -2,7 +2,7 @@ import type {
   FloorType,
   MapCollisionConfig,
   MapConfig,
-} from '@/types/map.types';
+} from '@/types/game/map.types';
 
 // Tiled Map JSON 데이터의 타입 정의
 type TiledLayer = {

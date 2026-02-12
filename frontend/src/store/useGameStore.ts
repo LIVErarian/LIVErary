@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import type { FloorType } from '@/types/map.types';
+import type { FloorType } from '@/types/game/map.types';
 
 interface GameState {
   currentFloor: FloorType;

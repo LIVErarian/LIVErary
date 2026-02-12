@@ -18,7 +18,7 @@ import type {
   BookDetail,
   BookSearchResponse,
   WishStatusResponse,
-} from '@/types/book.types';
+} from '@/types/entities/book.types';
 
 export const useSearchBook = (
   keyword: string,

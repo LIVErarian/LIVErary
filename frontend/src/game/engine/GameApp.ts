@@ -23,13 +23,13 @@ import { MAP_DATA } from '../map/mapAssets';
 import { MapManager } from './MapManager';
 import { PlayerManager } from './PlayerManager';
 
-import type { PartType } from '@/types/character.types';
+import type { PartType } from '@/types/game/character.types';
 import type {
   FloorType,
   MapZoneAction,
   MapZoneConfig,
-} from '@/types/map.types';
-import type { Direction, MoveRequest } from '@/types/socket.types';
+} from '@/types/game/map.types';
+import type { Direction, MoveRequest } from '@/types/socket/socket.types';
 
 import { contentFont } from '@/styles/global.css.ts';
 import { palette } from '@/styles/theme.css.ts';
@@ -198,10 +198,10 @@ export class GameApp {
       this._playerManager.me.setAnimation('DOWN', false);
     }
 
-    const { subscribeMove, unsubscribeMove, isConnected, sendEnter } =
+    const { joinChannel, leaveChannel, isConnected, sendEnter } =
       useSocketStore.getState();
 
-    unsubscribeMove({
+    leaveChannel({
       sendExit: true,
       exitFloorId: prevMovementChannelId || prevFloorId,
     });
@@ -214,7 +214,7 @@ export class GameApp {
         `[GameApp] ${floor}(${movementChannelId}) 구독 프로세스 시작`,
       );
 
-      await subscribeMove(movementChannelId, (moves) => {
+      await joinChannel(movementChannelId, (moves) => {
         this._playerManager.updateOtherPlayers(moves);
       });
 
@@ -302,6 +302,7 @@ export class GameApp {
       if (!this._isCtrlPressed) {
         this._isCtrlPressed = true;
         me.toggleSit();
+        this.sendMyPosition(false);
       }
     } else {
       this._isCtrlPressed = false;
@@ -395,6 +396,7 @@ export class GameApp {
         y: me.y,
         direction: this._lookingDirection,
         isMoving: true,
+        isSitting: me.isSitting,
         clientTs: Date.now(),
       };
 
@@ -489,6 +491,7 @@ export class GameApp {
       y: this._playerManager.me.y,
       direction: this._lookingDirection,
       isMoving,
+      isSitting: this._playerManager.me.isSitting,
       clientTs: Date.now(),
     };
     const { isConnected, sendMove } = useSocketStore.getState();
@@ -780,7 +783,7 @@ export class GameApp {
 
   // destroy - 안전한 null 체크 추가
   public destroy() {
-    useSocketStore.getState().unsubscribeMove({
+    useSocketStore.getState().leaveChannel({
       sendExit: true,
       // mapManager가 있으면 currentFloorId 사용, 없으면 빈 문자열
       exitFloorId:

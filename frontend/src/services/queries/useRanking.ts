@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { rankingApi } from '@/api/ranking.api';
 
-import type { RankingType } from '@/types/ranking.types';
+import type { RankingType } from '@/types/entities/ranking.types';
 
 export const RANKING_KEYS = {
   all: ['ranking'] as const,

@@ -1,4 +1,4 @@
-import type { CommonResponse } from './api.types';
+import type { CommonResponse } from '../common/api.types';
 
 export type RoomType = 'READING' | 'TALK' | 'CONCERT' | 'STABLE';
 export type AccessType = 'PUBLIC' | 'PRIVATE';

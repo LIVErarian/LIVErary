@@ -5,7 +5,7 @@ import { useModalStore } from '@/store/useModalStore';
 import { PixelButton } from '../common/PixelButton';
 import { PixelInput } from '../common/PixelInput';
 
-import type { BoardType } from '@/types/board.types';
+import type { BoardType } from '@/types/entities/board.types';
 
 import * as styles from './BoardList.css';
 

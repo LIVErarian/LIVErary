@@ -23,8 +23,11 @@ import { useModalStore } from '@/store/useModalStore';
 import { BookCard } from './BookCard';
 import { BookSearchModal } from './BookSearchModal';
 
-import type { Book } from '@/types/book.types';
-import type { UserBook, UserBookStatus } from '@/types/bookshelf.types';
+import type { Book } from '@/types/entities/book.types';
+import type {
+  UserBook,
+  UserBookStatus,
+} from '@/types/entities/bookshelf.types';
 
 import * as styles from './BookshelfModal.css';
 

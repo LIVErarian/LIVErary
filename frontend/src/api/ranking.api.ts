@@ -1,6 +1,9 @@
 import { api } from './axios';
 
-import type { RankingListResponse, RankingType } from '@/types/ranking.types';
+import type {
+  RankingListResponse,
+  RankingType,
+} from '@/types/entities/ranking.types';
 
 export const rankingApi = {
   /**

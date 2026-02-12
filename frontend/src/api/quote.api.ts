@@ -1,6 +1,6 @@
 import { api } from './axios';
 
-import type { CommonResponse } from '@/types/api.types';
+import type { CommonResponse } from '@/types/common/api.types';
 
 export interface QuoteResponse {
   id: number;

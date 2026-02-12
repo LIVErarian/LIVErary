@@ -4,7 +4,10 @@ import { PixelButton } from '@/components/common/PixelButton';
 import { PixelModal } from '@/components/common/PixelModal';
 import { useRanking } from '@/services/queries/useRanking';
 
-import type { RankingResponse, RankingType } from '@/types/ranking.types';
+import type {
+  RankingResponse,
+  RankingType,
+} from '@/types/entities/ranking.types';
 
 import * as styles from './RankingModal.css';
 

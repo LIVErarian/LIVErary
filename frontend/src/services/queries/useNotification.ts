@@ -5,7 +5,7 @@ import { EventSourcePolyfill } from 'event-source-polyfill';
 import { fetchNotifications, readNotification } from '@/api/notification.api';
 import { useAuthStore } from '@/store/useAuthStore';
 
-import type { Notification } from '@/types/notification.types';
+import type { Notification } from '@/types/entities/notification.types';
 
 export const useNotification = () => {
   const queryClient = useQueryClient();

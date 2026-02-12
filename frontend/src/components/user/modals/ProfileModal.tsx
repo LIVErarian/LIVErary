@@ -16,7 +16,7 @@ import { useModalStore } from '@/store/useModalStore';
 import { BaseModal } from '../../common/BaseModal';
 import { PixelButton } from '../../common/PixelButton';
 
-import type { FriendRelationStatus } from '@/types/friend.types';
+import type { FriendRelationStatus } from '@/types/entities/friend.types';
 
 import * as styles from './ProfileModal.css';
 

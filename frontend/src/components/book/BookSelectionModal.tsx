@@ -10,8 +10,8 @@ import { useModalStore } from '@/store/useModalStore';
 import { useReadingStore } from '@/store/useReadingStore';
 import { BookSearchModal } from './BookSearchModal';
 
-import type { Book } from '@/types/book.types';
-import type { UserBookStatus } from '@/types/bookshelf.types';
+import type { Book } from '@/types/entities/book.types.ts';
+import type { UserBookStatus } from '@/types/entities/bookshelf.types.ts';
 
 import {
   activeTab as activeTabStyle,

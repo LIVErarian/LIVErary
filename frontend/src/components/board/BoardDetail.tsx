@@ -12,8 +12,8 @@ import { useModalStore } from '@/store/useModalStore';
 import { PixelButton } from '../common/PixelButton';
 import { ReviewList } from './ReviewList';
 
-import type { CommonResponse } from '@/types/api.types';
-import type { BoardDetail as BoardDetailData } from '@/types/board.types';
+import type { CommonResponse } from '@/types/common/api.types';
+import type { BoardDetail as BoardDetailData } from '@/types/entities/board.types';
 
 import * as styles from './BoardDetail.css';
 import { theme } from '@/styles/theme.css';

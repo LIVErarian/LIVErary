@@ -6,7 +6,7 @@ import type {
   FriendRequest,
   UserSearchRequest,
   UserSearchResponse,
-} from '@/types/friend.types';
+} from '@/types/entities/friend.types';
 
 export const friendApi = {
   searchUser: async (
