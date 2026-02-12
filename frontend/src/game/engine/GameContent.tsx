@@ -28,6 +28,7 @@ export const GameContent = () => {
   useReadingTimer(); // 독서 타이머 로직 활성화 (UI 없음)
   const containerRef = useRef<HTMLDivElement>(null);
   const lastFloorRef = useRef<string | null>(null);
+  const wasConnectedRef = useRef<boolean>(false); // 소켓 연결 상태 추적
 
   const { gameAppRef, isReady } = useGame(containerRef);
 
@@ -57,7 +58,7 @@ export const GameContent = () => {
     currentFloor === 'bookTalkFloor',
   );
 
-  const { connect, disconnect } = useSocketStore();
+  const { connect, disconnect, isConnected } = useSocketStore();
   const { openModal } = useModalStore();
 
   useEffect(() => {
@@ -123,7 +124,10 @@ export const GameContent = () => {
       const isSameFloor = lastFloorRef.current === currentFloor;
       const hasSpawnPoint = !!spawnPoint;
 
-      if (isSameFloor && !hasSpawnPoint) return;
+      // 소켓 연결 상태가 변했다면 재실행
+      const isSocketStatusChanged = wasConnectedRef.current !== isConnected;
+
+      if (isSameFloor && !hasSpawnPoint && !isSocketStatusChanged) return;
 
       /**
        * 독서 모임 공간(bookTalkFloor)은 "존 입장 시점"에만 room join을 허용한다.
@@ -154,6 +158,7 @@ export const GameContent = () => {
     spawnPoint,
     gameAppRef,
     isReady,
+    isConnected,
     setRoomId,
     clearRoom4Room,
   ]);
