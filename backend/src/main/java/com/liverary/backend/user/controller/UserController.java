@@ -18,9 +18,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -120,6 +122,25 @@ public class UserController {
         UUID userId = getUserId(user);
 
         userService.updateCharacter(userId, request);
+
+        return BaseResponse.success();
+    }
+
+    /**
+     * 프로필 이미지 수정
+     *
+     * @param user 인증된 사용자 정보
+     * @param file 업로드할 이미지 파일
+     * @return 성공 응답
+     */
+    @PatchMapping(value = "/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BaseResponse<Void> updateProfileImage(
+            @AuthenticationPrincipal UserDetails user,
+            @RequestPart("file") MultipartFile file) {
+
+        UUID userId = getUserId(user);
+
+        userService.updateProfileImage(userId, file);
 
         return BaseResponse.success();
     }

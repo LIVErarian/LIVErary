@@ -58,6 +58,10 @@ public class User {
     @Embedded
     private Character character;
 
+    // 프로필 이미지 URL
+    @Column
+    private String profileImageUrl;
+
     /**
      * User 엔티티 생성을 위한 빌더 패턴 생성자
      *
@@ -95,6 +99,16 @@ public class User {
      */
     public void updateCharacter(Character character) {
         this.character = character;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 프로필 이미지 수정
+     *
+     * @param profileImageUrl 수정할 프로필 이미지 URL
+     */
+    public void updateProfileImage(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
         this.updatedAt = LocalDateTime.now();
     }
 

@@ -27,6 +27,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import com.liverary.backend.common.service.LocalFileService;
 
 import java.util.List;
 import java.util.UUID;
@@ -47,6 +49,7 @@ public class UserService {
         private final RankingService rankingService;
         private final ReadingLogRepository readingLogRepository;
         private final AttendanceService attendanceService;
+        private final LocalFileService localFileService;
 
         /**
          * 사용자의 프로필 정보와 상태별 도서 활동 내역 조회
@@ -122,6 +125,24 @@ public class UserService {
 
                 // 캐릭터 업데이트
                 user.updateCharacter(request.toEntity());
+        }
+
+        /**
+         * 프로필 이미지 수정
+         *
+         * @param userId 사용자 UUID
+         * @param file   업로드할 이미지 파일
+         */
+        @Transactional
+        public void updateProfileImage(UUID userId, MultipartFile file) {
+                User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+
+                // 파일 업로드 (LocalFileService 사용)
+                String imageUrl = localFileService.uploadFile(file);
+
+                // 유저 정보 업데이트
+                user.updateProfileImage(imageUrl);
         }
 
         /**
