@@ -54,13 +54,17 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    // 캐릭터 커스터마이징 정보
+    @Embedded
+    private Character character;
+
     /**
      * User 엔티티 생성을 위한 빌더 패턴 생성자
      *
      * @param nickname 사용자 닉네임
-     * @param email 사용자 이메일
+     * @param email    사용자 이메일
      * @param password 사용자 비밀번호
-     * @param role 사용자 권한 (기본값: USER)
+     * @param role     사용자 권한 (기본값: USER)
      */
     @Builder
     public User(String nickname, String email, String password, Role role) {
@@ -71,6 +75,7 @@ public class User {
         this.totalReadingTime = 0L;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.character = Character.createDefault();
     }
 
     /**
@@ -80,6 +85,16 @@ public class User {
      */
     public void updateProfile(UserUpdateRequest request) {
         this.nickname = request.getNickname();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 캐릭터 정보 수정
+     *
+     * @param character 수정할 캐릭터 정보
+     */
+    public void updateCharacter(Character character) {
+        this.character = character;
         this.updatedAt = LocalDateTime.now();
     }
 

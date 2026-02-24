@@ -4,6 +4,7 @@ import com.liverary.backend.bookHistory.domain.BookStatus;
 import com.liverary.backend.common.dto.BaseResponse;
 import com.liverary.backend.exception.BaseException;
 import com.liverary.backend.exception.ErrorCode;
+import com.liverary.backend.user.dto.request.CharacterUpdateRequest;
 import com.liverary.backend.user.dto.request.UserPreferenceCreateRequest;
 import com.liverary.backend.user.dto.request.UserPreferenceUpdateRequest;
 import com.liverary.backend.user.dto.request.UserUpdateRequest;
@@ -43,7 +44,7 @@ public class UserController {
     /**
      * 현재 로그인한 사용자의 마이페이지 정보 조회
      *
-     * @param user     인증된 사용자 정보
+     * @param user 인증된 사용자 정보
      * @return 성공 시 ProfileResponse를 담은 BaseResponse
      */
     @GetMapping
@@ -60,8 +61,8 @@ public class UserController {
     /**
      * 특정 상태의 도서 목록을 페이징하여 조회
      *
-     * @param user   인증된 사용자 정보
-     * @param status 조회할 도서 상태
+     * @param user     인증된 사용자 정보
+     * @param status   조회할 도서 상태
      * @param pageable 페이징 설정 (기본값: 페이지당 10개 항목)
      * @return 페이징된 도서 목록을 담은 BaseResponse
      */
@@ -77,8 +78,8 @@ public class UserController {
         Pageable sortedPageable = org.springframework.data.domain.PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
-                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "updatedAt")
-        );
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC,
+                        "updatedAt"));
 
         Page<BookSummary> response = userService.getUserBooksByStatus(userId, status, sortedPageable);
 
@@ -100,6 +101,25 @@ public class UserController {
         UUID userId = getUserId(user);
 
         userService.updateProfile(userId, request);
+
+        return BaseResponse.success();
+    }
+
+    /**
+     * 캐릭터 정보 수정
+     *
+     * @param user    인증된 사용자 정보
+     * @param request 수정할 캐릭터 정보 객체
+     * @return 성공 응답
+     */
+    @PatchMapping("/character")
+    public BaseResponse<Void> updateCharacter(
+            @AuthenticationPrincipal UserDetails user,
+            @Valid @RequestBody CharacterUpdateRequest request) {
+
+        UUID userId = getUserId(user);
+
+        userService.updateCharacter(userId, request);
 
         return BaseResponse.success();
     }
@@ -162,7 +182,7 @@ public class UserController {
     /**
      * 타인 프로필 조회
      *
-     * @param user 인증된 사용자 정보
+     * @param user    인증된 사용자 정보
      * @param otherId 조회할 사용자 UUID
      * @return 타인 프로필 정보를 담은 응답 객체
      */
