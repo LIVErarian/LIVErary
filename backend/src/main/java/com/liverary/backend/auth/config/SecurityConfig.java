@@ -56,6 +56,10 @@ public class SecurityConfig {
                                 // WebSocket 핸드셰이크 허용
                                 "/wss",
 
+                                // Monitoring endpoint 허용 (Prometheus scrape)
+                                "/actuator/health",
+                                "/actuator/prometheus",
+
                                 // Swagger 관련 api 허용
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",

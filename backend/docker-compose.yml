@@ -69,6 +69,38 @@ services:
     labels: # 스프링 시작할 때 준비될 필요 x
       org.springframework.boot.readiness-check.tcp.disable: "true"
 
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.8.2
+    container_name: liverary-node-exporter
+    command:
+      - --path.procfs=/host/proc
+      - --path.rootfs=/rootfs
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    restart: unless-stopped
+
+  mysqld-exporter:
+    image: quay.io/prometheus/mysqld-exporter:v0.16.0
+    container_name: liverary-mysqld-exporter
+    command:
+      - --mysqld.address=${MYSQLD_EXPORTER_HOST}:${MYSQLD_EXPORTER_PORT}
+      - --mysqld.username=${MYSQLD_EXPORTER_USER}
+    environment:
+      - MYSQLD_EXPORTER_PASSWORD=${MYSQLD_EXPORTER_PASSWORD}
+    ports:
+      - "9104:9104"
+    depends_on:
+      - mysql
+    networks:
+      - appnet
+    restart: unless-stopped
+
 networks:
   appnet:
     driver: bridge
