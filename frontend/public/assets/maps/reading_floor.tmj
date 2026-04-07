@@ -113,7 +113,7 @@
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 777, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 777, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 777, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 777, 0,
+            0, 0, 891, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 777, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 797, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":20,
@@ -206,7 +206,7 @@
             0, 732, 0, 0, 0, 0, 0, 752, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 757, 0,
             0, 732, 0, 0, 0, 0, 0, 712, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 757, 0,
             0, 732, 0, 0, 0, 0, 0, 732, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 777, 0,
-            0, 752, 0, 0, 0, 0, 0, 752, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 752, 891, 0, 0, 0, 0, 752, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":20,
@@ -280,9 +280,350 @@
          "width":30,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":16,
+         "name":"VISUAL",
+         "objects":[
+                {
+                 "height":49,
+                 "id":2,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":33,
+                 "x":447,
+                 "y":294
+                }, 
+                {
+                 "height":26,
+                 "id":3,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":30,
+                 "x":545,
+                 "y":332
+                }, 
+                {
+                 "height":49,
+                 "id":4,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":42,
+                 "x":334,
+                 "y":78
+                }, 
+                {
+                 "height":32,
+                 "id":18,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":30,
+                 "x":384,
+                 "y":230
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":17,
+         "name":"INTERACTION",
+         "objects":[
+                {
+                 "height":148,
+                 "id":7,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":19,
+                 "x":69,
+                 "y":406
+                }, 
+                {
+                 "height":56,
+                 "id":8,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":22,
+                 "x":198,
+                 "y":407
+                }, 
+                {
+                 "height":56,
+                 "id":9,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":19,
+                 "x":261,
+                 "y":409
+                }, 
+                {
+                 "height":50,
+                 "id":10,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":20,
+                 "x":198,
+                 "y":507
+                }, 
+                {
+                 "height":49,
+                 "id":11,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":22,
+                 "x":260,
+                 "y":507
+                }, 
+                {
+                 "height":112,
+                 "id":12,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":21,
+                 "x":678,
+                 "y":236
+                }, 
+                {
+                 "height":21,
+                 "id":13,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":121,
+                 "x":708,
+                 "y":199
+                }, 
+                {
+                 "height":112,
+                 "id":14,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":19,
+                 "x":836,
+                 "y":236
+                }, 
+                {
+                 "height":19,
+                 "id":15,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":123,
+                 "x":706,
+                 "y":355
+                }, 
+                {
+                 "height":28,
+                 "id":16,
+                 "name":"reading-librarian",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":57,
+                 "x":433,
+                 "y":386
+                }, 
+                {
+                 "height":29,
+                 "id":17,
+                 "name":"reading-search",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":56,
+                 "x":532,
+                 "y":386
+                }, 
+                {
+                 "height":34,
+                 "id":19,
+                 "name":"trophie",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":31,
+                 "x":353,
+                 "y":240
+                }, 
+                {
+                 "height":24,
+                 "id":21,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":31,
+                 "x":112,
+                 "y":244
+                }, 
+                {
+                 "height":27,
+                 "id":22,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":28,
+                 "x":211,
+                 "y":214
+                }, 
+                {
+                 "height":26,
+                 "id":23,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":25,
+                 "x":693,
+                 "y":469
+                }, 
+                {
+                 "height":29,
+                 "id":24,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":26,
+                 "x":787,
+                 "y":437
+                }, 
+                {
+                 "height":25,
+                 "id":25,
+                 "name":"reading-concentration",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":23,
+                 "x":821,
+                 "y":534
+                }, 
+                {
+                 "height":49,
+                 "id":33,
+                 "name":"reading-board-click",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":93,
+                 "x":449,
+                 "y":150
+                }, 
+                {
+                 "height":27,
+                 "id":35,
+                 "name":"reading-bookshelf",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":122,
+                 "x":33,
+                 "y":162
+                }, 
+                {
+                 "height":23,
+                 "id":36,
+                 "name":"reading-bookshelf",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":55,
+                 "x":164,
+                 "y":163
+                }, 
+                {
+                 "height":24,
+                 "id":37,
+                 "name":"reading-bookshelf",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":69,
+                 "x":229,
+                 "y":162
+                }, 
+                {
+                 "height":24,
+                 "id":38,
+                 "name":"reading-bookshelf",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":105,
+                 "x":629,
+                 "y":161
+                }, 
+                {
+                 "height":19,
+                 "id":39,
+                 "name":"reading-bookshelf",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":56,
+                 "x":741,
+                 "y":162
+                }, 
+                {
+                 "height":20,
+                 "id":41,
+                 "name":"reading-bookshelf",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":99,
+                 "x":806,
+                 "y":162
+                }, 
+                {
+                 "height":38,
+                 "id":42,
+                 "name":"reading-elevator",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":62,
+                 "x":322,
+                 "y":130
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":16,
- "nextobjectid":1,
+ "nextlayerid":18,
+ "nextobjectid":44,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
@@ -290,27 +631,27 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"Inside_A2.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/Inside_A2.tsx"
         }, 
         {
          "firstgid":193,
-         "source":"Inside_B.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/Inside_B.tsx"
         }, 
         {
          "firstgid":449,
-         "source":"bookshelf.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/bookshelf.tsx"
         }, 
         {
          "firstgid":452,
-         "source":"interior.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/interior.tsx"
         }, 
         {
          "firstgid":708,
-         "source":"liverary_asset.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/liverary_asset.tsx"
         }, 
         {
          "firstgid":1108,
-         "source":"Interior_full.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/Interior_full.tsx"
         }],
  "tilewidth":32,
  "type":"map",

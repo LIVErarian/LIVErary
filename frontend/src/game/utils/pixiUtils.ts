@@ -1,6 +1,6 @@
 import { Rectangle, Texture } from 'pixi.js';
 
-import type { Direction } from '@/types/socket.types';
+import type { Direction } from '@/types/socket/socket.types';
 
 /**
  * 스프라이트 시트를 행(row)과 열(col)로 나누어 방향별 텍스처 배열로 반환합니다.

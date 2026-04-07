@@ -19,6 +19,7 @@ export const manifest = {
       name: 'maps',
       assets: [
         { alias: 'myRoom', src: '/assets/maps/my_room.png' },
+        { alias: 'myRoomTmj', src: '/assets/maps/my_room.tmj' },
         { alias: 'bookConcert', src: '/assets/maps/book_concert_floor.png' },
         { alias: 'bookConcertTmj', src: '/assets/maps/book_concert.tmj' },
         { alias: 'bookTalkBasic', src: '/assets/maps/book_talk_floor.png' },

@@ -2,7 +2,7 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
 import { useAuthStore } from '@/store/useAuthStore';
 
-import type { ReissueResponse } from '@/types/auth.types';
+import type { ReissueResponse } from '@/types/entities/auth.types';
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;

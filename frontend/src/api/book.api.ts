@@ -1,11 +1,11 @@
 import { api } from './axios';
 
-import type { CommonResponse } from '@/types/api.types';
+import type { CommonResponse } from '@/types/common/api.types';
 import type {
   BookDetail,
   BookSearchResponse,
   WishStatusResponse,
-} from '@/types/book.types';
+} from '@/types/entities/book.types';
 
 // 책 검색
 export const searchBook = async (

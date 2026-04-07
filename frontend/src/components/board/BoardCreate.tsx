@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
 import { PixelButton } from '../common/PixelButton';
 
-import type { BoardType } from '@/types/board.types';
+import type { BoardType } from '@/types/entities/board.types';
 
 import * as styles from './BoardCreate.css';
 import { theme } from '@/styles/theme.css';

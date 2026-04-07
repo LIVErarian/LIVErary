@@ -9,7 +9,7 @@ import { useDebounce } from '@/hooks/common/useDebounce';
 import { useUpdateLiveRoom } from '@/services/mutations/useRoomMutations';
 import { useModalStore } from '@/store/useModalStore';
 
-import type { Book } from '@/types/book.types';
+import type { Book } from '@/types/entities/book.types';
 
 import * as styles from './CreateRoomModal.css';
 

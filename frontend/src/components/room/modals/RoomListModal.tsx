@@ -17,7 +17,7 @@ import type {
   MyScheduledRoomResponseData,
   PageResponse,
   ROOM_DETAIL,
-} from '@/types/room.types';
+} from '@/types/entities/room.types';
 
 import * as styles from './RoomListModal.css';
 

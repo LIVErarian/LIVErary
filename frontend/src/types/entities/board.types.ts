@@ -1,4 +1,4 @@
-import type { CommonResponse } from './api.types';
+import type { CommonResponse } from '../common/api.types';
 
 // ======================= Enums =======================
 export type BoardType = 'PROMOTION' | 'INQUIRY' | 'NOTICE';

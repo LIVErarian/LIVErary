@@ -4,7 +4,7 @@ import { AxiosError } from 'axios';
 import { boardApi } from '@/api/board.api';
 import { useModalStore } from '@/store/useModalStore';
 
-import type { CommonResponse } from '@/types/api.types';
+import type { CommonResponse } from '@/types/common/api.types';
 import type {
   BoardCreateResponseData,
   BoardDetail,
@@ -12,7 +12,7 @@ import type {
   CreateBoardRequest,
   GetBoardListRequest,
   UpdateBoardRequest,
-} from '@/types/board.types';
+} from '@/types/entities/board.types';
 
 // Query Keys
 export const BOARD_KEYS = {

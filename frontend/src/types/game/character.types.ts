@@ -1,6 +1,6 @@
 import { AnimatedSprite, Texture } from 'pixi.js';
 
-import type { Direction } from '@/types/socket.types';
+import type { Direction } from '@/types/socket/socket.types';
 
 // 캐릭터의 파츠 (순서대로 정의해야 함)
 export type PartType = 'body' | 'pants' | 'shirt' | 'hair';

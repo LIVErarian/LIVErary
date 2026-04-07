@@ -11,7 +11,7 @@ import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
 import { useSoundStore } from '@/store/useSoundStore';
 
-import type { FloorType } from '@/types/map.types';
+import type { FloorType } from '@/types/game/map.types';
 
 import * as styles from '@/components/layout/GameLayout.css';
 

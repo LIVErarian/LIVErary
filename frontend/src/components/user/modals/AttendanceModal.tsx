@@ -10,7 +10,7 @@ import { PixelModal } from '@/components/common/PixelModal';
 import { useModalStore } from '@/store/useModalStore';
 import { useReadingStore } from '@/store/useReadingStore';
 
-import type { AttendanceHistoryResponse } from '@/types/attendance.types';
+import type { AttendanceHistoryResponse } from '@/types/entities/attendance.types';
 
 import * as styles from './AttendanceModal.css';
 

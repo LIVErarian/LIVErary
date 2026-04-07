@@ -8,7 +8,7 @@ import type {
   GetReviewListResponse,
   UpdateReviewRequest,
   UpdateReviewResponse,
-} from '@/types/review.types';
+} from '@/types/entities/review.types';
 
 /**
  * 리뷰(댓글) 관련 API 통신 모듈

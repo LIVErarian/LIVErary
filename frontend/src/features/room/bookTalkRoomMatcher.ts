@@ -1,6 +1,6 @@
 import { getBookTalkSlotIndex } from './bookTalkRoomSlots';
 
-import type { RECOMMENDED_ROOM } from '@/types/room.types';
+import type { RECOMMENDED_ROOM } from '@/types/entities/room.types';
 
 /**
  * 독서 모임 공간의 zone(room-1 ~ room-4)과

@@ -1,7 +1,7 @@
 import { api } from './axios';
 
-import type { CommonResponse } from '@/types/api.types';
-import type { Notification } from '@/types/notification.types';
+import type { CommonResponse } from '@/types/common/api.types';
+import type { Notification } from '@/types/entities/notification.types';
 
 // 알림 목록 조회
 export const fetchNotifications = async (): Promise<Notification[]> => {
