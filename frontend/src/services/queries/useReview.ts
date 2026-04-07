@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { reviewApi } from '@/api/review.api';
 
-import type { GetReviewListRequest } from '@/types/review.types';
+import type { GetReviewListRequest } from '@/types/entities/review.types';
 
 export const REVIEW_KEYS = {
   all: ['reviews'] as const,

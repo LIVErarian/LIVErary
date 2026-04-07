@@ -8,8 +8,8 @@ import { useModalStore } from '@/store/useModalStore';
 import { categoryKeys } from '../queries/useCategory';
 import { roomKeys } from '../queries/useRoomQueries';
 
-import type { CommonResponse } from '@/types/api.types';
-import type { GetCategoryResponse } from '@/types/category.types';
+import type { CommonResponse } from '@/types/common/api.types';
+import type { GetCategoryResponse } from '@/types/entities/category.types';
 import type {
   ApplyScheduledRoomRequest,
   ApplyScheduledRoomResponseData,
@@ -23,7 +23,7 @@ import type {
   PatchLiveRoomResponseData,
   PatchScheduledRoomRequest,
   PatchScheduledRoomResponseData,
-} from '@/types/room.types';
+} from '@/types/entities/room.types';
 
 /**
  * 방 생성하기

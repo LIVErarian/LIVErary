@@ -137,7 +137,10 @@ docker-compose.override.yml
 
 # 환경 변수 및 비밀 키
 .env
+<<<<<<< Updated upstream
 .env.local
+=======
+>>>>>>> Stashed changes
 *.pem
 *.pub
 *.key

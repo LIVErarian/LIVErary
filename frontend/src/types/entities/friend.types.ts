@@ -1,4 +1,4 @@
-import type { CommonResponse } from './api.types';
+import type { CommonResponse } from '../common/api.types';
 
 // 페이징 공통 응답 (friend 도메인 로컬 정의)
 export interface PageResponse<T> {

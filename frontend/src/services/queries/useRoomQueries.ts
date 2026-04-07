@@ -6,7 +6,7 @@ import type {
   GetLiveRoomListRequest,
   GetReservationRoomListRequest,
   GetRoomSearchRequest,
-} from '@/types/room.types';
+} from '@/types/entities/room.types';
 
 // Query Keys
 export const roomKeys = {

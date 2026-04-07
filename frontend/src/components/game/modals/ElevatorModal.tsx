@@ -5,7 +5,7 @@ import { useGameStore } from '@/store/useGameStore';
 import { useModalStore } from '@/store/useModalStore';
 import { useSocketStore } from '@/store/useSocketStore';
 
-import type { FloorType } from '@/types/map.types';
+import type { FloorType } from '@/types/game/map.types';
 
 interface ElevatorModalProps {
   isOpen: boolean;

@@ -4,7 +4,7 @@ import { useDeleteReview, useUpdateReview } from '@/services/queries/useReview';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useModalStore } from '@/store/useModalStore';
 
-import type { ReviewData } from '@/types/review.types';
+import type { ReviewData } from '@/types/entities/review.types';
 
 import * as styles from './Review.css';
 

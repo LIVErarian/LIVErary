@@ -3,14 +3,16 @@ import { Viewport } from 'pixi-viewport';
 
 import { BOOK_TALK_ZONE_IDS } from '@/features/room/bookTalkRoomSlots';
 import { useBookTalkRoomStore } from '@/store/useBookTalkRoomStore';
-import { getMapProps, MAP_DATA, type TiledMap } from '../map/mapAssets';
+import { MAP_DATA } from '../map/mapAssets';
+import { getMapProps, parseMapZones } from '../utils/mapParser';
 
 import type {
   FloorType,
   MapButtonConfig,
   MapCollisionConfig,
-  MapZoneConfig,
-} from '@/types/map.types';
+  MapZoneRuntime,
+  TiledMap,
+} from '@/types/game/map.types';
 
 import { contentFont } from '@/styles/global.css.ts';
 
@@ -37,9 +39,7 @@ export class MapManager {
   private _collisionTileWidth: number = 0;
   private _collisionTileHeight: number = 0;
 
-  public mapZones: Array<
-    MapZoneConfig & { absX: number; absY: number; absW: number; absH: number }
-  > = [];
+  public mapZones: MapZoneRuntime[] = [];
 
   private readonly DEFAULT_WIDTH = 1440;
   private readonly DEFAULT_HEIGHT = 810;
@@ -59,6 +59,7 @@ export class MapManager {
 
     // texture 이미지 가져오기
     const texture = Assets.get(mapConfig.imgAlias);
+
     let tiledData: TiledMap | null = null;
     if (mapConfig.jsonAlias) {
       tiledData = Assets.get(mapConfig.jsonAlias);
@@ -86,7 +87,9 @@ export class MapManager {
     // 각 요소 업데이트
     this.updateCollision(mapProps.collision);
     this.updateMapButtons(mapConfig.buttons);
-    this.updateMapZones(mapConfig.zones);
+
+    const parsedZones = parseMapZones(tiledData, mapConfig.zones);
+    this.updateMapZones(parsedZones);
     this.updateBookTalkRoomInfoOverlay(floor);
 
     return { width: this.worldWidth, height: this.worldHeight };
@@ -199,14 +202,8 @@ export class MapManager {
     this._viewport.addChild(container);
   }
 
-  private updateMapZones(zones?: MapZoneConfig[]) {
-    this.mapZones = (zones ?? []).map((zone) => ({
-      ...zone,
-      absX: zone.x * this.worldWidth,
-      absY: zone.y * this.worldHeight,
-      absW: zone.width * this.worldWidth,
-      absH: zone.height * this.worldHeight,
-    }));
+  private updateMapZones(zones?: MapZoneRuntime[]) {
+    this.mapZones = zones ?? [];
   }
 
   /**
@@ -232,11 +229,22 @@ export class MapManager {
       const zone = this.mapZones.find((entry) => entry.id === zoneId);
       if (!zone) return;
 
-      // 각 zone의 좌상단 기준으로 약간 오른쪽/아래에 고정 배치
-      const labelLeftX = Math.round(zone.absX + 20);
-      const labelTopY = Math.round(zone.absY + 20);
       const cardWidth = 176;
       const cardHeight = 40;
+
+      // VISUAL 레이어가 존재하면 해당 좌표/크기 사용, 없으면 INTERACTION 좌표로 폴백
+      const baseX = zone.visual ? zone.visual.x : zone.x;
+      const baseY = zone.visual ? zone.visual.y : zone.y;
+      const baseWidth = zone.visual ? zone.visual.width : zone.width;
+      const baseHeight = zone.visual ? zone.visual.height : zone.height;
+
+      // 그려진 구역(방 전체)의 가로 중앙에 배치
+      const labelLeftX = Math.round(baseX + baseWidth / 2 - cardWidth / 2);
+
+      // 세로 위치 조정: 방의 중앙에서 살짝 위쪽으로 배치하여 테이블/캐릭터를 가리지 않도록 함
+      const labelTopY = Math.round(
+        baseY + baseHeight / 2 - cardHeight / 2 - 30,
+      );
 
       const labelBackground = new Graphics();
       labelBackground.roundRect(0, 0, cardWidth, cardHeight, 7).fill({

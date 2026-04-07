@@ -1,7 +1,7 @@
 import type {
   ReadBooksResponse,
   WishedBooksResponse,
-} from '@/types/bookshelf.types';
+} from '@/types/entities/bookshelf.types';
 
 // 찜한 책 MOCK 데이터
 export const MOCK_WISHED_BOOKS: WishedBooksResponse = {

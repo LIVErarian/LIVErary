@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { ROOM_DETAIL } from '@/types/room.types';
+import type { ROOM_DETAIL } from '@/types/entities/room.types';
 
 export type ModalType =
   | 'settings'

@@ -9,8 +9,11 @@ import { AxiosError } from 'axios';
 import { friendApi } from '@/api/friend.api';
 import { useModalStore } from '@/store/useModalStore';
 
-import type { CommonResponse } from '@/types/api.types';
-import type { FriendRequest, UserSearchRequest } from '@/types/friend.types';
+import type { CommonResponse } from '@/types/common/api.types';
+import type {
+  FriendRequest,
+  UserSearchRequest,
+} from '@/types/entities/friend.types';
 
 export const FRIEND_KEYS = {
   all: ['friends'] as const,

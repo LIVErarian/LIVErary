@@ -1,4 +1,4 @@
-import type { CommonResponse } from './api.types';
+import type { CommonResponse } from '../common/api.types';
 
 // 유저 정보
 export interface UserInfo {

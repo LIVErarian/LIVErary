@@ -280,9 +280,229 @@
          "width":30,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":16,
+         "name":"INTERACTION",
+         "objects":[
+                {
+                 "height":30,
+                 "id":2,
+                 "name":"talk-elevator",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":63.3333,
+                 "x":320.667,
+                 "y":128.333
+                }, 
+                {
+                 "height":31.3333,
+                 "id":3,
+                 "name":"talk-librarian",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":53,
+                 "x":437,
+                 "y":255.667
+                }, 
+                {
+                 "height":30.3333,
+                 "id":4,
+                 "name":"talk-search",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":49.6667,
+                 "x":537.333,
+                 "y":256.667
+                }, 
+                {
+                 "height":30.875,
+                 "id":5,
+                 "name":"talk-bookshelf",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":32,
+                 "x":608.125,
+                 "y":160.625
+                }, 
+                {
+                 "height":11,
+                 "id":7,
+                 "name":"room-1",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":64,
+                 "x":129,
+                 "y":329
+                }, 
+                {
+                 "height":8,
+                 "id":8,
+                 "name":"room-3",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":60,
+                 "x":131,
+                 "y":457
+                }, 
+                {
+                 "height":10,
+                 "id":9,
+                 "name":"room-2",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":59,
+                 "x":771,
+                 "y":329
+                }, 
+                {
+                 "height":12,
+                 "id":10,
+                 "name":"room-4",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":59,
+                 "x":771,
+                 "y":456
+                }, 
+                {
+                 "height":46,
+                 "id":11,
+                 "name":"talk-board",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":92,
+                 "x":450,
+                 "y":56
+                }, 
+                {
+                 "height":28,
+                 "id":12,
+                 "name":"talk-bookshelf",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":62,
+                 "x":385,
+                 "y":354
+                }, 
+                {
+                 "height":30,
+                 "id":13,
+                 "name":"talk-bookshelf",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":64,
+                 "x":545,
+                 "y":353
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":17,
+         "name":"VISUAL",
+         "objects":[
+                {
+                 "height":49,
+                 "id":14,
+                 "name":"talk-elevator",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":43,
+                 "x":334,
+                 "y":79
+                }, 
+                {
+                 "height":48,
+                 "id":15,
+                 "name":"talk-librarian",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":32,
+                 "x":448,
+                 "y":166
+                }, 
+                {
+                 "height":27,
+                 "id":16,
+                 "name":"talk-search",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":28,
+                 "x":546,
+                 "y":204
+                }, 
+                {
+                 "height":234.666666666667,
+                 "id":17,
+                 "name":"room-1",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":272,
+                 "x":24,
+                 "y":26.6666666666667
+                }, 
+                {
+                 "height":238.666666666667,
+                 "id":18,
+                 "name":"room-2",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":272,
+                 "x":664,
+                 "y":24
+                }, 
+                {
+                 "height":204,
+                 "id":19,
+                 "name":"room-3",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":273.333333333333,
+                 "x":22.6666666666667,
+                 "y":410.666666666667
+                }, 
+                {
+                 "height":206.666666666667,
+                 "id":20,
+                 "name":"room-4",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":272,
+                 "x":665.333333333333,
+                 "y":409.333333333333
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":16,
- "nextobjectid":1,
+ "nextlayerid":18,
+ "nextobjectid":21,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
@@ -290,27 +510,27 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"Inside_A2.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/Inside_A2.tsx"
         }, 
         {
          "firstgid":193,
-         "source":"Inside_B.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/Inside_B.tsx"
         }, 
         {
          "firstgid":449,
-         "source":"bookshelf.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/bookshelf.tsx"
         }, 
         {
          "firstgid":452,
-         "source":"interior.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/interior.tsx"
         }, 
         {
          "firstgid":708,
-         "source":"liverary_asset.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/liverary_asset.tsx"
         }, 
         {
          "firstgid":1108,
-         "source":"Interior_full.tsx"
+         "source":"..\/..\/..\/..\/..\/..\/..\/workspace\/live-rary\/maps\/Interior_full.tsx"
         }],
  "tilewidth":32,
  "type":"map",

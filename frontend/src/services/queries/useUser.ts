@@ -12,8 +12,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import type {
   UserBooksResponse,
   UserBookStatus,
-} from '@/types/bookshelf.types';
-import type { UserUpdateRequest } from '@/types/user.types';
+} from '@/types/entities/bookshelf.types';
+import type { UserUpdateRequest } from '@/types/entities/user.types';
 
 /**
  * 유저 정보 받아오기

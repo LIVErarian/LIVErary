@@ -48,7 +48,7 @@ globalStyle('*', {
   WebkitFontSmoothing: 'none',
 });
 
-// [추가] 전역 스크롤바 디자인 통일
+// 전역 스크롤바 디자인 통일
 globalStyle('::-webkit-scrollbar', {
   width: '8px', // 세로 스크롤 너비
   height: '8px', // 가로 스크롤 높이

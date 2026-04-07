@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { ReviewForm } from './ReviewForm';
 import { ReviewItem } from './ReviewItem';
 
-import type { BoardType } from '@/types/board.types';
+import type { BoardType } from '@/types/entities/board.types';
 
 import * as styles from './Review.css';
 

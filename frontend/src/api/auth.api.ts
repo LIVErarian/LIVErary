@@ -13,7 +13,7 @@ import type {
   ResetPasswordRequest,
   SignupRequest,
   SignupResponse,
-} from '@/types/auth.types';
+} from '@/types/entities/auth.types';
 
 export const authApi = {
   /**

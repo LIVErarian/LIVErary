@@ -23,13 +23,13 @@ import { MAP_DATA } from '../map/mapAssets';
 import { MapManager } from './MapManager';
 import { PlayerManager } from './PlayerManager';
 
-import type { PartType } from '@/types/character.types';
+import type { PartType } from '@/types/game/character.types';
 import type {
   FloorType,
   MapZoneAction,
-  MapZoneConfig,
-} from '@/types/map.types';
-import type { Direction, MoveRequest } from '@/types/socket.types';
+  MapZoneRuntime,
+} from '@/types/game/map.types';
+import type { Direction, MoveRequest } from '@/types/socket/socket.types';
 
 import { contentFont } from '@/styles/global.css.ts';
 import { palette } from '@/styles/theme.css.ts';
@@ -189,6 +189,9 @@ export class GameApp {
         } else if (floor === 'bookConcert') {
           this._playerManager.me.x = width / 2;
           this._playerManager.me.y = height;
+        } else if (floor === 'conferenceFloor') {
+          this._playerManager.me.x = width * this.CONFERENCE_ENTRY_SPAWN.x;
+          this._playerManager.me.y = height * this.CONFERENCE_ENTRY_SPAWN.y;
         } else {
           this._playerManager.me.x = width * 0.38;
           this._playerManager.me.y = height * 0.25;
@@ -198,10 +201,10 @@ export class GameApp {
       this._playerManager.me.setAnimation('DOWN', false);
     }
 
-    const { subscribeMove, unsubscribeMove, isConnected, sendEnter } =
+    const { joinChannel, leaveChannel, isConnected, sendEnter } =
       useSocketStore.getState();
 
-    unsubscribeMove({
+    leaveChannel({
       sendExit: true,
       exitFloorId: prevMovementChannelId || prevFloorId,
     });
@@ -214,7 +217,7 @@ export class GameApp {
         `[GameApp] ${floor}(${movementChannelId}) 구독 프로세스 시작`,
       );
 
-      await subscribeMove(movementChannelId, (moves) => {
+      await joinChannel(movementChannelId, (moves) => {
         this._playerManager.updateOtherPlayers(moves);
       });
 
@@ -302,6 +305,7 @@ export class GameApp {
       if (!this._isCtrlPressed) {
         this._isCtrlPressed = true;
         me.toggleSit();
+        this.sendMyPosition(false);
       }
     } else {
       this._isCtrlPressed = false;
@@ -395,6 +399,7 @@ export class GameApp {
         y: me.y,
         direction: this._lookingDirection,
         isMoving: true,
+        isSitting: me.isSitting,
         clientTs: Date.now(),
       };
 
@@ -405,13 +410,13 @@ export class GameApp {
     this._isPrevMoving = isMoving;
 
     if (this._mapManager.mapZones.length > 0) {
-      let interactableZone: MapZoneConfig | null = null;
+      let interactableZone: MapZoneRuntime | null = null;
       for (const zone of this._mapManager.mapZones) {
         const inside =
-          me.x >= zone.absX &&
-          me.x <= zone.absX + zone.absW &&
-          me.y >= zone.absY &&
-          me.y <= zone.absY + zone.absH;
+          me.x >= zone.x &&
+          me.x <= zone.x + zone.width &&
+          me.y >= zone.y &&
+          me.y <= zone.y + zone.height;
 
         const triggers = Array.isArray(zone.trigger)
           ? zone.trigger
@@ -489,6 +494,7 @@ export class GameApp {
       y: this._playerManager.me.y,
       direction: this._lookingDirection,
       isMoving,
+      isSitting: this._playerManager.me.isSitting,
       clientTs: Date.now(),
     };
     const { isConnected, sendMove } = useSocketStore.getState();
@@ -516,7 +522,7 @@ export class GameApp {
       | 'screenCenter'
       | 'zoneFrontAbove'
       | 'zoneFrontBelow',
-    zone?: MapZoneConfig,
+    zone?: MapZoneRuntime,
     suppressNextTrigger?: 'enter' | 'exit',
   ) {
     const me = this._playerManager.me;
@@ -526,10 +532,10 @@ export class GameApp {
       me.x = this._mapManager.worldWidth / 2;
       me.y = this._mapManager.worldHeight / 2;
     } else if (zone) {
-      const zoneX = zone.absX ?? zone.x * this._mapManager.worldWidth;
-      const zoneY = zone.absY ?? zone.y * this._mapManager.worldHeight;
-      const zoneW = zone.absW ?? zone.width * this._mapManager.worldWidth;
-      const zoneH = zone.absH ?? zone.height * this._mapManager.worldHeight;
+      const zoneX = zone.x;
+      const zoneY = zone.y;
+      const zoneW = zone.width;
+      const zoneH = zone.height;
       const centerX = zoneX + zoneW / 2;
       const centerY = zoneY + zoneH / 2;
       const offsetY = this._mapManager.worldHeight * 0.05;
@@ -564,7 +570,7 @@ export class GameApp {
     this.sendMyPosition(false);
   }
 
-  private handleZoneAction(action?: MapZoneAction, zone?: MapZoneConfig) {
+  private handleZoneAction(action?: MapZoneAction, zone?: MapZoneRuntime) {
     if (!action) return;
 
     if (action.type === 'moveConfirm') {
@@ -755,7 +761,7 @@ export class GameApp {
     }
   }
 
-  // [수정] createViewport - 매니저 참조 제거 및 기본값 사용
+  // createViewport - 매니저 참조 제거 및 기본값 사용
   private createViewport() {
     this._viewport = new Viewport({
       screenWidth: this._app.screen.width,
@@ -780,7 +786,7 @@ export class GameApp {
 
   // destroy - 안전한 null 체크 추가
   public destroy() {
-    useSocketStore.getState().unsubscribeMove({
+    useSocketStore.getState().leaveChannel({
       sendExit: true,
       // mapManager가 있으면 currentFloorId 사용, 없으면 빈 문자열
       exitFloorId:

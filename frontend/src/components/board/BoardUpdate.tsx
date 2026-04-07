@@ -5,7 +5,7 @@ import { useMyScheduledRooms } from '@/services/queries/useRoomQueries';
 import { useModalStore } from '@/store/useModalStore';
 import { PixelButton } from '../common/PixelButton';
 
-import type { BoardDetail as BoardDetailData } from '@/types/board.types';
+import type { BoardDetail as BoardDetailData } from '@/types/entities/board.types';
 
 import * as styles from './BoardCreate.css';
 import { theme } from '@/styles/theme.css';

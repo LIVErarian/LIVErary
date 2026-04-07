@@ -4,7 +4,7 @@ import type { Client } from '@stomp/stompjs';
 import { getHeaders, useSocketStore } from '@/store/useSocketStore';
 import { useSoundStore } from '@/store/useSoundStore';
 
-import type { SignalingMessage } from '@/types/socket.types';
+import type { SignalingMessage } from '@/types/socket/socket.types';
 
 export const useWebRTC = (roomId: string, myUserId: string) => {
   const { client, isConnected } = useSocketStore();

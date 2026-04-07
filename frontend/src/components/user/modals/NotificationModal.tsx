@@ -6,7 +6,7 @@ import { PixelPagination } from '@/components/common/PixelPagination'; // Import
 import { useNotification } from '@/services/queries/useNotification.ts';
 import { useModalStore } from '@/store/useModalStore';
 
-import type { Notification } from '@/types/notification.types';
+import type { Notification } from '@/types/entities/notification.types.ts';
 
 import * as notiStyles from './NotificationModal.css.ts';
 
