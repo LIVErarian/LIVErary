@@ -22,10 +22,13 @@ export const authApi = {
    * @returns AccessToken, RefreshToken
    */
   login: async (req: LoginRequest): Promise<LoginResponseData> => {
-    return {
-      accessToken: 'mockAccessToken',
-      refreshToken: 'mockRefreshToken',
-    };
+    const { data } = await api.post<LoginResponse>('/auth/login', req);
+
+    if (!data.data) {
+      throw new Error('데이터가 존재하지 않습니다.');
+    }
+
+    return data.data;
   },
 
   /**

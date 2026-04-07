@@ -22,7 +22,6 @@ import type {
 } from '@/types/entities/auth.types';
 
 export const useLogin = () => {
-  // Mocked login logic for testing purposes
   const navigate = useNavigate();
   const setTokens = useAuthStore((state) => state.setTokens);
   const setUser = useAuthStore((state) => state.setUser);
